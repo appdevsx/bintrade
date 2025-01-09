@@ -7,7 +7,7 @@ import logo from '@/public/images/logo/logo.png';
 
 const footer = {
     image: logo,
-    copyright: '© Copyright 2024. Template by AppDevs®'
+    copyright: '© Copyright 2025. Template by AppDevs®'
 }
 
 const footerWidget = {
