@@ -1,0 +1,24 @@
+.stepItem{
+    position: relative;
+    background: linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%);
+    padding: 30px;
+    border-radius: 8px;
+    z-index: 2;
+    overflow: hidden;
+    transition: all 0.25s ease-out;
+}
+.stepList li{
+    display: flex;
+    flex-wrap: wrap;
+    padding-top: 10px;
+}
+.stepList li svg{
+    width: 13px;
+    position: relative;
+    top: 5px;
+    fill: #e5e7eb;
+}
+.stepList li span{
+    width: calc(100% - 13px);
+    padding-left: 10px;
+}

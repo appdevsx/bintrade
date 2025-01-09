@@ -1,0 +1,29 @@
+.featureItem{
+    position: relative;
+    background: linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%);
+    padding: 30px;
+    border-radius: 8px;
+    z-index: 2;
+    overflow: hidden;
+    transition: all 0.25s ease-out;
+}
+.featureItem::before{
+    content: "";
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    right: -30px;
+    background: #2e7eff;
+    height: 100%;
+    width: 16px;
+    -webkit-transform: skew(6deg);
+    transform: skew(6deg);
+    -webkit-transition: all 0.25s ease-out;
+    transition: all 0.25s ease-out;
+}
+.featureItem:hover{
+    transform: translateY(-5px);
+}
+.featureItem:hover::before{
+    right: -10px;
+}

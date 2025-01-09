@@ -1,0 +1,75 @@
+.link{
+    font-size: 14px;
+    @apply py-6 font-semibold text-white relative z-10 transition-all pl-3
+}
+.linkActive{
+    @apply py-6 font-semibold text--base relative z-10 transition-all pl-3
+}
+.link::before{
+    position: absolute;
+    content: "";
+    top: 50%;
+    transform: translateY(-50%);
+    left: 0;
+    width: 5px;
+    height: 5px;
+    background-color: #ffffff;
+    border-radius: 30px;
+    transition: all 0.5s;
+    z-index: -1;
+}
+.linkActive::before{
+    position: absolute;
+    content: "";
+    top: 50%;
+    transform: translateY(-50%);
+    left: 0;
+    width: 5px;
+    height: 5px;
+    background-color: #2e7eff;
+    border-radius: 30px;
+    transition: all 0.5s;
+    z-index: -1;
+}
+.linkActive::after{
+    position: absolute;
+    content: "";
+    top: 47%;
+    left: 0;
+    width: 5px;
+    height: 5px;
+    background-color: #2e7eff;
+    animation: ripple 1.6s ease-out infinite;
+    border-radius: 30px;
+    transition: all 0.5s;
+    z-index: -1;
+}
+.text--base{
+	color: #2e71e5;
+}
+.bg--base{
+	background-color: #2e71e5;
+}
+.headerAction{
+    font-size: 14px;
+    padding: 5px 18px;
+    @apply bg--base flex items-center gap-2 text-white font-semibold rounded-md transition-all hover:bg-blue-700
+}
+.headerAction svg{
+    width: 16px;
+}
+
+@keyframes ripple {
+    0%, 35% {
+      transform: scale(0);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.8);
+      opacity: 0.8;
+    }
+    100% {
+      opacity: 0;
+      transform: scale(2.3);
+    }
+}

@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body{
+	font-size: 15px;
+	line-height: 1.7em;
+	background-color: #011120;
+	@apply text-slate-300
+}
+h1,h2,h3,h4,h5,h6{
+	line-height: 1.1 !important;
+	@apply text-white
+}
+h1{
+	font-size: 55px;
+}
+.custom-container{
+	@apply container mx-auto max-w-6xl
+}
+.custom-container-hero{
+	@apply container mx-auto max-w-screen-2xl
+}
+.bg--base{
+	background-color: #2e71e5;
+}
+.text--base{
+	color: #2e71e5;
+}
+.border--base{
+	border-color: #2e71e5;
+}
+.section--bg{
+	background-color: #051422;
+}
+.gradient--bg{
+	background: linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%);
+}
+.mb-60-none{
+	margin-bottom: -60px;
+}
+.baseBtn{
+    @apply bg--base inline-flex items-center gap-2 text-white font-semibold rounded-md transition-all hover:bg-blue-700 px-7 py-2.5
+}
+.baseBtn svg{
+    width: 18px;
+}
+.customBtn{
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	font-weight: 700;
+	color: #2e71e5;
+}
+.customBtn svg{
+	width: 18px;
+}
+.custom--shadow{
+	box-shadow: 0 8px 10px -6px #0000008c, 0 18px 22px -4px #0910168c;
+}
+.custom--btn--bg{
+	background: linear-gradient(137.45deg, #081e32 7.42%, #081b2c 104.16%);
+}
+html::-webkit-scrollbar {
+	height: 20px;
+	width: 6px;
+	background: #f1f1f1;
+	border-radius: 10px;
+}
+html::-webkit-scrollbar-thumb {
+	background: #999;
+	border-radius: 10px;
+}
+html::-webkit-scrollbar-corner {
+	background: #999;
+	border-radius: 10px;
+}
+.brand-slider{
+	mask-image: linear-gradient(to right, rgba(0, 0, 0, 0) 0%, rgb(0, 0, 0) 12.5%, rgb(0, 0, 0) 87.5%, rgba(0, 0, 0, 0) 100%);
+}
+.brand-slider .swiper-wrapper{
+    display: flex;
+    align-items: center;
+}
+.step-thumb{
+	right: -20px;
+	bottom: -20px;
+}

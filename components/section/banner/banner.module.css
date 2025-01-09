@@ -1,0 +1,30 @@
+.bannerSection{
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: calc(70vh - 73.5px);
+}
+.bannerBg{
+    object-fit: cover;
+    /* object-position: top; */
+    z-index: -5;
+}
+.subTitle{
+    @apply text-white block text-lg mb-4 relative pl-8 font-medium
+}
+.subTitle::before{
+    position: absolute;
+    content: "";
+    top: 50%;
+    transform: translateY(-50%);
+    left: 0;
+    width: 20px;
+    height: 2px;
+    background-color: #2e7eff;
+}
+.description{
+    color: #ffffff;
+    font-size: 17px;
+    padding-left: 20px;
+    border-left: 2px solid #2e7eff;
+}

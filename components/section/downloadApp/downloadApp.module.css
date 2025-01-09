@@ -1,0 +1,13 @@
+.appItem{
+    position: relative;
+    background: linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%);
+    padding: 30px;
+    border-radius: 8px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    transition: all 0.25s ease-out;
+}
+.appItem:hover{
+    transform: translateY(-5px);
+}

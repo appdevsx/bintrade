@@ -1,0 +1,34 @@
+.blogItem{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 60px;
+}
+.blogItem:nth-child(even){
+    flex-direction: row-reverse;
+}
+.blogThumb{
+    width: 46%;
+}
+.blogContent{
+    width: calc(100% - 70%);
+    margin-left: 80px;
+}
+.blogItem:nth-child(even) .blogContent{
+    margin-left: 0;
+    margin-right: 80px;
+    text-align: right;
+}
+.customBtn{
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	font-weight: 700;
+	color: #2e71e5;
+}
+.customBtn svg{
+	width: 18px;
+}
+.blogItem:nth-child(even) .customBtn{
+    justify-content: flex-end;
+}

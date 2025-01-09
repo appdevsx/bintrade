@@ -1,0 +1,27 @@
+.aboutWrapper{
+    position: relative;
+    background: #051422;
+    padding: 60px;
+    border-radius: 8px;
+    z-index: 2;
+    overflow: hidden;
+    transition: all 0.25s ease-out;
+}
+.aboutList{
+    width: 80%;
+}
+.aboutList li{
+    display: flex;
+    flex-wrap: wrap;
+    padding-top: 10px;
+}
+.aboutList li svg{
+    width: 13px;
+    position: relative;
+    top: 5px;
+    fill: #e5e7eb;
+}
+.aboutList li span{
+    width: calc(100% - 13px);
+    padding-left: 10px;
+}
