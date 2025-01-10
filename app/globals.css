@@ -89,3 +89,6 @@ html::-webkit-scrollbar-corner {
 	right: -20px;
 	bottom: -20px;
 }
+#tv-attr-logo{
+	display: none;
+}
