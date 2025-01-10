@@ -1,3 +1,5 @@
+'use client'
+import { Toaster, toast } from "react-hot-toast";
 import styles from "./contact.module.css";
 import { ArrowRightToLine } from 'lucide-react';
 
@@ -30,8 +32,13 @@ const contactForm = {
 }
 
 export default function Contact() {
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        toast.success('Your message has been sent!', {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
+    };
     return (
 		<section className="contact-section relative z-1 py-20">
+            <Toaster reverseOrder={false} theme="dark" />
             <div className={styles.contactElement}></div>
             <div className="custom-container">
                 <div className="contact-wrapper grid grid-cols-2 gap-5 items-center">
@@ -60,18 +67,18 @@ export default function Contact() {
                                 <h3 className="title text-2xl font-bold mb-3">{contactForm.title}</h3>
                                 <p>{contactForm.description}</p>
                             </div>
-                            <form className="contact-form-inner grid grid-cols-12 gap-5">
+                            <form className="contact-form-inner grid grid-cols-12 gap-5" onSubmit={handleSubmit}>
                                 <div className="form-group col-span-6">
                                     <label className="text-sm mb-2 block">{contactForm.nameLabel}*</label>
-                                    <input type="text" placeholder="Type name here..." className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"></input>
+                                    <input type="text" placeholder="Type name here..." className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg" required></input>
                                 </div>
                                 <div className="form-group col-span-6">
                                     <label className="text-sm mb-2 block">{contactForm.emailLabel}*</label>
-                                    <input type="text" placeholder="Type email here..." className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"></input>
+                                    <input type="text" placeholder="Type email here..." className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg" required></input>
                                 </div>
                                 <div className="form-group col-span-12">
                                     <label className="text-sm mb-2 block">{contactForm.messageLabel}*</label>
-                                    <textarea placeholder="Type message here..." className="w-full h-32 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"></textarea>
+                                    <textarea placeholder="Type message here..." className="w-full h-32 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg" required></textarea>
                                 </div>
                                 <div className="form-group col-span-12">
                                     <button type="submit" className="baseBtn">{contactForm.button} <ArrowRightToLine /></button>

@@ -1,0 +1,9 @@
+.testimonialItem{
+    position: relative;
+    background: #051422;
+    padding: 20px;
+    border-radius: 8px;
+    z-index: 2;
+    overflow: hidden;
+    transition: all 0.25s ease-out;
+}

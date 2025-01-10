@@ -1,3 +1,5 @@
+'use client'
+import { Toaster, toast } from "react-hot-toast";
 import Link from "next/link";
 import Image from "next/image";
 import Button from "../button/button";
@@ -94,8 +96,13 @@ const footerSocials = [
 ]
 
 export default function Footer() {
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        toast.success('Email sent successful!', {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
+    };
     return (
         <footer className="footer-section section--bg pt-20">
+            <Toaster reverseOrder={false} theme="dark" />
             <div className="footer-top-area">
                 <div className="custom-container">
                     <div className="footer-top-wrapper grid grid-cols-1 gap-8 lg:grid-cols-1">
@@ -121,7 +128,7 @@ export default function Footer() {
                                 <ul className="footer-list space-y-2">
                                     {footerFirstLists.map(( footerFirstList, index ) => {
                                         return (
-                                            <li className="font-medium text-sm text-slate-300" key={index}>
+                                            <li className="font-medium text-sm text-slate-300 hover:text-white" key={index}>
                                                 <Link href="{footerFirstList.href}">{footerFirstList.name}</Link>
                                             </li>
                                         );
@@ -133,7 +140,7 @@ export default function Footer() {
                                 <ul className="footer-list space-y-2">
                                     {footerSecondLists.map(( footerSecondList, index ) => {
                                         return (
-                                            <li className="font-medium text-sm text-slate-300" key={index}>
+                                            <li className="font-medium text-sm text-slate-300 hover:text-white" key={index}>
                                                 <Link href="{footerSecondList.href}">{footerSecondList.name}</Link>
                                             </li>
                                         );
@@ -145,7 +152,7 @@ export default function Footer() {
                                 <ul className="footer-list space-y-2">
                                     {footerThirdLists.map(( footerThirdList, index ) => {
                                         return (
-                                            <li className="font-medium text-sm text-slate-300" key={index}>
+                                            <li className="font-medium text-sm text-slate-300 hover:text-white" key={index}>
                                                 <Link href="{footerThirdList.href}">{footerThirdList.name}</Link>
                                             </li>
                                         );
@@ -157,7 +164,7 @@ export default function Footer() {
                                 <ul className="footer-list space-y-2">
                                     {footerFourthLists.map(( footerFourthList, index ) => {
                                         return (
-                                            <li className="font-medium text-sm text-slate-300" key={index}>
+                                            <li className="font-medium text-sm text-slate-300 hover:text-white" key={index}>
                                                 <Link href="{footerFourthList.href}">{footerFourthList.name}</Link>
                                             </li>
                                         );
@@ -167,8 +174,8 @@ export default function Footer() {
                             <div className="footer-widget">
                                 <h4 className="widget-title text-lg font-bold mb-2.5 text-white">{footerSubscribe.title}</h4>
                                 <p className="text-sm text-slate-300">{footerSubscribe.description}</p>
-                                <form className="flex space-x-2 mt-4">
-                                    <input type="text" placeholder="Type email here..." className="w-full h-10 text-xs font-medium rounded-md shadow-sm border-slate-800 text-slate-300 bg-slate-900"></input>
+                                <form className="flex space-x-2 mt-4" onSubmit={handleSubmit}>
+                                    <input type="email" placeholder="Type email here..." className="w-full h-10 text-xs font-medium rounded-md shadow-sm border-slate-800 text-slate-300 bg-slate-900" required></input>
                                     <Button type="submit" size="xs"><ArrowRightToLine /></Button>
                                 </form>
                             </div>

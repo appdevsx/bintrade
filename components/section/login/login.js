@@ -1,6 +1,8 @@
+'use client'
 import styles from "./login.module.css";
 import Link from "next/link";
 import Image from "next/image";
+import { Toaster, toast } from "react-hot-toast";
 import { ArrowRightToLine } from 'lucide-react';
 import { ArrowBigLeftDash } from 'lucide-react';
 
@@ -18,8 +20,13 @@ const accountWrapper = {
 }
 
 export default function Login() {
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        toast.success('Login Successful!', {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
+    };
     return (
 		<section className="account-section relative">
+            <Toaster reverseOrder={false} theme="dark" />
             <div className={styles.accountElement}></div>
             <div className="back-to-home-btn absolute top-5 left-5">
                 <Link href="/" className="custom--btn--bg inline-flex items-center gap-2 text-white font-semibold rounded-md transition-all hover:bg-blue-700 px-6 py-2 text-sm custom--shadow"><ArrowBigLeftDash /> {accountWrapper.backButton}</Link>
@@ -41,9 +48,9 @@ export default function Login() {
                         <p className="text-sm mt-3">{accountWrapper.description}</p>
                     </div>
                     <div className="account-footer section--bg p-8">
-                        <form className="account-form">
+                        <form className="account-form" onSubmit={handleSubmit}>
                             <div className="form-group mb-4">
-                                <input type="text" placeholder="Type email here..." className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"></input>
+                                <input type="email" placeholder="Type email here..." className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg" required></input>
                             </div>
                             <button type="submit" className="baseBtn w-full justify-center text-sm">{accountWrapper.accountButton} <ArrowRightToLine /></button>
                             <div className="text-center mt-5">

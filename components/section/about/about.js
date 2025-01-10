@@ -28,7 +28,7 @@ const aboutLists = [
 
 export default function About() {
     return (
-		<section className="about-section py-20">
+		<section className="about-section pt-20">
             <div className="custom-container">
                 <div className={styles.aboutWrapper}>
 					<div className="about-inner-wrapper grid grid-cols-2 gap-5 items-center">
