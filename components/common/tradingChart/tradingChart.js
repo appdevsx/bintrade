@@ -608,7 +608,7 @@ const RealtimeChart = () => {
                     textColor: 'white',
                     background: { type: 'solid', color: '#011120' },
                 },
-                height: 900,
+                height: 600,
                 grid: {
                     vertLines: { color: '#1e293b', visible: true },
                     horzLines: { color: '#1e293b', visible: true },

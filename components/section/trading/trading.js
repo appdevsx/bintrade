@@ -6,7 +6,7 @@ const RealtimeChart = dynamic(() => import('@/components/common/tradingChart/tra
 
 export default function Chart() {
     return (
-        <div>
+        <div className="overflow-hidden">
             {/* <TradingChart /> */}
             <RealtimeChart />
         </div>

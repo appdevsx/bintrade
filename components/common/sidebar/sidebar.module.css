@@ -1,0 +1,37 @@
+.sidebarLink{
+    @apply font-medium text-[12px]
+}
+.sidebarLink svg{
+    width: 16px;
+    position: relative;
+    top: 1px;
+    margin-left: 3px;
+}
+.sidebarLinkActive{
+    color: #2563EB;
+    @apply font-semibold text-[12px]
+}
+.sidebarLinkActive svg{
+    width: 16px;
+    position: relative;
+    top: 1px;
+    margin-left: 3px;
+}
+.sidebarSubLink{
+    color: rgba(60,60,60,0.7);
+    font-size: 13px;
+    font-weight: 500;
+    display: block;
+    transition: all 0.5s;
+}
+.sidebarSubLinkActive{
+    color: #2563EB;
+    font-size: 13px;
+    font-weight: 500;
+    display: block;
+    border-radius: 8px;
+    transition: all 0.5s;
+}
+.text--base{
+	color: #2563EB;
+}
