@@ -1,10 +1,13 @@
 "use client";
 import { useState } from "react";
 import { useEffect } from 'react';
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronRight, StepForward, Minimize2 } from 'lucide-react';
+import { ChevronRight, StepForward, Minimize2, AudioLines, RedoDot, MessageCircleQuestion } from 'lucide-react';
 import styles from "./sidebar.module.css";
+
+import logo from '@/public/images/logo/favicon.png';
 
 const sidebarLinks = [
     {
@@ -15,21 +18,21 @@ const sidebarLinks = [
         arrow: null,
     },
     {
-        icon: Minimize2,
+        icon: AudioLines,
         name: 'Trading',
         href: '/trading',
         submenu: null,
         arrow: null,
     },
     {
-        icon: Minimize2,
+        icon: RedoDot,
         name: 'History',
         href: '/',
         submenu: null,
         arrow: null,
     },
     {
-        icon: Minimize2,
+        icon: MessageCircleQuestion,
         name: 'Help',
         href: '',
         submenu: null,
@@ -66,14 +69,24 @@ export default function Sidebar() {
     };
 
     return (
-        <div className="fixed top-0 left-0 w-[80px] h-screen section--bg border-r border-slate-800 py-8 px-2">
+        <div className="fixed top-0 left-0 w-[80px] h-screen section--bg border-r border-slate-800 py-7 px-2 z-[2]">
             <button className={`sidebar-mobile-toggle lg:hidden fixed top-1/2 left-0 z-50 lg:z-0 bg-white custom--shadow-inner text--base py-2 pr-3 ${isSidebarOpen ? 'active-class' : ''}`}
                 onClick={toggleSidebar}>
                 <StepForward size={25} />
             </button>
             <div className="">
                 <div className="sidebar-wrapper">
-                    <ul className="sidebar-main-menu space-y-2">
+                    <Link href="/" className="site-logo relative overflow-hidden block mb-8">
+                        <Image src={logo} 
+                            className="object-cover mx-auto" 
+                            width={30} 
+                            alt="logo"
+                            priority={true} 
+                            quality={50}  
+                            decoding="async" 
+                        />
+                    </Link>
+                    <ul className="sidebar-main-menu space-y-6">
                         {sidebarLinks.map((sidebarLink, index) => {
                             if (sidebarLink.isHeader) {
                                 return (

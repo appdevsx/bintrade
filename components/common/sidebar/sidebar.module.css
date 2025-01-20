@@ -2,20 +2,16 @@
     @apply font-medium text-[12px]
 }
 .sidebarLink svg{
-    width: 16px;
-    position: relative;
-    top: 1px;
-    margin-left: 3px;
+    width: 22px;
+    margin: 0 auto;
 }
 .sidebarLinkActive{
-    color: #2563EB;
+    color: #ffffff;
     @apply font-semibold text-[12px]
 }
 .sidebarLinkActive svg{
-    width: 16px;
-    position: relative;
-    top: 1px;
-    margin-left: 3px;
+    width: 22px;
+    margin: 0 auto;
 }
 .sidebarSubLink{
     color: rgba(60,60,60,0.7);
@@ -25,7 +21,7 @@
     transition: all 0.5s;
 }
 .sidebarSubLinkActive{
-    color: #2563EB;
+    color: #ffffff;
     font-size: 13px;
     font-weight: 500;
     display: block;
@@ -33,5 +29,5 @@
     transition: all 0.5s;
 }
 .text--base{
-	color: #2563EB;
+	color: #2e71e5;
 }

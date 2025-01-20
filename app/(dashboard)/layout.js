@@ -1,6 +1,7 @@
 import { DM_Sans } from "next/font/google";
 import "../globals.css";
 import Sidebar from "@/components/common/sidebar/sidebar";
+import Topbar from "@/components/common/topbar/topbar";
 
 const inter = DM_Sans({ subsets: ["latin"] });
 
@@ -17,11 +18,11 @@ export default function DashboardLayout({ children }) {
 					<div className="dashboard-wrapper">
 						<Sidebar/>
 						<div className="dashboard-main-wrapper w-[calc(100%-80px)] ml-auto">
+                            <Topbar/>
                             <div className="dashboard-body-wrapper">
                                 {children}
                             </div>
                         </div>
-						{/* <Asidebar/> */}
 					</div>
 				</main>
             </body>
