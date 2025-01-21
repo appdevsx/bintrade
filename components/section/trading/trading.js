@@ -1,14 +1,21 @@
+"use client";
+import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
-import Asidebar from "@/components/common/asidebar/asidebar";
 const RealtimeChart = dynamic(() => import('@/components/common/tradingChart/tradingChart'), {
     ssr: false,
 });
 
-export default function Chart() {
+export default function Trading() {
+    const [isProcessing, setIsProcessing] = useState(false);
+    const handleUpClick = () => {
+        setIsProcessing(true);
+        setTimeout(() => {
+            setIsProcessing(false);
+        }, 5000);
+    };
     return (
-        <div className="flex overflow-hidden">
-            <RealtimeChart />
-            <Asidebar/>
+        <div className="">
+            <RealtimeChart handleUpClick={handleUpClick} isProcessing={isProcessing} />
         </div>
     );
 }

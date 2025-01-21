@@ -69,7 +69,7 @@ export default function Sidebar() {
     };
 
     return (
-        <div className="fixed top-0 left-0 w-[80px] h-screen section--bg border-r border-slate-800 py-7 px-2 z-[2]">
+        <div className="fixed top-0 left-0 w-[80px] h-screen section--bg border-r border-slate-800 py-5 px-2 z-[2]">
             <button className={`sidebar-mobile-toggle lg:hidden fixed top-1/2 left-0 z-50 lg:z-0 bg-white custom--shadow-inner text--base py-2 pr-3 ${isSidebarOpen ? 'active-class' : ''}`}
                 onClick={toggleSidebar}>
                 <StepForward size={25} />

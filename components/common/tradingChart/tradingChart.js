@@ -1,11 +1,17 @@
 'use client'
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createChart } from 'lightweight-charts';
+import Asidebar from "@/components/common/asidebar/asidebar";
 
 const RealtimeChart = () => {
     const chartContainerRef = useRef(null);
     const chartRef = useRef(null);
     const seriesRef = useRef(null);
+
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [resultMarker, setResultMarker] = useState(null);
+    const [tradeResult, setTradeResult] = useState(null);
+    const [currentAction, setCurrentAction] = useState(null);
 
     const generateData = (numberOfCandles = 500, updatesPerCandle = 5, startAt = 100) => {
         let randomFactor = 25 + Math.random() * 25;
@@ -76,23 +82,29 @@ const RealtimeChart = () => {
         if (chartContainerRef.current) {
             const chartOptions = {
                 layout: {
-                    textColor: '#1e293b',
+                    textColor: '#425472',
                     background: { type: 'solid', color: '#011120' },
                 },
-                height: 840,
+                height: 815,
                 grid: {
-                    vertLines: { color: "#1e293b" },
-                    horzLines: { color: "#1e293b" },
+                    vertLines: { color: "#172234" },
+                    horzLines: { color: "#172234" },
+                },
+                rightPriceScale: {
+                    borderVisible: false,
+                },
+                timeScale: {
+                    borderVisible: false,
                 },
             };
 
             chartRef.current = createChart(chartContainerRef.current, chartOptions);
             const series = chartRef.current.addCandlestickSeries({
-                upColor: '#2e71e5',
-                downColor: '#bf126a',
+                upColor: '#2dd674',
+                downColor: '#ff5765',
                 borderVisible: false,
-                wickUpColor: '#2e71e5',
-                wickDownColor: '#bf126a',
+                wickUpColor: '#2dd674',
+                wickDownColor: '#ff5765',
             });
 
             seriesRef.current = series;
@@ -126,9 +138,57 @@ const RealtimeChart = () => {
         }
     }, []);
 
+    const handleTradeClick = (direction) => {
+        if (isProcessing || !chartRef.current || !seriesRef.current) return;
+
+        setIsProcessing(true);
+        setCurrentAction(direction); // Show "Up" or "Down" immediately
+
+        // Show the immediate mark
+        setResultMarker({
+            time: Date.now(),
+            position: direction === 'up' ? 'aboveBar' : 'belowBar',
+            color: direction === 'up' ? '#2dd674' : '#ff5765',
+            shape: direction === 'up' ? 'arrowUp' : 'arrowDown',
+            text: direction === 'up' ? 'Up' : 'Down',
+        });
+
+        // Wait for 5 seconds to simulate the trade duration
+        setTimeout(() => {
+            const latestData = seriesRef.current.data();
+            const latestCandle = latestData[latestData.length - 1];
+            const previousCandle = latestData[latestData.length - 2];
+
+            if (latestCandle && previousCandle) {
+                const isWin = direction === 'up' ? latestCandle.close > previousCandle.close : latestCandle.close < previousCandle.close;
+
+                setResultMarker({
+                    time: latestCandle.time,
+                    position: isWin ? 'aboveBar' : 'belowBar',
+                    color: isWin ? '#2dd674' : '#ff5765',
+                    shape: isWin ? 'circle' : 'circle',
+                    text: isWin ? 'Win' : 'Lost',
+                });
+
+                setTradeResult(isWin ? 'Win' : 'Lost');
+            }
+
+            setIsProcessing(false);
+        }, 5000); // 5-second delay before showing the result
+    };
+
+    useEffect(() => {
+        if (resultMarker && seriesRef.current) {
+            seriesRef.current.setMarkers([resultMarker]);
+        }
+    }, [resultMarker]);
+
     return (
-        <div className="w-full">
-            <div ref={chartContainerRef} style={{ position: 'relative' }}></div>
+        <div className="flex overflow-hidden">
+            <div className="w-full p-4">
+                <div ref={chartContainerRef} style={{ position: 'relative' }}></div>
+            </div>
+            <Asidebar onTradeClick={handleTradeClick} isProcessing={isProcessing} />
         </div>
     );
 };
