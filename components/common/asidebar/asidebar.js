@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useAccount } from "@/context/accountProvider/accountProvider";
 import styles from "./asidebar.module.css";
 
 export default function Asidebar({ onTradeClick, isProcessing, duration, setDuration }) {
@@ -11,6 +12,8 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
     const [tradeTimer, setTradeTimer] = useState(null);
     const [profitOrLoss, setProfitOrLoss] = useState(null);
     const [tradeOutcome, setTradeOutcome] = useState(null);
+
+    const { accountBalance, updateAccountAmount } = useAccount();
 
     // Handlers for Amount
     const incrementAmount = () => setAmount((prev) => prev + 1);
@@ -32,6 +35,8 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
     const startTrading = (tradeAction) => {
         if (isProcessing) return;
 
+        updateAccountAmount(accountBalance - amount);
+
         setAction(tradeAction);
         setRemainingTime(duration * 60); // Convert minutes to seconds
 
@@ -47,6 +52,7 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
                     const result = isWin ? amount : -amount;
                     setTradeOutcome(isWin ? "Win" : "Loss");
                     setProfitOrLoss(result);
+                    if (isWin) updateAccountAmount(accountBalance + amount * 2);
                     setAction("");
                     return null;
                 }
@@ -107,7 +113,7 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
                 </div>
             </div>
             <button className="w-full bg-[#0d1f30] py-2 rounded-md flex items-center justify-center gap-2 text-sm font-bold">
-                Enable Orders
+                Trade History
                 <span className="text-gray-400 text-lg">⏱</span>
             </button>
             <div className="w-full flex flex-col gap-2">

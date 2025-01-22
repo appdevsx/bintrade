@@ -4,21 +4,21 @@ import { useEffect } from 'react';
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronRight, StepForward, Minimize2, AudioLines, RedoDot, MessageCircleQuestion } from 'lucide-react';
+import { ChevronRight, Gauge, StepForward, Minimize2, RedoDot, MessageCircleQuestion } from 'lucide-react';
 import styles from "./sidebar.module.css";
 
 import logo from '@/public/images/logo/favicon.png';
 
 const sidebarLinks = [
     {
-        icon: Minimize2,
+        icon: Gauge,
         name: 'Analytics',
         href: '/dashboard',
         submenu: null,
         arrow: null,
     },
     {
-        icon: AudioLines,
+        icon: Minimize2,
         name: 'Trading',
         href: '/trading',
         submenu: null,
@@ -26,7 +26,7 @@ const sidebarLinks = [
     },
     {
         icon: RedoDot,
-        name: 'History',
+        name: 'All Logs',
         href: '/',
         submenu: null,
         arrow: null,
@@ -34,7 +34,7 @@ const sidebarLinks = [
     {
         icon: MessageCircleQuestion,
         name: 'Help',
-        href: '',
+        href: '/',
         submenu: null,
         arrow: null,
     },
