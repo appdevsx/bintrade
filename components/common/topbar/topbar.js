@@ -2,7 +2,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { UserRound, ArrowUpLeft, Plus, ChevronDown } from 'lucide-react';
-import styles from "./topbar.module.css";
+// import styles from "./topbar.module.css";
 
 import asia from '@/public/images/currency/asia.svg';
 
