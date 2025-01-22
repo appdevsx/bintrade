@@ -12,6 +12,7 @@ const RealtimeChart = () => {
     const [resultMarker, setResultMarker] = useState(null);
     const [tradeResult, setTradeResult] = useState(null);
     const [currentAction, setCurrentAction] = useState(null);
+    const [duration, setDuration] = useState(1);
 
     const generateData = (numberOfCandles = 500, updatesPerCandle = 5, startAt = 100) => {
         let randomFactor = 25 + Math.random() * 25;
@@ -174,7 +175,7 @@ const RealtimeChart = () => {
             }
 
             setIsProcessing(false);
-        }, 5000); // 5-second delay before showing the result
+        }, duration * 60 * 1000);
     };
 
     useEffect(() => {
@@ -188,7 +189,12 @@ const RealtimeChart = () => {
             <div className="w-full p-4">
                 <div ref={chartContainerRef} style={{ position: 'relative' }}></div>
             </div>
-            <Asidebar onTradeClick={handleTradeClick} isProcessing={isProcessing} />
+            <Asidebar
+                onTradeClick={handleTradeClick}
+                isProcessing={isProcessing}
+                duration={duration}
+                setDuration={setDuration}
+            />
         </div>
     );
 };
