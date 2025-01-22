@@ -2,9 +2,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { UserRound, ArrowUpLeft, Plus, ChevronDown } from 'lucide-react';
-// import styles from "./topbar.module.css";
+import styles from "./topbar.module.css";
 
-import asia from '@/public/images/currency/asia.svg';
+import crypto from '@/public/images/currency/crypto.svg';
 
 export default function Topbar() {
     return (
@@ -15,7 +15,7 @@ export default function Topbar() {
                 </div>
                 <div className="flex items-center bg-[#0d1f30] py-1.5 px-3 rounded-md">
                     <div className="">
-                        <Image src={asia} 
+                        <Image src={crypto} 
                             className="object-cover" 
                             width={30} 
                             alt="currency"
