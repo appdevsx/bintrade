@@ -4,7 +4,7 @@ import Image from "next/image";
 import { UserRound, ArrowUpLeft, Plus, ChevronDown } from 'lucide-react';
 import styles from "./topbar.module.css";
 
-import asia from '@/public/images/currency/asia.svg';
+// import asia from '@/public/images/currency/asia.svg';
 
 export default function Topbar() {
     return (
@@ -14,7 +14,7 @@ export default function Topbar() {
                     <Plus className="w-6" />
                 </div>
                 <div className="flex items-center bg-[#0d1f30] py-1.5 px-3 rounded-md">
-                    <div className="">
+                    {/* <div className="">
                         <Image src={asia} 
                             className="object-cover" 
                             width={30} 
@@ -23,7 +23,7 @@ export default function Topbar() {
                             quality={50}  
                             decoding="async" 
                         />
-                    </div>
+                    </div> */}
                     <div className="pl-1">
                         <div className="text-sm leading-[18px] text-white">Asia Composite Index</div>
                         <div className="text-[12px] leading-[14px]">FT - <span className="text-emerald-400">85%</span></div>
