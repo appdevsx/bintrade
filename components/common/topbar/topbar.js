@@ -4,7 +4,7 @@ import Image from "next/image";
 import { UserRound, ArrowUpLeft, Plus, ChevronDown } from 'lucide-react';
 import styles from "./topbar.module.css";
 
-import asiaCurrency from '@/public/images/currency/asia.svg';
+import logo from '@/public/images/logo/favicon.png';
 
 export default function Topbar() {
     return (
@@ -15,7 +15,7 @@ export default function Topbar() {
                 </div>
                 <div className="flex items-center bg-[#0d1f30] py-1.5 px-3 rounded-md">
                     <div className="">
-                        <Image src={asiaCurrency} 
+                        <Image src={logo} 
                             className="object-cover" 
                             width={30} 
                             alt="currency"
