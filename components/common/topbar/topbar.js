@@ -1,27 +1,156 @@
 "use client";
+import { Toaster, toast } from "react-hot-toast";
+import Select from "react-select";
+import "react-phone-input-2/lib/style.css";
+import PhoneInput from "react-phone-input-2";
+import Flag from "react-world-flags";
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { UserRound, ArrowUpLeft, Plus, ChevronDown, X } from 'lucide-react';
+import { UserRound, ArrowUpLeft, Plus, ChevronDown, X, Settings, ArrowRightToLine, Pencil, Eye, EyeOff } from 'lucide-react';
 import { useAccount } from "@/context/accountProvider/accountProvider";
+import { getCountryOptions } from "@/utils/getCountryOptions/getCountryOptions";
 import styles from "./topbar.module.css";
 
 import crypto from '@/public/images/currency/crypto.svg';
+
+const countryOptions = getCountryOptions();
 
 export default function Topbar() {
     const { accountBalance } = useAccount();
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const [selectedAccount, setSelectedAccount] = useState("Demo Account");
+    const [isProfileSidebarOpen, setProfileSidebarOpen] = useState(false);
+    const [isBottomSidebarOpen, setBottomSidebarOpen] = useState(false);
+    const [isProfileFieldsSidebarOpen, setProfileFieldsSidebarOpen] = useState(false);
+    const [previewImage, setPreviewImage] = useState(null);
+    const [isPasswordSidebarOpen, setPasswordSidebarOpen] = useState(false);
+    const [passwords, setPasswords] = useState({
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+    });
+    const [passwordVisibility, setPasswordVisibility] = useState({
+        oldPassword: false,
+        newPassword: false,
+        confirmPassword: false,
+    });
+    const [profileInfo, setProfileInfo] = useState({
+        name: "John Doe",
+        email: "email@example.com",
+        firstName: "First Name...",
+        lastName: "Last Name...",
+        country: countryOptions[0],
+        profileImage: crypto,
+    });
 
     const toggleSidebar = () => setSidebarOpen((prev) => !prev);
+    const toggleProfileSidebar = () => setProfileSidebarOpen((prev) => !prev);
+    const toggleBottomSidebar = () => setBottomSidebarOpen((prev) => !prev);
+
+    const closeAllSidebars = () => {
+        setSidebarOpen(false);
+        setProfileSidebarOpen(false);
+        setBottomSidebarOpen(false);
+        setProfileFieldsSidebarOpen(false);
+        setPasswordSidebarOpen(false);
+    };
 
     const selectAccount = (accountType) => {
         setSelectedAccount(accountType);
         toggleSidebar(); // Close the sidebar after selecting
     };
 
+    const handleProfileInformationClick = () => {
+        setProfileFieldsSidebarOpen(true); // Open the profile fields sidebar
+    };
+
+    const handlePasswordInformationClick = () => {
+        setPasswordSidebarOpen(true);
+    };
+
+    const handleCountryChange = (selectedOption) => {
+        setProfileInfo((prev) => ({
+          ...prev,
+          country: selectedOption,
+          phone: selectedOption.code, // Update phone based on country code
+        }));
+    };
+    
+    const handlePhoneChange = (value) => {
+        setProfileInfo((prev) => ({
+          ...prev,
+          phone: value,
+        }));
+    };
+
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        toast.success('Profile updated successfully!', {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
+    };
+
+    const handleImageChange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setPreviewImage(reader.result);
+          };
+          reader.readAsDataURL(file);
+        }
+    };
+
+    const handleUpdateProfileImage = () => {
+        if (previewImage) {
+          setProfileInfo((prev) => ({
+            ...prev,
+            profileImage: previewImage, // Update profile image
+          }));
+          setPreviewImage(null); // Clear the preview
+          toast.success("Profile updated successfully!" , {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
+        } else {
+          toast.error("Please select an image first." , {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
+        }
+    };
+
+    const handlePasswordChange = (event) => {
+        event.preventDefault();
+        const { oldPassword, newPassword, confirmPassword } = passwords;
+    
+        if (!oldPassword || !newPassword || !confirmPassword) {
+          toast.error("All fields are required!" , {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
+          return;
+        }
+    
+        if (newPassword !== confirmPassword) {
+          toast.error("New password and confirm password do not match!" , {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
+          return;
+        }
+    
+        // Handle password change logic (e.g., API request)
+        toast.success("Password updated successfully!" , {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
+        setPasswords({ oldPassword: "", newPassword: "", confirmPassword: "" });
+        setPasswordSidebarOpen(false); // Close password sidebar
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setPasswords((prev) => ({
+          ...prev,
+          [name]: value,
+        }));
+    };
+
+    const togglePasswordVisibility = (field) => {
+        setPasswordVisibility((prev) => ({
+          ...prev,
+          [field]: !prev[field],
+        }));
+    };
+
     return (
         <>
+            <Toaster reverseOrder={false} theme="dark" />
             <div className="flex items-center justify-between py-3 px-4">
                 <div className="flex items-center gap-3">
                     <div className="relative w-11 h-11 flex justify-center items-center bg-[#0d1f30] rounded-md">
@@ -53,7 +182,7 @@ export default function Topbar() {
                     <div className="">
                         <Link className="baseBtn !py-2 !px-4" href="/">Payments</Link>
                     </div>
-                    <div className="relative w-11 h-11 flex justify-center items-center bg-[#0d1f30] rounded-full">
+                    <div className="relative w-11 h-11 flex justify-center items-center bg-[#0d1f30] rounded-full cursor-pointer" onClick={toggleProfileSidebar}>
                         <UserRound className="w-5" />
                         <div className="absolute bottom-0 right-[-5px] w-5 h-5 flex justify-center items-center bg-[#0d1f30] border-2 border-[#000000] rounded-full">
                             <ArrowUpLeft className="text-[#2e71e5] w-4" />
@@ -64,7 +193,7 @@ export default function Topbar() {
             <div className={`fixed top-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg transform p-4 ${isSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
                 <div className="flex justify-between items-center p-4">
                     <h2 className="text-white text-lg font-semibold">Accounts</h2>
-                    <button onClick={toggleSidebar}>
+                    <button onClick={closeAllSidebars}>
                         <X className="text-white w-5 h-5" />
                     </button>
                 </div>
@@ -92,6 +221,240 @@ export default function Topbar() {
                         <div className="text-[12px] text-emerald-400">Live Account</div>
                     </button>
                 </div>
+            </div>
+            <div className={`fixed top-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isProfileSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+                <div className="flex justify-between items-center p-4">
+                    <h2 className="text-white text-lg font-semibold">Profile</h2>
+                    <button onClick={closeAllSidebars}>
+                        <X className="text-white w-5 h-5" />
+                    </button>
+                </div>
+                <div className="flex flex-col justify-between h-full p-4 pb-16">
+                    <div className="flex items-center mb-4">
+                        <div className="relative w-11 h-11 flex justify-center items-center bg-[#0d1f30] rounded-full cursor-pointer" onClick={toggleProfileSidebar}>
+                            <UserRound className="w-5" />
+                            <div className="absolute bottom-0 right-[-5px] w-5 h-5 flex justify-center items-center bg-[#0d1f30] border-2 border-[#000000] rounded-full">
+                                <ArrowUpLeft className="text-[#2e71e5] w-4" />
+                            </div>
+                        </div>
+                        <div className="pl-3 text-white">
+                            <div className="text-sm">{profileInfo.name}</div>
+                            <div className="text-[12px]">{profileInfo.email}</div>
+                        </div>
+                    </div>
+                    <button
+                        className="w-full flex justify-center py-3 px-3 bg-[#0d1f30] text-white rounded-md mt-auto"
+                        onClick={toggleBottomSidebar}
+                    >
+                        <Settings className="w-5 mr-2" /> Profile Settings
+                    </button>
+                </div>
+            </div>
+            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isBottomSidebarOpen ? "translate-y-0" : "translate-y-full"} transition-transform duration-300 ease-in-out`}>
+                <div className="flex justify-between items-center p-4">
+                    <h2 className="text-white text-lg font-semibold">Settings</h2>
+                    <button onClick={closeAllSidebars}>
+                        <X className="text-white w-5 h-5" />
+                    </button>
+                </div>
+                <div className="grid grid-cols-1 gap-3 p-4">
+                    <button className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md" onClick={handleProfileInformationClick}>
+                        Profile Information
+                    </button>
+                    <button className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md">
+                        Two-Factor Authentication
+                    </button>
+                    <button className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md" onClick={handlePasswordInformationClick}>
+                        Password
+                    </button>
+                    <button className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md">
+                        Notification
+                    </button>
+                </div>
+            </div>
+            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isProfileFieldsSidebarOpen ? "translate-y-0" : "translate-y-full"} transition-transform duration-300 ease-in-out`}>
+                <form onSubmit={handleSubmit}>
+                    <div className="flex justify-between items-center p-4">
+                        <h2 className="text-white text-lg font-semibold">Profile Information</h2>
+                        <button onClick={closeAllSidebars}>
+                            <X className="text-white w-5 h-5" />
+                        </button>
+                    </div>
+                    <div className="grid grid-cols-1 gap-3 p-4">
+                        <div className="relative w-[120px] h-[120px] rounded-[50%] mx-auto">
+                            <Image
+                                src={previewImage || profileInfo.profileImage}
+                                alt="Profile"
+                                width={120}
+                                height={120}
+                                className="rounded-full w-full h-full border-2 border-slate-800 mx-auto object-cover"
+                            />
+                            <label
+                                htmlFor="profileImage"
+                                className="absolute bottom-[-15px] left-[50%] transform translate-x-[-50%] bg-[#0d1f30] text-white w-10 h-10 flex justify-center items-center rounded-full cursor-pointer"
+                            >
+                                <Pencil className="w-4" />
+                            </label>
+                            <input
+                                type="file"
+                                id="profileImage"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleImageChange}
+                            />
+                        </div>
+                        <div className="text-white">
+                            <label className="text-sm mb-2 block">First Name</label>
+                            <input
+                            type="text"
+                            className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                            placeholder={profileInfo.firstName}
+                            required
+                            />
+                        </div>
+                        <div className="text-white">
+                            <label className="text-sm mb-2 block">Last Name</label>
+                            <input
+                            type="text"
+                            className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                            placeholder={profileInfo.lastName}
+                            required
+                            />
+                        </div>
+                        <div className="text-white">
+                            <label className="text-sm mb-2 block">Country</label>
+                            <Select
+                                options={countryOptions}
+                                value={profileInfo.country}
+                                onChange={handleCountryChange}
+                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                isSearchable
+                                getOptionLabel={(e) => (
+                                    <div className="flex items-center gap-2">
+                                      <Flag code={e.value} style={{ width: 20, height: 15 }} />{" "}
+                                      {e.label}
+                                    </div>
+                                )}
+                                styles={{
+                                    control: (base) => ({
+                                        ...base,
+                                        background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
+                                        borderColor: "none",
+                                        height: "45px",
+                                        borderRadius: "0.375rem",
+                                        color: "#ffffff",
+                                        fontSize: "14px",
+                                        borderColor: "#1e293b",
+                                        "&:hover": {
+                                            borderColor: "#1e293b",
+                                        },
+                                    }),
+                                    menu: (base) => ({
+                                        ...base,
+                                        borderRadius: "0.375rem",
+                                        paddingTop: "0",
+                                        background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
+                                    }),
+                                    singleValue: (provided) => ({
+                                        ...provided,
+                                        color: "white",
+                                    }),
+                                    option: (base, state) => ({
+                                        ...base,
+                                        background: state.isSelected ? "#0d1f30" : "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)", // Highlight selected option
+                                        color: state.isSelected ? "white" : "white", // Text color for options
+                                        padding: "10px",
+                                        cursor: "pointer",
+                                        borderRadius: "0.375rem",
+                                    }),
+                                    dropdownIndicator: (provided) => ({
+                                        ...provided,
+                                        color: "#cbd5e1",
+                                    }),
+                                    indicatorSeparator: (provided) => ({
+                                        ...provided,
+                                        background: "#1e293b",
+                                    }),
+                                    placeholder: (base) => ({
+                                        ...base,
+                                        color: "#cbd5e1",
+                                        fontSize: "14px",
+                                    }),
+                                }}
+                            />
+                        </div>
+                        <div className="text-white">
+                            <label className="text-sm mb-2 block">Phone</label>
+                            <PhoneInput
+                                country={profileInfo.country.value}
+                                value={profileInfo.phone}
+                                disableDropdown
+                                onChange={handlePhoneChange}
+                                inputStyle={{
+                                    width: "100%",
+                                    height: "44px",
+                                    background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
+                                    color: "#fff",
+                                    fontSize: "14px",
+                                    borderColor: "#1e293b",
+                                    borderRadius: "0.375rem",
+                                    paddingLeft: "10px"
+                                }}
+                                buttonStyle={{
+                                    display: "none",
+                                }}
+                                dropdownStyle={{
+                                    background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
+                                    color: "#fff",
+                                }}
+                            />
+                        </div>
+                        <div className="mt-2">
+                            <button type="submit" className="baseBtn flex justify-center w-full">Update <ArrowRightToLine /></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isPasswordSidebarOpen ? "translate-y-0" : "translate-y-full"} transition-transform duration-300 ease-in-out`}>
+                <form onSubmit={handlePasswordChange}>
+                    <div className="flex justify-between items-center p-4">
+                        <h2 className="text-white text-lg font-semibold">Change Password</h2>
+                        <button onClick={closeAllSidebars}>
+                            <X className="text-white w-5 h-5" />
+                        </button>
+                    </div>
+                    <div className="grid grid-cols-1 gap-3 p-4">
+                        {["oldPassword", "newPassword", "confirmPassword"].map((field) => (
+                            <div className="relative text-white" key={field}>
+                                <label className="text-sm mb-2 block">{field.replace("Password", " Password")}</label>
+                                <input
+                                    type={passwordVisibility[field] ? "text" : "password"}
+                                    id={field}
+                                    name={field}
+                                    value={passwords[field]}
+                                    placeholder={field.replace("Password", " Password")}
+                                    onChange={handleInputChange}
+                                    className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    className="absolute right-5 top-[40px] text-gray-400"
+                                    onClick={() => togglePasswordVisibility(field)}
+                                >
+                                    {passwordVisibility[field] ? (
+                                        <EyeOff className="w-5 h-5" />
+                                        ) : (
+                                        <Eye className="w-5 h-5" />
+                                    )}
+                                </button>
+                            </div>
+                        ))}
+                        <div className="mt-2">
+                            <button type="submit" className="baseBtn flex justify-center w-full">Change <ArrowRightToLine /></button>
+                        </div>
+                    </div>
+                </form>
             </div>
         </>
     )
