@@ -1,6 +1,7 @@
 'use client'
 import React, { useEffect, useRef, useState } from 'react';
 import { createChart } from 'lightweight-charts';
+import { BarChart, LineChart, TrendingUp, ChevronDown } from 'lucide-react';
 import Asidebar from "@/components/common/asidebar/asidebar";
 
 const RealtimeChart = () => {
@@ -13,6 +14,7 @@ const RealtimeChart = () => {
     const [tradeResult, setTradeResult] = useState(null);
     const [currentAction, setCurrentAction] = useState(null);
     const [duration, setDuration] = useState(1);
+    const [chartType, setChartType] = useState('Candlestick');
 
     const generateData = (numberOfCandles = 500, updatesPerCandle = 5, startAt = 100) => {
         let randomFactor = 25 + Math.random() * 25;
@@ -59,6 +61,15 @@ const RealtimeChart = () => {
             // const diff = (value - previousValue) * Math.random() * 0.1;
             value = previousValue + diff;
             previousValue = value;
+            // const point = {
+            //     time: Math.floor(Date.UTC(2018, 0, 1) / 1000) + i * 300, // Increment time by 60 seconds
+            //     value: value,
+            // };
+            // if (i < startAt) {
+            //     initialData.push(point);
+            // } else {
+            //     realtimeUpdates.push(point);
+            // }
             if (i % updatesPerCandle === 0) {
                 const candle = createCandle(value, time);
                 lastCandle = candle;
@@ -100,18 +111,19 @@ const RealtimeChart = () => {
             };
 
             chartRef.current = createChart(chartContainerRef.current, chartOptions);
-            const series = chartRef.current.addCandlestickSeries({
-                upColor: '#2dd674',
-                downColor: '#ff5765',
-                borderVisible: false,
-                wickUpColor: '#2dd674',
-                wickDownColor: '#ff5765',
-            });
+            addSeries(chartType);
+            // const series = chartRef.current.addCandlestickSeries({
+            //     upColor: '#2dd674',
+            //     downColor: '#ff5765',
+            //     borderVisible: false,
+            //     wickUpColor: '#2dd674',
+            //     wickDownColor: '#ff5765',
+            // });
 
-            seriesRef.current = series;
+            // seriesRef.current = series;
 
             const data = generateData(2500, 20, 1000);
-            series.setData(data.initialData);
+            seriesRef.current.setData(data.initialData);
             chartRef.current.timeScale().fitContent();
 
             // Simulate real-time data
@@ -128,7 +140,7 @@ const RealtimeChart = () => {
                     clearInterval(intervalID);
                     return;
                 }
-                series.update(update.value);
+                seriesRef.current.update(update.value);
             }, 100);
 
             // Clean up on unmount
@@ -138,6 +150,70 @@ const RealtimeChart = () => {
             };
         }
     }, []);
+
+    const addSeries = (type) => {
+        if (chartRef.current) {
+            // Remove existing series if any
+            if (seriesRef.current) {
+                try {
+                    chartRef.current.removeSeries(seriesRef.current);
+                } catch (error) {
+                    console.error("Error removing series:", error);
+                }
+                seriesRef.current = null; // Reset the series reference after removal
+            }
+    
+            switch (type) {
+                case 'Candlestick':
+                    seriesRef.current = chartRef.current.addCandlestickSeries({
+                        upColor: '#2dd674',
+                        downColor: '#ff5765',
+                        borderVisible: false,
+                        wickUpColor: '#2dd674',
+                        wickDownColor: '#ff5765',
+                    });
+                    break;
+    
+                case 'Line':
+                    seriesRef.current = chartRef.current.addLineSeries({
+                        color: '#2dd674',
+                        lineWidth: 2,
+                    });
+                    break;
+    
+                case 'Bar':
+                    seriesRef.current = chartRef.current.addBarSeries({
+                        upColor: '#2dd674',
+                        downColor: '#ff5765',
+                        thinBars: true,
+                    });
+                    break;
+    
+                case 'Area':
+                    seriesRef.current = chartRef.current.addAreaSeries({
+                        topColor: 'rgba(45, 214, 116, 0.4)',
+                        bottomColor: 'rgba(45, 214, 116, 0)',
+                        lineColor: '#2dd674',
+                        lineWidth: 2,
+                    });
+                    break;
+    
+                default:
+                    break;
+            }
+    
+            // After adding the new series, update the data
+            const data = generateData(2500, 20, 1000); // Or any other method to get the data
+            seriesRef.current.setData(data.initialData);
+            chartRef.current.timeScale().fitContent(); // Adjust the time scale to fit the data
+        }
+    };
+    
+
+    const handleChartTypeChange = (type) => {
+        setChartType(type); // Update chart type in state
+        addSeries(type); // Update the series type
+    };
 
     const handleTradeClick = (direction) => {
         if (isProcessing || !chartRef.current || !seriesRef.current) return;
@@ -186,8 +262,39 @@ const RealtimeChart = () => {
 
     return (
         <div className="flex overflow-hidden">
-            <div className="w-full p-4">
+            <div className="relative w-full p-4">
                 <div ref={chartContainerRef} style={{ position: 'relative' }}></div>
+                <div className="absolute bottom-[50px] left-[20px] z-[4] rounded overflow-hidden bg-[#011120] flex flex-col space-y-[1px]">
+                    {['Candlestick', 'Line', 'Bar', 'Area'].map((type) => {
+                        let Icon;
+                        switch (type) {
+                            case 'Candlestick':
+                                Icon = TrendingUp; // Use the appropriate icon for Candlestick
+                                break;
+                            case 'Line':
+                                Icon = LineChart;
+                                break;
+                            case 'Bar':
+                                Icon = BarChart;
+                                break;
+                            case 'Area':
+                                Icon = ChevronDown; // You can replace with an appropriate Area icon
+                                break;
+                            default:
+                                Icon = TrendingUp;
+                        }
+
+                        return (
+                            <button
+                                key={type}
+                                onClick={() => handleChartTypeChange(type)}
+                                className={`w-10 h-10 flex justify-center items-center text-sm ${chartType === type ? 'bg-[#163048] text-white' : 'bg-[#0d1f30]'}`}
+                            >
+                                <Icon className="w-5 h-5" />
+                            </button>
+                        );
+                    })}
+                </div>
             </div>
             <Asidebar
                 onTradeClick={handleTradeClick}

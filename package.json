@@ -25,6 +25,7 @@
 		"react-error-boundary": "^4.0.13",
 		"react-hot-toast": "^2.5.1",
 		"react-phone-input-2": "^2.15.1",
+		"react-qr-code": "^2.0.15",
 		"react-select": "^5.9.0",
 		"react-world-flags": "^1.6.0",
 		"swiper": "^11.1.8",

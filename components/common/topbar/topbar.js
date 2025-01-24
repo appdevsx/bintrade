@@ -10,6 +10,7 @@ import Image from "next/image";
 import { UserRound, ArrowUpLeft, Plus, ChevronDown, X, Settings, ArrowRightToLine, Pencil, Eye, EyeOff } from 'lucide-react';
 import { useAccount } from "@/context/accountProvider/accountProvider";
 import { getCountryOptions } from "@/utils/getCountryOptions/getCountryOptions";
+import QRCode from "react-qr-code";
 import styles from "./topbar.module.css";
 
 import crypto from '@/public/images/currency/crypto.svg';
@@ -21,10 +22,14 @@ export default function Topbar() {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const [selectedAccount, setSelectedAccount] = useState("Demo Account");
     const [isProfileSidebarOpen, setProfileSidebarOpen] = useState(false);
+    const [isPaymentSidebarOpen, setPaymentSidebarOpen] = useState(false);
     const [isBottomSidebarOpen, setBottomSidebarOpen] = useState(false);
     const [isProfileFieldsSidebarOpen, setProfileFieldsSidebarOpen] = useState(false);
     const [previewImage, setPreviewImage] = useState(null);
     const [isPasswordSidebarOpen, setPasswordSidebarOpen] = useState(false);
+    const [isNotificationSidebarOpen, setNotificationSidebarOpen] = useState(false);
+    const [is2FASidebarOpen, set2FASidebarOpen] = useState(false);
+    const [isExchangeFieldsSidebarOpen, setExchangeFieldsSidebarOpen] = useState(false);
     const [passwords, setPasswords] = useState({
         oldPassword: "",
         newPassword: "",
@@ -43,10 +48,18 @@ export default function Topbar() {
         country: countryOptions[0],
         profileImage: crypto,
     });
+    const [notifications, setNotifications] = useState([
+        { id: 1, message: "You have a new message from Support." },
+        { id: 2, message: "Your profile has been updated successfully." },
+        { id: 3, message: "You received a new connection request." },
+    ]);
+
+    const [googleAuthSecret] = useState("DZHNX6AJVMT6677X");
 
     const toggleSidebar = () => setSidebarOpen((prev) => !prev);
     const toggleProfileSidebar = () => setProfileSidebarOpen((prev) => !prev);
     const toggleBottomSidebar = () => setBottomSidebarOpen((prev) => !prev);
+    const togglePaymentSidebar = () => setPaymentSidebarOpen((prev) => !prev);
 
     const closeAllSidebars = () => {
         setSidebarOpen(false);
@@ -54,19 +67,33 @@ export default function Topbar() {
         setBottomSidebarOpen(false);
         setProfileFieldsSidebarOpen(false);
         setPasswordSidebarOpen(false);
+        setNotificationSidebarOpen(false);
+        set2FASidebarOpen(false);
     };
 
     const selectAccount = (accountType) => {
         setSelectedAccount(accountType);
-        toggleSidebar(); // Close the sidebar after selecting
+        toggleSidebar();
     };
 
     const handleProfileInformationClick = () => {
-        setProfileFieldsSidebarOpen(true); // Open the profile fields sidebar
+        setProfileFieldsSidebarOpen(true);
     };
 
     const handlePasswordInformationClick = () => {
         setPasswordSidebarOpen(true);
+    };
+
+    const handleNotificationInformationClick = () => {
+        setNotificationSidebarOpen(true);
+    };
+
+    const handle2FAInformationClick = () => {
+        set2FASidebarOpen(true);
+    };
+
+    const handleExchangeInformationClick = () => {
+        setExchangeFieldsSidebarOpen(true);
     };
 
     const handleCountryChange = (selectedOption) => {
@@ -133,6 +160,11 @@ export default function Topbar() {
         setPasswordSidebarOpen(false); // Close password sidebar
     };
 
+    const handleExchangeSubmit = (event) => {
+        event.preventDefault();
+        toast.success('Exchange successfully!', {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
+    };
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setPasswords((prev) => ({
@@ -173,14 +205,13 @@ export default function Topbar() {
                 <div className="flex items-center gap-3">
                     <div className="relative top-1 mr-6 cursor-pointer" onClick={toggleSidebar}>
                         <div className="text-white font-semibold text-[18px] leading-[20px]">Đ{accountBalance.toFixed(2)}</div>
-                        {/* <div className="text-white font-semibold text-[18px] leading-[20px]">Đ10,001.05</div> */}
                         <div className="text-[12px] text-emerald-400">{selectedAccount}</div>
                         <div className="absolute bottom-[4px] right-[-20px]">
                             <ChevronDown className="w-4" />
                         </div>
                     </div>
-                    <div className="">
-                        <Link className="baseBtn !py-2 !px-4" href="/">Payments</Link>
+                    <div onClick={togglePaymentSidebar}>
+                        <button className="baseBtn !py-2 !px-4">Payments</button>
                     </div>
                     <div className="relative w-11 h-11 flex justify-center items-center bg-[#0d1f30] rounded-full cursor-pointer" onClick={toggleProfileSidebar}>
                         <UserRound className="w-5" />
@@ -250,7 +281,7 @@ export default function Topbar() {
                     </button>
                 </div>
             </div>
-            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isBottomSidebarOpen ? "translate-y-0" : "translate-y-full"} transition-transform duration-300 ease-in-out`}>
+            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isBottomSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
                 <div className="flex justify-between items-center p-4">
                     <h2 className="text-white text-lg font-semibold">Settings</h2>
                     <button onClick={closeAllSidebars}>
@@ -261,14 +292,33 @@ export default function Topbar() {
                     <button className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md" onClick={handleProfileInformationClick}>
                         Profile Information
                     </button>
-                    <button className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md">
+                    <button className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md" onClick={handle2FAInformationClick}>
                         Two-Factor Authentication
                     </button>
                     <button className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md" onClick={handlePasswordInformationClick}>
                         Password
                     </button>
-                    <button className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md">
+                    <button className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md" onClick={handleNotificationInformationClick}>
                         Notification
+                    </button>
+                </div>
+            </div>
+            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isPaymentSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+                <div className="flex justify-between items-center p-4">
+                    <h2 className="text-white text-lg font-semibold">Payments</h2>
+                    <button onClick={closeAllSidebars}>
+                        <X className="text-white w-5 h-5" />
+                    </button>
+                </div>
+                <div className="grid grid-cols-1 gap-3 p-4">
+                    <button className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md" onClick={handleProfileInformationClick}>
+                        Deposit
+                    </button>
+                    <button className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md" onClick={handle2FAInformationClick}>
+                        Withdraw
+                    </button>
+                    <button className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md" onClick={handleExchangeInformationClick}>
+                        Exchange
                     </button>
                 </div>
             </div>
@@ -415,7 +465,7 @@ export default function Topbar() {
                     </div>
                 </form>
             </div>
-            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isPasswordSidebarOpen ? "translate-y-0" : "translate-y-full"} transition-transform duration-300 ease-in-out`}>
+            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isPasswordSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
                 <form onSubmit={handlePasswordChange}>
                     <div className="flex justify-between items-center p-4">
                         <h2 className="text-white text-lg font-semibold">Change Password</h2>
@@ -452,6 +502,78 @@ export default function Topbar() {
                         ))}
                         <div className="mt-2">
                             <button type="submit" className="baseBtn flex justify-center w-full">Change <ArrowRightToLine /></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div className={`fixed top-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isNotificationSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+                <div className="flex justify-between items-center p-4">
+                    <h2 className="text-white text-lg font-semibold">Notifications</h2>
+                    <button onClick={closeAllSidebars}>
+                        <X className="text-white w-5 h-5" />
+                    </button>
+                </div>
+                <div className="p-4 text-white">
+                    {notifications.length > 0 ? (
+                        notifications.map((notification) => (
+                        <div
+                            key={notification.id}
+                            className="mb-2 bg-[#0d1f30] p-3 rounded-md"
+                        >
+                            {notification.message}
+                        </div>
+                        ))
+                    ) : (
+                        <div className="text-center text-sm text-gray-400">
+                            No notifications available.
+                        </div>
+                    )}
+                </div>
+            </div>
+            <div className={`fixed top-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${is2FASidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+                <div className="flex justify-between items-center p-4">
+                    <h2 className="text-white text-lg font-semibold">Two-Factor Authentication</h2>
+                    <button onClick={closeAllSidebars}>
+                        <X className="text-white w-5 h-5" />
+                    </button>
+                </div>
+                <div className="space-y-3 p-4">
+                    <div className="p-4 bg-[#0d1f30] rounded-lg text-center">
+                        <h3 className="text-white text-lg font-semibold mb-4">Scan with Google Authenticator</h3>
+                        <QRCode className="w-[200px] h-[200px] mx-auto" value={googleAuthSecret} />
+                        <div className="mt-4 text-white">Scan this code in your Google Authenticator app.</div>
+                    </div>
+                    <div className="p-4 bg-[#0d1f30] rounded-lg text-white">
+                        <h3 className="text-lg font-semibold mb-4">Google Authenticator Setup</h3>
+                        <ul className="list-disc ml-4">
+                        <li>Download and install the Google Authenticator app from your App Store or Google Play.</li>
+                        <li>Open the app and scan the QR code on the left to add your account.</li>
+                        <li>Once added, you will see a 6-digit code that refreshes every 30 seconds.</li>
+                        <li>Enter this 6-digit code in the field below to complete the verification.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isExchangeFieldsSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+                <form onSubmit={handleExchangeSubmit}>
+                    <div className="flex justify-between items-center p-4">
+                        <h2 className="text-white text-lg font-semibold">Exchange</h2>
+                        <button onClick={closeAllSidebars}>
+                            <X className="text-white w-5 h-5" />
+                        </button>
+                    </div>
+                    <div className="grid grid-cols-1 gap-3 p-4">
+                        <div className="relative text-white">
+                            <label className="text-sm mb-2 block"></label>
+                            <input
+                                type=""
+                                placeholder=""
+                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                required
+                            />
+                        </div>
+                        <div className="mt-2">
+                            <button type="submit" className="baseBtn flex justify-center w-full">Exchange <ArrowRightToLine /></button>
                         </div>
                     </div>
                 </form>
