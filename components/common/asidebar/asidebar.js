@@ -1,7 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useAccount } from "@/context/accountProvider/accountProvider";
+import { X } from 'lucide-react';
 import styles from "./asidebar.module.css";
+
+const initialHistory = [];
 
 export default function Asidebar({ onTradeClick, isProcessing, duration, setDuration }) {
     // State for Amount and Duration
@@ -12,6 +15,8 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
     const [tradeTimer, setTradeTimer] = useState(null);
     const [profitOrLoss, setProfitOrLoss] = useState(null);
     const [tradeOutcome, setTradeOutcome] = useState(null);
+    const [history, setHistory] = useState(initialHistory);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const { accountBalance, updateAccountAmount } = useAccount();
 
@@ -54,6 +59,15 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
                     setProfitOrLoss(result);
                     if (isWin) updateAccountAmount(accountBalance + amount * 2);
                     setAction("");
+                    setHistory((prevHistory) => [
+                        ...prevHistory,
+                        {
+                            action: tradeAction,
+                            outcome: isWin ? "Win" : "Loss",
+                            profitOrLoss: result,
+                            time: new Date().toLocaleTimeString(),
+                        },
+                    ]);
                     return null;
                 }
                 return prev - 1;
@@ -72,6 +86,8 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
             if (tradeTimer) clearInterval(tradeTimer);
         };
     }, [tradeTimer]);
+
+    const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
 
     return (
         <div className="w-[180px] h-[815px] py-5 px-2 flex flex-col justify-start items-center gap-4">
@@ -112,7 +128,7 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
                     </div>
                 </div>
             </div>
-            <button className="w-full bg-[#0d1f30] py-2 rounded-md flex items-center justify-center gap-2 text-sm font-bold">
+            <button className="w-full bg-[#0d1f30] py-2 rounded-md flex items-center justify-center gap-2 text-sm font-bold" onClick={toggleSidebar}>
                 Trade History
                 <span className="text-gray-400 text-lg">⏱</span>
             </button>
@@ -163,6 +179,36 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
                 <span className={`font-bold ${action === "Up" ? "text-[#2dd674]" : "text-[#ff5765]"}`}>
                     {action || "None"}
                 </span>
+            </div>
+            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+                <div className="flex justify-between items-center p-4">
+                    <h2 className="text-white text-lg font-semibold">Trade History</h2>
+                    <button onClick={toggleSidebar}>
+                        <X className="text-white w-5 h-5" />
+                    </button>
+                </div>
+                <ul className="grid grid-cols-1 gap-3 p-4">
+                    {history.length === 0 ? (
+                        <li>No trades yet.</li>
+                    ) : (
+                        history.map((trade, index) => (
+                            <li key={index} className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md">
+                                <div>Action: {trade.action}</div>
+                                {tradeOutcome && (
+                                    <div className="">
+                                        Result:{" "}
+                                        {tradeOutcome === "Win" ? (
+                                            <span className="text-[#2dd674] font-bold">Win! +Ð{profitOrLoss}</span>
+                                        ) : (
+                                            <span className="text-[#ff5765] font-bold">Loss! -Ð{Math.abs(profitOrLoss)}</span>
+                                        )}
+                                    </div>
+                                )}
+                                <div>Local Time: {trade.time}</div>
+                            </li>
+                        ))
+                    )}
+                </ul>
             </div>
         </div>
     );

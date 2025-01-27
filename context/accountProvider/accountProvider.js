@@ -4,7 +4,7 @@ import { createContext, useContext, useState } from "react";
 const AccountContext = createContext();
 
 export function AccountProvider({ children }) {
-    const [accountBalance, setAccountBalance] = useState(10001.05); // Initial account balance
+    const [accountBalance, setAccountBalance] = useState(10001.05);
 
     const updateAccountAmount = (newAmount) => setAccountBalance(newAmount);
 

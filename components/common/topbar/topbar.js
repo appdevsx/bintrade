@@ -10,12 +10,14 @@ import Image from "next/image";
 import { UserRound, ArrowUpLeft, Plus, ChevronDown, X, Settings, ArrowRightToLine, Pencil, Eye, EyeOff } from 'lucide-react';
 import { useAccount } from "@/context/accountProvider/accountProvider";
 import { getCountryOptions } from "@/utils/getCountryOptions/getCountryOptions";
+import { getCurrencyOptions } from "@/utils/getCurrencyOptions/getCurrencyOptions";
 import QRCode from "react-qr-code";
 import styles from "./topbar.module.css";
 
 import crypto from '@/public/images/currency/crypto.svg';
 
 const countryOptions = getCountryOptions();
+const currencyOptions = getCurrencyOptions();
 
 export default function Topbar() {
     const { accountBalance } = useAccount();
@@ -29,7 +31,11 @@ export default function Topbar() {
     const [isPasswordSidebarOpen, setPasswordSidebarOpen] = useState(false);
     const [isNotificationSidebarOpen, setNotificationSidebarOpen] = useState(false);
     const [is2FASidebarOpen, set2FASidebarOpen] = useState(false);
+    const [isDepositFieldsSidebarOpen, setDepositFieldsSidebarOpen] = useState(false);
+    const [isWithdrawFieldsSidebarOpen, setWithdrawFieldsSidebarOpen] = useState(false);
     const [isExchangeFieldsSidebarOpen, setExchangeFieldsSidebarOpen] = useState(false);
+    const [selectedGateway, setSelectedGateway] = useState("");
+    const [amount, setAmount] = useState("");
     const [passwords, setPasswords] = useState({
         oldPassword: "",
         newPassword: "",
@@ -46,6 +52,7 @@ export default function Topbar() {
         firstName: "First Name...",
         lastName: "Last Name...",
         country: countryOptions[0],
+        currency: currencyOptions[0],
         profileImage: crypto,
     });
     const [notifications, setNotifications] = useState([
@@ -69,6 +76,10 @@ export default function Topbar() {
         setPasswordSidebarOpen(false);
         setNotificationSidebarOpen(false);
         set2FASidebarOpen(false);
+        setPaymentSidebarOpen(false);
+        setDepositFieldsSidebarOpen(false);
+        setWithdrawFieldsSidebarOpen(false);
+        setExchangeFieldsSidebarOpen(false);
     };
 
     const selectAccount = (accountType) => {
@@ -92,6 +103,14 @@ export default function Topbar() {
         set2FASidebarOpen(true);
     };
 
+    const handleDepositInformationClick = () => {
+        setDepositFieldsSidebarOpen(true);
+    };
+
+    const handleWithdrawInformationClick = () => {
+        setWithdrawFieldsSidebarOpen(true);
+    };
+
     const handleExchangeInformationClick = () => {
         setExchangeFieldsSidebarOpen(true);
     };
@@ -100,7 +119,15 @@ export default function Topbar() {
         setProfileInfo((prev) => ({
           ...prev,
           country: selectedOption,
-          phone: selectedOption.code, // Update phone based on country code
+          phone: selectedOption.code,
+        }));
+    };
+
+    const handleCurrencyChange = (selectedOption) => {
+        setProfileInfo((prev) => ({
+          ...prev,
+          currency: selectedOption,
+          phone: selectedOption.code,
         }));
     };
     
@@ -160,9 +187,33 @@ export default function Topbar() {
         setPasswordSidebarOpen(false); // Close password sidebar
     };
 
-    const handleExchangeSubmit = (event) => {
-        event.preventDefault();
-        toast.success('Exchange successfully!', {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
+    const handleDepositSubmit = (e) => {
+        e.preventDefault();
+        if (amount < 10 || amount > 5000) {
+            toast.error("Amount must be between $10 and $5,000." , {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
+            return;
+        }
+        toast.success("Deposit successfull.", {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
+    };
+
+    const handleWithdrawSubmit = (e) => {
+        e.preventDefault();
+        if (amount < 10 || amount > 5000) {
+            toast.error("Amount must be between $10 and $5,000." , {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
+            return;
+        }
+        toast.success("Withdraw successfull.", {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
+    };
+
+    const handleExchangeSubmit = (e) => {
+        e.preventDefault();
+    
+        // Validation: Check if a currency is selected
+        if (!profileInfo.currency) {
+        toast.error("Currency selection is required." , {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
+          return;
+        }
+        toast.success(`Currency exchanged to: ${profileInfo.currency.label}` , {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
     };
 
     const handleInputChange = (e) => {
@@ -311,10 +362,10 @@ export default function Topbar() {
                     </button>
                 </div>
                 <div className="grid grid-cols-1 gap-3 p-4">
-                    <button className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md" onClick={handleProfileInformationClick}>
+                    <button className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md" onClick={handleDepositInformationClick}>
                         Deposit
                     </button>
-                    <button className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md" onClick={handle2FAInformationClick}>
+                    <button className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md" onClick={handleWithdrawInformationClick}>
                         Withdraw
                     </button>
                     <button className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md" onClick={handleExchangeInformationClick}>
@@ -322,7 +373,7 @@ export default function Topbar() {
                     </button>
                 </div>
             </div>
-            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isProfileFieldsSidebarOpen ? "translate-y-0" : "translate-y-full"} transition-transform duration-300 ease-in-out`}>
+            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isProfileFieldsSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
                 <form onSubmit={handleSubmit}>
                     <div className="flex justify-between items-center p-4">
                         <h2 className="text-white text-lg font-semibold">Profile Information</h2>
@@ -554,22 +605,289 @@ export default function Topbar() {
                     </div>
                 </div>
             </div>
-            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isExchangeFieldsSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
-                <form onSubmit={handleExchangeSubmit}>
-                    <div className="flex justify-between items-center p-4">
-                        <h2 className="text-white text-lg font-semibold">Exchange</h2>
-                        <button onClick={closeAllSidebars}>
-                            <X className="text-white w-5 h-5" />
-                        </button>
+            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isDepositFieldsSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+                <div className="flex justify-between items-center p-4">
+                    <h2 className="text-white text-lg font-semibold">Deposit</h2>
+                    <button onClick={closeAllSidebars}>
+                        <X className="text-white w-5 h-5" />
+                    </button>
+                </div>
+                <form onSubmit={handleDepositSubmit}>
+                    <div className="p-4 text-white">
+                        <p className="text-sm">
+                            <span className="font-semibold">Exchange Rate:</span> 1 USD = 85.00 XYZ
+                        </p>
+                        <p className="text-sm mt-2">
+                            <span className="font-semibold">Limits:</span> Min $10, Max $5,000
+                        </p>
+                        <p className="text-sm mt-2">
+                            <span className="font-semibold">Charge:</span> $2.00
+                        </p>
                     </div>
                     <div className="grid grid-cols-1 gap-3 p-4">
                         <div className="relative text-white">
-                            <label className="text-sm mb-2 block"></label>
+                            <label className="text-sm mb-2 block">Payment Gateway</label>
+                            <Select
+                                options={[
+                                    { value: "paypal", label: "PayPal" },
+                                    { value: "stripe", label: "Stripe" },
+                                    { value: "bank", label: "Bank Transfer" },
+                                ]}
+                                onChange={(e) => setSelectedGateway(e.value)}
+                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                isSearchable
+                                styles={{
+                                    control: (base) => ({
+                                        ...base,
+                                        background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
+                                        borderColor: "none",
+                                        height: "45px",
+                                        borderRadius: "0.375rem",
+                                        color: "#ffffff",
+                                        fontSize: "14px",
+                                        borderColor: "#1e293b",
+                                        "&:hover": {
+                                            borderColor: "#1e293b",
+                                        },
+                                    }),
+                                    menu: (base) => ({
+                                        ...base,
+                                        borderRadius: "0.375rem",
+                                        paddingTop: "0",
+                                        background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
+                                    }),
+                                    singleValue: (provided) => ({
+                                        ...provided,
+                                        color: "white",
+                                    }),
+                                    option: (base, state) => ({
+                                        ...base,
+                                        background: state.isSelected ? "#0d1f30" : "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)", // Highlight selected option
+                                        color: state.isSelected ? "white" : "white", // Text color for options
+                                        padding: "10px",
+                                        cursor: "pointer",
+                                        borderRadius: "0.375rem",
+                                    }),
+                                    dropdownIndicator: (provided) => ({
+                                        ...provided,
+                                        color: "#cbd5e1",
+                                    }),
+                                    indicatorSeparator: (provided) => ({
+                                        ...provided,
+                                        background: "#1e293b",
+                                    }),
+                                    placeholder: (base) => ({
+                                        ...base,
+                                        color: "#cbd5e1",
+                                        fontSize: "14px",
+                                    }),
+                                }}
+                            />
+                        </div>
+                        <div className="relative text-white">
+                            <label className="text-sm mb-2 block">Amount</label>
                             <input
-                                type=""
-                                placeholder=""
+                                type="number"
+                                value={amount}
+                                placeholder="Enter amount"
+                                onChange={(e) => setAmount(e.target.value)}
                                 className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
                                 required
+                            />
+                        </div>
+                        <div className="mt-2 text-sm text-white">
+                            <p>
+                                <span className="font-semibold">Total:</span> $
+                                {(parseFloat(amount) || 0) + 2.0}
+                            </p>
+                        </div>
+                        <div className="mt-2">
+                            <button type="submit" className="baseBtn flex justify-center w-full">Deposit <ArrowRightToLine /></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isWithdrawFieldsSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+                <div className="flex justify-between items-center p-4">
+                    <h2 className="text-white text-lg font-semibold">Withdraw</h2>
+                    <button onClick={closeAllSidebars}>
+                        <X className="text-white w-5 h-5" />
+                    </button>
+                </div>
+                <form onSubmit={handleWithdrawSubmit}>
+                    <div className="p-4 text-white">
+                        <p className="text-sm">
+                            <span className="font-semibold">Exchange Rate:</span> 1 USD = 85.00 XYZ
+                        </p>
+                        <p className="text-sm mt-2">
+                            <span className="font-semibold">Limits:</span> Min $10, Max $5,000
+                        </p>
+                        <p className="text-sm mt-2">
+                            <span className="font-semibold">Charge:</span> $2.00
+                        </p>
+                    </div>
+                    <div className="grid grid-cols-1 gap-3 p-4">
+                        <div className="relative text-white">
+                            <label className="text-sm mb-2 block">Payment Gateway</label>
+                            <Select
+                                options={[
+                                    { value: "paypal", label: "PayPal" },
+                                    { value: "stripe", label: "Stripe" },
+                                    { value: "bank", label: "Bank Transfer" },
+                                ]}
+                                onChange={(e) => setSelectedGateway(e.value)}
+                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                isSearchable
+                                styles={{
+                                    control: (base) => ({
+                                        ...base,
+                                        background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
+                                        borderColor: "none",
+                                        height: "45px",
+                                        borderRadius: "0.375rem",
+                                        color: "#ffffff",
+                                        fontSize: "14px",
+                                        borderColor: "#1e293b",
+                                        "&:hover": {
+                                            borderColor: "#1e293b",
+                                        },
+                                    }),
+                                    menu: (base) => ({
+                                        ...base,
+                                        borderRadius: "0.375rem",
+                                        paddingTop: "0",
+                                        background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
+                                    }),
+                                    singleValue: (provided) => ({
+                                        ...provided,
+                                        color: "white",
+                                    }),
+                                    option: (base, state) => ({
+                                        ...base,
+                                        background: state.isSelected ? "#0d1f30" : "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)", // Highlight selected option
+                                        color: state.isSelected ? "white" : "white", // Text color for options
+                                        padding: "10px",
+                                        cursor: "pointer",
+                                        borderRadius: "0.375rem",
+                                    }),
+                                    dropdownIndicator: (provided) => ({
+                                        ...provided,
+                                        color: "#cbd5e1",
+                                    }),
+                                    indicatorSeparator: (provided) => ({
+                                        ...provided,
+                                        background: "#1e293b",
+                                    }),
+                                    placeholder: (base) => ({
+                                        ...base,
+                                        color: "#cbd5e1",
+                                        fontSize: "14px",
+                                    }),
+                                }}
+                            />
+                        </div>
+                        <div className="relative text-white">
+                            <label className="text-sm mb-2 block">Amount</label>
+                            <input
+                                type="number"
+                                value={amount}
+                                placeholder="Enter amount"
+                                onChange={(e) => setAmount(e.target.value)}
+                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                required
+                            />
+                        </div>
+                        <div className="mt-2 text-sm text-white">
+                            <p>
+                                <span className="font-semibold">Total:</span> $
+                                {(parseFloat(amount) || 0) + 2.0}
+                            </p>
+                        </div>
+                        <div className="mt-2">
+                            <button type="submit" className="baseBtn flex justify-center w-full">Withdraw <ArrowRightToLine /></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isExchangeFieldsSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+                <div className="flex justify-between items-center p-4">
+                    <h2 className="text-white text-lg font-semibold">Exchange</h2>
+                    <button onClick={closeAllSidebars}>
+                        <X className="text-white w-5 h-5" />
+                    </button>
+                </div>
+                <form onSubmit={handleExchangeSubmit}>
+                    <div className="grid grid-cols-1 gap-3 p-4">
+                        <div className="relative text-white">
+                            <label className="text-sm mb-2 block">From Wallet</label>
+                            <input
+                                type="text"
+                                value="USD"
+                                placeholder="Enter wallet"
+                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                readOnly
+                            />
+                        </div>
+                        <div className="relative text-white">
+                            <label className="text-sm mb-2 block">Exchange To</label>
+                            <Select
+                                options={currencyOptions}
+                                value={profileInfo.currency}
+                                onChange={handleCurrencyChange}
+                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                isSearchable
+                                getOptionLabel={(e) => (
+                                    <div className="flex items-center gap-2">
+                                      <Flag code={e.value} style={{ width: 20, height: 15 }} />{" "}
+                                      {e.label}
+                                    </div>
+                                )}
+                                styles={{
+                                    control: (base) => ({
+                                        ...base,
+                                        background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
+                                        borderColor: "none",
+                                        height: "45px",
+                                        borderRadius: "0.375rem",
+                                        color: "#ffffff",
+                                        fontSize: "14px",
+                                        borderColor: "#1e293b",
+                                        "&:hover": {
+                                            borderColor: "#1e293b",
+                                        },
+                                    }),
+                                    menu: (base) => ({
+                                        ...base,
+                                        borderRadius: "0.375rem",
+                                        paddingTop: "0",
+                                        background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
+                                    }),
+                                    singleValue: (provided) => ({
+                                        ...provided,
+                                        color: "white",
+                                    }),
+                                    option: (base, state) => ({
+                                        ...base,
+                                        background: state.isSelected ? "#0d1f30" : "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)", // Highlight selected option
+                                        color: state.isSelected ? "white" : "white", // Text color for options
+                                        padding: "10px",
+                                        cursor: "pointer",
+                                        borderRadius: "0.375rem",
+                                    }),
+                                    dropdownIndicator: (provided) => ({
+                                        ...provided,
+                                        color: "#cbd5e1",
+                                    }),
+                                    indicatorSeparator: (provided) => ({
+                                        ...provided,
+                                        background: "#1e293b",
+                                    }),
+                                    placeholder: (base) => ({
+                                        ...base,
+                                        color: "#cbd5e1",
+                                        fontSize: "14px",
+                                    }),
+                                }}
                             />
                         </div>
                         <div className="mt-2">
