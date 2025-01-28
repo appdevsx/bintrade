@@ -7,7 +7,7 @@ import Flag from "react-world-flags";
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { UserRound, ArrowUpLeft, Plus, ChevronDown, X, Settings, ArrowRightToLine, Pencil, Eye, EyeOff } from 'lucide-react';
+import { UserRound, ArrowUpLeft, Plus, ChevronDown, X, Settings, ArrowRightToLine, Pencil, Eye, EyeOff, Search } from 'lucide-react';
 import { useAccount } from "@/context/accountProvider/accountProvider";
 import { getCountryOptions } from "@/utils/getCountryOptions/getCountryOptions";
 import { getCurrencyOptions } from "@/utils/getCurrencyOptions/getCurrencyOptions";
@@ -36,6 +36,7 @@ export default function Topbar() {
     const [isExchangeFieldsSidebarOpen, setExchangeFieldsSidebarOpen] = useState(false);
     const [selectedGateway, setSelectedGateway] = useState("");
     const [amount, setAmount] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
     const [passwords, setPasswords] = useState({
         oldPassword: "",
         newPassword: "",
@@ -67,6 +68,27 @@ export default function Topbar() {
     const toggleProfileSidebar = () => setProfileSidebarOpen((prev) => !prev);
     const toggleBottomSidebar = () => setBottomSidebarOpen((prev) => !prev);
     const togglePaymentSidebar = () => setPaymentSidebarOpen((prev) => !prev);
+    const [isTradeListOpen, setIsTradeListOpen] = useState(false);
+    const [selectedTrade, setSelectedTrade] = useState({
+        name: "Asia Composite Index",
+        icon: crypto,
+        profitability: "85%",
+    });
+
+    const tradeCurrencies = [
+        { name: "Official Trump Meme", profitability: "82%", icon: crypto },
+        { name: "Quickler", profitability: "85%", icon: crypto },
+        { name: "Asia Composite Index", profitability: "85%", icon: crypto },
+        { name: "Commodity Composite", profitability: "85%", icon: crypto },
+        { name: "Crypto Composite Index", profitability: "85%", icon: crypto },
+        { name: "Europe Composite Index", profitability: "85%", icon: crypto },
+        { name: "EUR/USD", profitability: "82%", icon: crypto },
+        { name: "GBP/USD", profitability: "82%", icon: crypto },
+    ];
+
+    const filteredTrades = tradeCurrencies.filter((trade) =>
+        trade.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     const closeAllSidebars = () => {
         setSidebarOpen(false);
@@ -158,9 +180,9 @@ export default function Topbar() {
         if (previewImage) {
           setProfileInfo((prev) => ({
             ...prev,
-            profileImage: previewImage, // Update profile image
+            profileImage: previewImage,
           }));
-          setPreviewImage(null); // Clear the preview
+          setPreviewImage(null);
           toast.success("Profile updated successfully!" , {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
         } else {
           toast.error("Please select an image first." , {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
@@ -181,7 +203,6 @@ export default function Topbar() {
           return;
         }
     
-        // Handle password change logic (e.g., API request)
         toast.success("Password updated successfully!" , {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
         setPasswords({ oldPassword: "", newPassword: "", confirmPassword: "" });
         setPasswordSidebarOpen(false); // Close password sidebar
@@ -208,7 +229,6 @@ export default function Topbar() {
     const handleExchangeSubmit = (e) => {
         e.preventDefault();
     
-        // Validation: Check if a currency is selected
         if (!profileInfo.currency) {
         toast.error("Currency selection is required." , {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
           return;
@@ -234,25 +254,74 @@ export default function Topbar() {
     return (
         <>
             <Toaster reverseOrder={false} theme="dark" />
-            <div className="flex items-center justify-between py-3 px-4">
+            <div className="relative flex items-center justify-between py-3 px-4">
                 <div className="flex items-center gap-3">
-                    <div className="relative w-11 h-11 flex justify-center items-center bg-[#0d1f30] rounded-md">
-                        <Plus className="w-6" />
+                    <div className="relative w-11 h-11 flex justify-center items-center bg-[#0d1f30] rounded-md cursor-pointer" onClick={() => setIsTradeListOpen(!isTradeListOpen)}>
+                        <div
+                            className={`transition-transform duration-300 ${
+                            isTradeListOpen ? "rotate-45" : "rotate-0"
+                            }`}
+                        >
+                            <Plus className="w-6 text-white" />
+                        </div>
                     </div>
                     <div className="flex items-center bg-[#0d1f30] py-1.5 px-3 rounded-md">
                         <div className="">
-                            <Image src={crypto} 
+                            <Image src={selectedTrade.icon} 
                                 className="object-cover" 
                                 width={30} 
                                 alt="currency"
                             />
                         </div>
                         <div className="pl-1">
-                            <div className="text-sm leading-[18px] text-white">Asia Composite Index</div>
-                            <div className="text-[12px] leading-[14px]">FT - <span className="text-emerald-400">85%</span></div>
+                            <div className="text-sm leading-[18px] text-white">{selectedTrade.name}</div>
+                            <div className="text-[12px] leading-[14px]">FT - <span className="text-emerald-400">{selectedTrade.profitability}</span></div>
                         </div>
                     </div>
                 </div>
+                {isTradeListOpen && (
+                    <div className="absolute left-4 top-16 w-72 bg-[#0d1f30] shadow-lg rounded-md p-3 z-50">
+                        <div className="flex justify-between items-center py-2">
+                            <h2 className="text-white text-lg">Select Trade</h2>
+                            <button onClick={() => setIsTradeListOpen(false)}>
+                                <X className="text-white w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="relative mt-3">
+                            <input
+                                type="text"
+                                placeholder="Search..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full bg-[#1a2c3d] border-slate-700 text-white py-2 px-3 rounded-md outline-none"
+                            />
+                            <Search className="absolute right-3 top-3 text-gray-400 w-4 h-4" />
+                        </div>
+                        <div className="mt-3 space-y-2 max-h-72 overflow-y-auto">
+                            {filteredTrades.length > 0 ? (
+                            filteredTrades.map((trade, index) => (
+                                <div
+                                    key={index}
+                                    className="flex items-center justify-between bg-[#1a2c3d] p-2 rounded-md cursor-pointer hover:bg-[#223344]"
+                                    onClick={() => {
+                                        setSelectedTrade(trade);
+                                        setIsTradeListOpen(false);
+                                        setSearchQuery("");
+                                    }}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <Image src={trade.icon} className="object-cover" width={24} height={24} alt="currency" />
+                                        <div className="text-white text-sm">{trade.name}</div>
+                                    </div>
+                                    <div className="text-emerald-400 text-sm">{trade.profitability}</div>
+                                </div>
+                                ))
+                            ) : (
+                                <p className="text-gray-400 text-center py-2">No results found</p>
+                            )}
+                        </div>
+                    </div>
+                )}
                 <div className="flex items-center gap-3">
                     <div className="relative top-1 mr-6 cursor-pointer" onClick={toggleSidebar}>
                         <div className="text-white font-semibold text-[18px] leading-[20px]">Đ{accountBalance.toFixed(2)}</div>
