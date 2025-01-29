@@ -1,6 +1,6 @@
 import { DM_Sans } from "next/font/google";
 import "../globals.css";
-import "../globals.scss";
+import "../global.scss";
 import Sidebar from "@/components/common/sidebar/sidebar";
 import Topbar from "@/components/common/topbar/topbar";
 import { AccountProvider } from "@/context/accountProvider/accountProvider";
