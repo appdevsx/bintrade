@@ -1,5 +1,6 @@
 import { DM_Sans } from "next/font/google";
 import "../globals.css";
+import "../global.scss";
 import Header from "@/components/common/header/header";
 import LiveChat from "@/components/common/liveChat/liveChat";
 import Footer from "@/components/common/footer/footer";

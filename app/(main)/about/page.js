@@ -3,9 +3,9 @@ import Testimonial from "@/components/section/testimonial/testimonial";
 
 export default function AboutPage() {
     return (
-      <>
-        <About />
-        <Testimonial />
-      </>
+		<>
+			<About />
+			<Testimonial />
+		</>
     );
 }

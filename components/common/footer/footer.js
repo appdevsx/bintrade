@@ -22,56 +22,56 @@ const footerWidget = {
 const footerFirstLists = [
     {
         name: 'About Us',
-        href: '/',
+        href: '/about',
     },
     {
         name: 'Contact',
-        href: '/',
+        href: '/contact',
     },
     {
         name: 'FAQ',
-        href: '/',
+        href: '/faq',
     }
 ]
 
 const footerSecondLists = [
     {
         name: 'Download App',
-        href: '/',
+        href: '/app',
     },
     {
         name: 'Web Journal',
-        href: '/',
+        href: '/blog',
     },
     {
         name: 'Services',
-        href: '/',
+        href: '/service',
     }
 ]
 
 const footerThirdLists = [
     {
         name: 'Privacy Policy',
-        href: '/',
+        href: '/privacy',
     },
     {
         name: 'Terms & Conditions',
-        href: '/',
+        href: '/terms',
     },
     {
         name: 'Refund Policy',
-        href: '/',
+        href: '/refund',
     }
 ]
 
 const footerFourthLists = [
     {
         name: 'Register',
-        href: '/',
+        href: '/register',
     },
     {
         name: 'Login',
-        href: '/',
+        href: '/login',
     }
 ]
 
@@ -83,15 +83,15 @@ const footerSubscribe = {
 const footerSocials = [
     {
         name: 'Twitter',
-        href: '/',
+        href: 'https://x.com',
     },
     {
         name: 'Instagram',
-        href: '/',
+        href: 'https://www.instagram.com',
     },
     {
         name: 'Linked In',
-        href: '/',
+        href: 'https://linkedin.com',
     }
 ]
 
@@ -106,7 +106,7 @@ export default function Footer() {
             <div className="footer-top-area">
                 <div className="custom-container">
                     <div className="footer-top-wrapper grid grid-cols-1 gap-8 lg:grid-cols-1">
-                        <div className="flex justify-center sm:justify-start">
+                        <div className="flex">
                             <div className="footer-widget">
                                 <div className="foote-logo">
                                     <Link href="/" className="site-logo relative overflow-hidden">
@@ -129,7 +129,7 @@ export default function Footer() {
                                     {footerFirstLists.map(( footerFirstList, index ) => {
                                         return (
                                             <li className="font-medium text-sm text-slate-300 hover:text-white" key={index}>
-                                                <Link href="{footerFirstList.href}">{footerFirstList.name}</Link>
+                                                <Link href={footerFirstList.href}>{footerFirstList.name}</Link>
                                             </li>
                                         );
                                     })}
@@ -141,7 +141,7 @@ export default function Footer() {
                                     {footerSecondLists.map(( footerSecondList, index ) => {
                                         return (
                                             <li className="font-medium text-sm text-slate-300 hover:text-white" key={index}>
-                                                <Link href="{footerSecondList.href}">{footerSecondList.name}</Link>
+                                                <Link href={footerSecondList.href}>{footerSecondList.name}</Link>
                                             </li>
                                         );
                                     })}
@@ -153,7 +153,7 @@ export default function Footer() {
                                     {footerThirdLists.map(( footerThirdList, index ) => {
                                         return (
                                             <li className="font-medium text-sm text-slate-300 hover:text-white" key={index}>
-                                                <Link href="{footerThirdList.href}">{footerThirdList.name}</Link>
+                                                <Link href={footerThirdList.href}>{footerThirdList.name}</Link>
                                             </li>
                                         );
                                     })}
@@ -165,7 +165,7 @@ export default function Footer() {
                                     {footerFourthLists.map(( footerFourthList, index ) => {
                                         return (
                                             <li className="font-medium text-sm text-slate-300 hover:text-white" key={index}>
-                                                <Link href="{footerFourthList.href}">{footerFourthList.name}</Link>
+                                                <Link href={footerFourthList.href}>{footerFourthList.name}</Link>
                                             </li>
                                         );
                                     })}
@@ -185,16 +185,16 @@ export default function Footer() {
             </div>
             <div className="footer-bottom-area">
                 <div className="custom-container">
-                    <div className="footer-bottom-wrapper flex items-center justify-between border-t-2 border-slate-800 pt-10 pb-10 mt-14">
+                    <div className="footer-bottom-wrapper block text-center sm:flex items-center justify-between border-t-2 border-slate-800 pt-10 pb-10 mt-14">
                         <div className="copyright-wrapper">
                             <p className="font-medium text-sm text-slate-300">{footer.copyright}</p>
                         </div>
                         <div className="footer-social-wrapper">
-                            <ul className="footer-social-list flex items-center justify-between space-x-7">
+                            <ul className="footer-social-list flex items-center mt-2 sm:mt-0 justify-center sm:justify-between space-x-7">
                                 {footerSocials.map(( footerSocial, index ) => {
                                     return (
                                         <li className="font-medium text-sm text-slate-300" key={index}>
-                                            <Link href="{footerSocial.href}">{footerSocial.name}</Link>
+                                            <Link href={footerSocial.href} target="_blank">{footerSocial.name}</Link>
                                         </li>
                                     );
                                 })}

@@ -16,10 +16,10 @@ h1{
 	font-size: 55px;
 }
 .custom-container{
-	@apply container mx-auto max-w-6xl
+	@apply container mx-auto max-w-[1136px] px-4
 }
 .custom-container-hero{
-	@apply container mx-auto max-w-screen-2xl
+	@apply container mx-auto max-w-[1520px] px-4
 }
 .bg--base{
 	background-color: #2e71e5;

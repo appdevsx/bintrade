@@ -2,8 +2,18 @@
     font-size: 14px;
     @apply py-6 font-semibold text-white relative z-10 transition-all pl-3
 }
+@media only screen and (max-width: 1023px){
+    .link{
+        @apply block py-3
+    }
+}
 .linkActive{
     @apply py-6 font-semibold text--base relative z-10 transition-all pl-3
+}
+@media only screen and (max-width: 1023px){
+    .linkActive{
+        @apply block py-3
+    }
 }
 .link::before{
     position: absolute;

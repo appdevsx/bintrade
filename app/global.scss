@@ -1,0 +1,38 @@
+.header-wrapper{
+    position: relative;
+    .header-nav{
+        @media only screen and (max-width: 1023px){
+            position: absolute;
+            top: 50px;
+            left: 0;
+            width: 100%;
+            min-height: 100%;
+            background-color: #051422;
+            padding: 10px 20px 20px 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+        }
+        &.open{
+            opacity: 1;
+            visibility: visible;
+        }
+    }
+    .header-action{
+        a{
+            @media only screen and (max-width: 1199px){
+                padding: 7px 15px;
+                font-size: 13px;
+            }
+            @media only screen and (max-width: 1023px){
+                padding: 5px 12px;
+                font-size: 12px;
+            }
+            svg{
+                @media only screen and (max-width: 1199px){
+                    width: 15px;
+                }
+            }
+        }
+    }
+}

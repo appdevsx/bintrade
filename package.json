@@ -28,6 +28,7 @@
 		"react-qr-code": "^2.0.15",
 		"react-select": "^5.9.0",
 		"react-world-flags": "^1.6.0",
+		"sass": "^1.83.4",
 		"swiper": "^11.1.8",
 		"world-countries": "^5.0.0"
 	},
