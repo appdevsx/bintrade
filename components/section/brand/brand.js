@@ -62,7 +62,7 @@ export default function Brand() {
         <section className="brand-section gradient--bg py-20">
             <div className="custom-container">
                 <div className="brand-header">
-                    <h3 className="title text-xl mb-4 font-semibold">{brandHeader.titleLeft} <span className="font-bold text--base">{brandHeader.titleMain}</span> {brandHeader.titleRight}</h3>
+                    <h3 className="title text-lg md:text-xl mb-4 font-semibold">{brandHeader.titleLeft} <span className="font-bold text--base">{brandHeader.titleMain}</span> {brandHeader.titleRight}</h3>
                 </div>
                 <Swiper
                     slidesPerView={6}
@@ -79,6 +79,13 @@ export default function Brand() {
                     cssMode={true}
                     loopAdditionalSlides={6}
                     modules={[FreeMode, Autoplay]}
+                    breakpoints={{
+                        320: { slidesPerView: 2, spaceBetween: 10 },
+                        480: { slidesPerView: 3, spaceBetween: 15 },
+                        768: { slidesPerView: 4, spaceBetween: 20 },
+                        1024: { slidesPerView: 5, spaceBetween: 20 },
+                        1280: { slidesPerView: 6, spaceBetween: 20 },
+                    }}
                     className="mySwiper brand-slider swiper-container swiper-container-free-mode"
                 >
                     {brandItems.map(( brandItem, index ) => {

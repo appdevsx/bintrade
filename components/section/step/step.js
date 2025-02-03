@@ -37,7 +37,7 @@ export default function Step() {
                 <div className="section-header-wrapper grid grid-cols-1 md:grid-cols-6 mb-10">
                     <div className="section-header text-center col-span-4 col-start-2">
                         <span className="section-sub-title font-semibold border border-slate-800 text-sm rounded-full py-0.5 px-4 inline-block mb-3.5">Steps</span>
-                        <h2 className="section-title text-4xl font-medium capitalize">Our working <span className="font-extrabold text--base">steps</span> to trading business.</h2>
+                        <h2 className="section-title text-2xl sm:text-3xl md:text-4xl font-medium capitalize">Our working <span className="font-extrabold text--base">steps</span> to trading business.</h2>
                         <p className="mt-3.5 text-base">In the rest of this article, we discuss how to set up your payments strategy to optimize every transaction.</p>
                     </div>
                 </div>
@@ -46,7 +46,7 @@ export default function Step() {
                         return (
                         );
                     })} */}
-                    <div className="col-span-5 step-item-inner">
+                    <div className="col-span-12 lg:col-span-5 step-item-inner">
                         <div className={styles.stepItem}>
                             <div className="step-content">
                                 <span className="sub-title text-white flex items-center mb-3"><span className="number w-7 h-7 border-2 border--base rounded-full flex justify-center items-center text-center text-lg text--base mr-2 font-bold">1</span> Make Trading <CircleArrowRight className="ml-1 w-4" /></span>
@@ -68,9 +68,9 @@ export default function Step() {
                             </div>
                         </div>
                     </div>
-                    <div className="col-span-7 step-item-inner">
+                    <div className="col-span-12 lg:col-span-7 step-item-inner">
                         <div className={styles.stepItem}>
-                            <div className="step-content w-7/12">
+                            <div className="step-content w-full md:w-7/12">
                                 <span className="sub-title text-white flex items-center mb-3"><span className="number w-7 h-7 border-2 border--base rounded-full flex justify-center items-center text-center text-lg text--base mr-2 font-bold">2</span> Make Deposite <CircleArrowRight className="ml-1 w-4" /></span>
                                 <h3 className="title text-xl font-bold mb-1">If trading was never an option for you before</h3>
                                 <ul className={styles.stepList}>
@@ -88,7 +88,7 @@ export default function Step() {
                                     </li>
                                 </ul>
                             </div>
-                            <div className="step-thumb absolute bottom-0 right-0">
+                            <div className="step-thumb relative md:absolute bottom-0 right-0">
                                 <Image src={stepOne} 
                                     className="object-cover" 
                                     width={250} 
@@ -100,9 +100,9 @@ export default function Step() {
                             </div>
                         </div>
                     </div>
-                    <div className="col-span-7 step-item-inner">
+                    <div className="col-span-12 lg:col-span-7 step-item-inner">
                         <div className={styles.stepItem}>
-                            <div className="step-content w-7/12">
+                            <div className="step-content w-full md:w-7/12">
                                 <span className="sub-title text-white flex items-center mb-3"><span className="number w-7 h-7 border-2 border--base rounded-full flex justify-center items-center text-center text-lg text--base mr-2 font-bold">3</span> Make Payout <CircleArrowRight className="ml-1 w-4" /></span>
                                 <h3 className="title text-xl font-bold mb-1">If trading was never an option for you before</h3>
                                 <ul className={styles.stepList}>
@@ -120,7 +120,7 @@ export default function Step() {
                                     </li>
                                 </ul>
                             </div>
-                            <div className="step-thumb absolute bottom-0 right-0">
+                            <div className="step-thumb relative md:absolute bottom-0 right-0">
                                 <Image src={stepTwo} 
                                     className="object-cover" 
                                     width={350} 
@@ -132,7 +132,7 @@ export default function Step() {
                             </div>
                         </div>
                     </div>
-                    <div className="col-span-5 step-item-inner">
+                    <div className="col-span-12 lg:col-span-5 step-item-inner">
                         <div className={styles.stepItem}>
                             <div className="step-content">
                                 <span className="sub-title text-white flex items-center mb-3"><span className="number w-7 h-7 border-2 border--base rounded-full flex justify-center items-center text-center text-lg text--base mr-2 font-bold">4</span> Make Practice <CircleArrowRight className="ml-1 w-4" /></span>

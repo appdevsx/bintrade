@@ -67,7 +67,7 @@ export default function Testimonial() {
                 <div className="section-header-wrapper grid grid-cols-1 md:grid-cols-6 mb-10">
                     <div className="section-header text-center col-span-4 col-start-2">
                         <span className="section-sub-title font-semibold border border-slate-800 text-sm rounded-full py-0.5 px-4 inline-block mb-3.5">{sectionHeader.sectionSubTitle}</span>
-                        <h2 className="section-title text-4xl font-medium capitalize">{sectionHeader.sectionTitleLeft} <span className="font-extrabold text--base">{sectionHeader.sectionTitleMain}</span> {sectionHeader.sectionTitleRight}</h2>
+                        <h2 className="section-title text-2xl sm:text-3xl md:text-4xl font-medium capitalize">{sectionHeader.sectionTitleLeft} <span className="font-extrabold text--base">{sectionHeader.sectionTitleMain}</span> {sectionHeader.sectionTitleRight}</h2>
                         <p className="mt-3.5 text-base">{sectionHeader.sectionDescription}</p>
                     </div>
                 </div>
@@ -86,6 +86,13 @@ export default function Testimonial() {
                     cssMode={true}
                     loopAdditionalSlides={4}
                     modules={[FreeMode, Autoplay]}
+                    breakpoints={{
+                        320: { slidesPerView: 1.2, spaceBetween: 10 },
+                        480: { slidesPerView: 1.5, spaceBetween: 15 },
+                        640: { slidesPerView: 2, spaceBetween: 20 },
+                        768: { slidesPerView: 3, spaceBetween: 20 },
+                        1024: { slidesPerView: 4, spaceBetween: 25 },
+                    }}
                     className="mySwiper testimonial-slider swiper-container swiper-container-free-mode"
                 >
                     {testimonialItems.map(( testimonialItem, index ) => {
@@ -133,6 +140,13 @@ export default function Testimonial() {
                     loopAdditionalSlides={4}
                     modules={[FreeMode, Autoplay]}
                     dir="rtl"
+                    breakpoints={{
+                        320: { slidesPerView: 1.2, spaceBetween: 10 },
+                        480: { slidesPerView: 1.5, spaceBetween: 15 },
+                        640: { slidesPerView: 2, spaceBetween: 20 },
+                        768: { slidesPerView: 3, spaceBetween: 20 },
+                        1024: { slidesPerView: 4, spaceBetween: 25 },
+                    }}
                     className="mySwiper testimonial-slider swiper-container swiper-container-free-mode text-left mt-2"
                 >
                     {testimonialItems.map(( testimonialItem, index ) => {

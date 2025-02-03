@@ -21,11 +21,12 @@ export default function Banner() {
                 alt="bannerBg"
                 fill={true} 
             />
+            <div className="absolute inset-0 bg-black/50 z-[-1] md:hidden"></div>
             <div className="custom-container">
-                <div className="banner-content-wrapper grid grid-cols-2">
-                    <div className="banner-content mr-10">
+                <div className="banner-content-wrapper grid grid-cols-1 md:grid-cols-2">
+                    <div className="banner-content md:mr-10">
                         <span className={styles.subTitle}>{bannerContent.subTitle}</span>
-                        <h1 className="title text-white font-bold mb-4"><span className="text--base">{bannerContent.titleMain}</span> {bannerContent.titleSub}</h1>
+                        <h1 className="title text-white text-[32px] sm:text-[36px] md:text-[40px] lg:text-[46px] xl:text-[55px] font-bold mb-4"><span className="text--base">{bannerContent.titleMain}</span> {bannerContent.titleSub}</h1>
                         <p className={styles.description}>{bannerContent.description}</p>
                         <div className="banner-btn mt-8">
                             <Link className="baseBtn" href="/login">{bannerContent.button} <CircleArrowRight /></Link>

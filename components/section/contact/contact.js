@@ -41,14 +41,14 @@ export default function Contact() {
             <Toaster reverseOrder={false} theme="dark" />
             <div className={styles.contactElement}></div>
             <div className="custom-container">
-                <div className="contact-wrapper grid grid-cols-2 gap-5 items-center">
-                    <div className="contact-address-content-wrapper mr-12">
+                <div className="contact-wrapper grid grid-cols-1 lg:grid-cols-2 gap-5 items-center">
+                    <div className="contact-address-content-wrapper mr-0 md:mr-12">
                         <div className="contact-address-content-header mb-7">
                             <span className="sub-title font-semibold border border-slate-800 text-sm rounded-full py-0.5 px-4 inline-block mb-3.5">{contactAddressContentHeader.subTitle}</span>
-                            <h2 className="title text-4xl font-bold mb-4">{contactAddressContentHeader.titleLeft} <span className="text--base">{contactAddressContentHeader.titleMain}</span> {contactAddressContentHeader.titleRight}</h2>
+                            <h2 className="title text-3xl md:text-4xl font-bold mb-4">{contactAddressContentHeader.titleLeft} <span className="text--base">{contactAddressContentHeader.titleMain}</span> {contactAddressContentHeader.titleRight}</h2>
                             <p className="text-base">{contactAddressContentHeader.description}</p>
                         </div>
-                        <div className="contact-address-item-wrapper grid grid-cols-2 gap-5">
+                        <div className="contact-address-item-wrapper grid grid-cols-1 md:grid-cols-2 gap-5">
                             {contactAddressItems.map(( contactAddressItem, index ) => {
                                 return (
                                     <div className="contact-address-item" key={index}>
@@ -64,7 +64,7 @@ export default function Contact() {
                     <div className={styles.contactFormWrapper}>
                         <div className={styles.contactForm}>
                             <div className="contact-form-header mb-4">
-                                <h3 className="title text-2xl font-bold mb-3">{contactForm.title}</h3>
+                                <h3 className="title text-xl md:text-2xl font-bold mb-3">{contactForm.title}</h3>
                                 <p>{contactForm.description}</p>
                             </div>
                             <form className="contact-form-inner grid grid-cols-12 gap-5" onSubmit={handleSubmit}>

@@ -220,12 +220,12 @@ export default function Sidebar() {
     return (
         <>
             <Toaster reverseOrder={false} theme="dark" />
-            <div className="fixed top-0 left-0 w-[80px] h-screen section--bg border-r border-slate-800 py-5 px-2 z-[2]">
-                <button className={`sidebar-mobile-toggle lg:hidden fixed top-1/2 left-0 z-50 lg:z-0 bg-white custom--shadow-inner text--base py-2 pr-3 ${isSidebarOpen ? 'active-class' : ''}`}
+            <div className="fixed top-0 left-0 w-[80px] h-screen z-[2]">
+                <button className={`sidebar-mobile-toggle lg:hidden fixed top-1/2 left-0 z-50 lg:z-0 bg-[#051524] text--base py-2 pr-3 ${isSidebarOpen ? 'active-class' : ''}`}
                     onClick={toggleSidebar}>
                     <StepForward size={25} />
                 </button>
-                <div className="">
+                <div className={`sidebar transition-all duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed top-0 left-0 w-[80px] h-screen section--bg border-r border-slate-800 py-5 px-2`}>
                     <div className="sidebar-wrapper">
                         <Link href="/" className="site-logo relative overflow-hidden block mb-8">
                             <Image src={logo} 

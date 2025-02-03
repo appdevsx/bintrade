@@ -42,16 +42,16 @@ export default function BlogDetails() {
 						<div className="blog-content">
 							<div className="text-center">
                                 <span className="date block mb-4">{blogDetails.date}</span>
-                                <h2 className="title text-5xl font-bold mb-4">{blogDetails.title}</h2>
+                                <h2 className="title text-3xl sm:text-4xl md:text-5xl font-bold mb-4">{blogDetails.title}</h2>
                             </div>
-                            <div className="blog-thumb w-9/12 mx-auto my-8">
+                            <div className="blog-thumb w-full md:w-9/12 mx-auto my-8">
                                 <p className="mb-5">{blogDetails.descriptionOne}</p>
                                 <Image src={blogDetails.image} 
                                     className="object-cover rounded-xl w-full h-[500px]"
                                     alt="blog"
                                 />
                             </div>
-                            <div className="w-8/12 mx-auto">
+                            <div className="w-full md:w-8/12 mx-auto">
                                 <h3 className="inner-title text-xl font-bold mb-4">{blogDetails.innerTitleOne}</h3>
                                 <p className="mb-4">{blogDetails.descriptionTwo}</p>
                                 <p className="mb-4">{blogDetails.descriptionThree}</p>

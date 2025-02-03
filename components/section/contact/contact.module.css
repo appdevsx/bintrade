@@ -15,6 +15,11 @@
     overflow: hidden;
     margin-left: 40px;
 }
+@media only screen and (max-width: 1023px){
+    .contactFormWrapper{
+        margin-left: 0;
+    }
+}
 .contactForm{
     position: relative;
     background: linear-gradient(177deg,#081e32,#011120);
@@ -23,4 +28,9 @@
     z-index: 2;
     overflow: hidden;
     transition: all 0.25s ease-out;
+}
+@media only screen and (max-width: 575px){
+    .contactForm{
+        padding: 30px;
+    }
 }

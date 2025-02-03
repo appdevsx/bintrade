@@ -11,6 +11,11 @@
 .chooseItem:nth-child(odd){
     margin-top: 60px;
 }
+@media only screen and (max-width: 1023px){
+    .chooseItem:nth-child(odd){
+        margin-top: 0;
+    }
+}
 .chooseItem:hover{
     transform: translateY(-5px);
 }

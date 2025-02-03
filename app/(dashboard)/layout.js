@@ -20,7 +20,7 @@ export default function DashboardLayout({ children }) {
                     <main className="dashboard-layout">
                         <div className="dashboard-wrapper">
                             <Sidebar/>
-                            <div className="dashboard-main-wrapper w-[calc(100%-80px)] ml-auto">
+                            <div className="dashboard-main-wrapper lg:w-[calc(100%-80px)] ml-auto">
                                 <Topbar/>
                                 <div className="dashboard-body-wrapper">
                                     {children}

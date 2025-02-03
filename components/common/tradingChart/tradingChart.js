@@ -261,7 +261,7 @@ const RealtimeChart = () => {
     }, [resultMarker]);
 
     return (
-        <div className="flex overflow-hidden">
+        <div className="lg:flex overflow-hidden">
             <div className="relative w-full p-4">
                 <div ref={chartContainerRef} style={{ position: 'relative' }}></div>
                 <div className="absolute bottom-[50px] left-[20px] z-[4] rounded overflow-hidden bg-[#011120] flex flex-col space-y-[1px]">

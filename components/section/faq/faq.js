@@ -37,11 +37,11 @@ export default function Faq() {
     return (
 		<section className="faq-section py-20">
             <div className="custom-container">
-                <div className="grid grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="section-header-wrapper">
                         <div className="section-header">
                             <span className="section-sub-title font-semibold border border-slate-800 text-sm rounded-full py-0.5 px-4 inline-block mb-3.5">{sectionHeader.sectionSubTitle}</span>
-                            <h2 className="section-title text-4xl font-medium capitalize">{sectionHeader.sectionTitle}</h2>
+                            <h2 className="section-title text-2xl sm:text-3xl md:text-4xl font-medium capitalize">{sectionHeader.sectionTitle}</h2>
                             <p className="mt-3.5 text-base">{sectionHeader.sectionDescription}</p>
                             <div className="faq-btn mt-8">
                                 <Link className="baseBtn" href="/contact">Need Help? <CircleArrowRight /></Link>
@@ -57,7 +57,7 @@ export default function Faq() {
                                     key={index}
                                 >
                                     <div className="flex items-center justify-between" onClick={() => toggleFaqItem(index)}>
-                                        <h4 className="text-lg font-semibold w-[90%]">
+                                        <h4 className="text-md sm:text-lg font-semibold w-[90%]">
                                             {faqItem.title}
                                         </h4>
                                         <div

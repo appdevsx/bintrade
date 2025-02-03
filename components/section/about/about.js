@@ -31,10 +31,10 @@ export default function About() {
 		<section className="about-section pt-20">
             <div className="custom-container">
                 <div className={styles.aboutWrapper}>
-					<div className="about-inner-wrapper grid grid-cols-2 gap-5 items-center">
-						<div className="about-content-wrapper mr-8">
+					<div className="about-inner-wrapper grid grid-cols-1 md:grid-cols-2 gap-5 items-center">
+						<div className="about-content-wrapper mr-0 md:mr-8">
 							<span className="sub-title font-semibold border border-slate-800 text-sm rounded-full py-0.5 px-4 inline-block mb-3.5">{aboutWrapper.subTitle}</span>
-							<h2 className="title text-4xl font-bold mb-3">{aboutWrapper.titleLeft} <span className="text--base">{aboutWrapper.titleMain}</span></h2>
+							<h2 className="title text-2xl sm:text-3xl md:text-4xl font-bold mb-3">{aboutWrapper.titleLeft} <span className="text--base">{aboutWrapper.titleMain}</span></h2>
 							<p className="mb-2">{aboutWrapper.description}</p>
 							<ul className={styles.aboutList}>
 								{aboutLists.map(( aboutList, index ) => {
@@ -49,7 +49,7 @@ export default function About() {
 						</div>
 						<div className="about-thumb">
 							<Image src={aboutWrapper.image} 
-								className="object-cover rounded-xl ml-auto"
+								className="object-cover rounded-xl md:ml-auto"
 								alt="about"
 								width={400}
 							/>

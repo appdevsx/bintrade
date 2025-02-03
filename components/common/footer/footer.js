@@ -111,18 +111,18 @@ export default function Footer() {
                                 <div className="foote-logo">
                                     <Link href="/" className="site-logo relative overflow-hidden">
                                         <Image src={footer.image} 
-                                            className="object-cover" 
-                                            width={140} 
+                                            className="object-cover"
+                                            width={140}
                                             alt="logo"
                                             priority={true} 
-                                            quality={50}  
-                                            decoding="async" 
+                                            quality={50}
+                                            decoding="async"
                                         />
                                     </Link>
                                 </div>
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 gap-8 md:grid-cols-5">
+                        <div className="grid grid-cols-1 gap-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5">
                             <div className="footer-widget">
                                 <h4 className="widget-title text-lg font-bold mb-2.5 text-white">{footerWidget.titleOne}</h4>
                                 <ul className="footer-list space-y-2">

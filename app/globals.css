@@ -40,7 +40,7 @@ h1{
 	margin-bottom: -60px;
 }
 .baseBtn{
-    @apply bg--base inline-flex items-center gap-2 text-white font-semibold rounded-md transition-all hover:bg-blue-700 px-7 py-2.5
+    @apply bg--base inline-flex items-center gap-2 text-white font-semibold rounded-md transition-all hover:bg-blue-700 text-sm sm:text-[15px] px-4 sm:px-7 py-2.5
 }
 .baseBtn svg{
     width: 18px;

@@ -46,7 +46,7 @@ export default function Blog() {
 				<div className="section-header-wrapper grid grid-cols-1 md:grid-cols-6 mb-10">
 					<div className="section-header text-center col-span-4 col-start-2">
 						<span className="section-sub-title font-semibold border border-slate-800 text-sm rounded-full py-0.5 px-4 inline-block mb-3.5">{sectionHeader.sectionSubTitle}</span>
-						<h2 className="section-title text-4xl font-medium capitalize">{sectionHeader.sectionTitleLeft} <span className="font-extrabold text--base">{sectionHeader.sectionTitleMain}</span> {sectionHeader.sectionTitleRight}</h2>
+						<h2 className="section-title text-2xl sm:text-3xl md:text-4xl font-medium capitalize">{sectionHeader.sectionTitleLeft} <span className="font-extrabold text--base">{sectionHeader.sectionTitleMain}</span> {sectionHeader.sectionTitleRight}</h2>
 						<p className="mt-3.5 text-base">{sectionHeader.sectionDescription}</p>
 					</div>
 				</div>
@@ -62,7 +62,7 @@ export default function Blog() {
 								</div>
 								<div className={styles.blogContent}>
 									<span className="date block mb-4">{blogItem.date}</span>
-									<h3 className="title text-xl font-bold mb-4">{blogItem.title}</h3>
+									<h3 className="title text-lg sm:text-xl font-bold mb-4">{blogItem.title}</h3>
 									<p>{blogItem.description}</p>
 									<div className="blog-btn mt-6">
 										<Link className={styles.customBtn} href="/blogDetails">{blogItem.button} <CircleArrowRight /></Link>

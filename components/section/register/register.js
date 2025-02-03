@@ -24,13 +24,13 @@ export default function Register() {
         toast.success('Registration Successful!', {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
     };
     return (
-		<section className="account-section relative">
+		<section className="account-section relative overflow-hidden">
             <Toaster reverseOrder={false} theme="dark" />
             <div className={styles.accountElement}></div>
             <div className="back-to-home-btn absolute top-5 left-5">
                 <Link href="/" className="custom--btn--bg inline-flex items-center gap-2 text-white font-semibold rounded-md transition-all hover:bg-blue-700 px-6 py-2 text-sm custom--shadow"><ArrowBigLeftDash /> {accountWrapper.backButton}</Link>
             </div>
-            <div className="account-section-inner h-screen flex justify-center items-center py-20 px-3.5">
+            <div className="account-section-inner min-h-screen flex justify-center items-center py-20 px-3.5">
                 <div className={styles.accountWrapper}>
                     <div className="account-header gradient--bg py-10 px-8 text-center border-b border-slate-800">
                         <Link href="/" className="site-logo relative overflow-hidden">

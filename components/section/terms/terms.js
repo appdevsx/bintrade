@@ -13,12 +13,12 @@ export default function Terms() {
                 <div className="section-header-wrapper grid grid-cols-1 md:grid-cols-6 mb-10">
                     <div className="section-header text-center col-span-4 col-start-2">
                         <span className="section-sub-title font-semibold border border-slate-800 text-sm rounded-full py-0.5 px-4 inline-block mb-3.5">{sectionHeader.sectionSubTitle}</span>
-                        <h2 className="section-title text-4xl font-medium capitalize">{sectionHeader.sectionTitleLeft} <span className="font-extrabold text--base">{sectionHeader.sectionTitleMain}</span> {sectionHeader.sectionTitleRight}</h2>
+                        <h2 className="section-title text-2xl sm:text-3xl md:text-4xl font-medium capitalize">{sectionHeader.sectionTitleLeft} <span className="font-extrabold text--base">{sectionHeader.sectionTitleMain}</span> {sectionHeader.sectionTitleRight}</h2>
                         <p className="mt-3.5 text-base">{sectionHeader.sectionDescription}</p>
                     </div>
                 </div>
                 <div className="section--bg border border-slate-800 py-8 sm:py-10 lg:py-14 px-5 sm:px-8 lg:px-10 rounded-[8px]">
-                <h4 className="text-2xl font-bold mb-3">Terms & Conditions</h4>
+                <h4 className="text-xl md:text-2xl font-bold mb-3">Terms & Conditions</h4>
                     <p>
                         Welcome to AppDevs Software LTD (&quot;AppDevs,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;). These Terms and Conditions (&quot;Terms&quot;) govern your access to and use of our website, https://appdevs.net, and any related services, applications, and products we provide (collectively, the “Services”). By accessing or using our Services, you agree to these Terms. If you do not agree, please refrain from using our Services.
                     </p>

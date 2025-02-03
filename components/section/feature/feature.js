@@ -36,11 +36,11 @@ export default function Feature() {
                 <div className="section-header-wrapper grid grid-cols-1 md:grid-cols-6 mb-10">
                     <div className="section-header text-center col-span-4 col-start-2">
                         <span className="section-sub-title font-semibold border border-slate-800 text-sm rounded-full py-0.5 px-4 inline-block mb-3.5">{sectionHeader.sectionSubTitle}</span>
-                        <h2 className="section-title text-4xl font-medium capitalize">{sectionHeader.sectionTitleLeft} <span className="font-extrabold text--base">{sectionHeader.sectionTitleMain}</span> {sectionHeader.sectionTitleRight}</h2>
+                        <h2 className="section-title text-2xl sm:text-3xl md:text-4xl font-medium capitalize">{sectionHeader.sectionTitleLeft} <span className="font-extrabold text--base">{sectionHeader.sectionTitleMain}</span> {sectionHeader.sectionTitleRight}</h2>
                         <p className="mt-3.5 text-base">{sectionHeader.sectionDescription}</p>
                     </div>
                 </div>
-                <div className="feature-item-wrapper grid grid-cols-3 gap-5">
+                <div className="feature-item-wrapper grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                     {featureItems.map(( featureItem, index ) => {
                         return (
                             <div className={styles.featureItem} key={index}>

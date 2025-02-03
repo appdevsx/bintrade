@@ -254,7 +254,7 @@ export default function Topbar() {
     return (
         <>
             <Toaster reverseOrder={false} theme="dark" />
-            <div className="relative flex items-center justify-between py-3 px-4">
+            <div className="relative lg:flex items-center justify-between py-3 px-4 z-[3]">
                 <div className="flex items-center gap-3">
                     <div className="relative w-11 h-11 flex justify-center items-center bg-[#0d1f30] rounded-md cursor-pointer" onClick={() => setIsTradeListOpen(!isTradeListOpen)}>
                         <div
