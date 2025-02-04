@@ -94,14 +94,14 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
     };
 
     return (
-        <div className="fixed lg:relative top-0 right-0 w-[180px] h-screen lg:h-[815px] z-[2]">
+        <div className="fixed lg:relative top-[70px] lg:top-0 right-0 w-[180px] h-screen lg:h-[calc(100vh-102px)] z-[2]">
             <button
-                className={`asidebar-mobile-toggle lg:hidden fixed top-1/2 right-0 z-50 lg:z-0 bg-[#051524] text--base py-2 pl-3 ${isAsidebarOpen ? 'active-class' : ''}`}
+                className={`asidebar-mobile-toggle lg:hidden fixed top-1/2 right-0 z-50 lg:z-0 bg-[#0d1f30] text--base py-2 pl-3 ${isAsidebarOpen ? 'active-class' : ''}`}
                 onClick={toggleAsidebar}
             >
                 <ArrowBigLeftDash size={25} />
             </button>
-            <div className={`asidebar transition-all duration-300 ${isAsidebarOpen ? 'translate-x-0' : 'translate-x-full'} lg:translate-x-0 bg-[#011120] h-screen lg:h-auto lg:bg-transparent py-5 px-2 flex flex-col justify-center lg:justify-start items-center gap-4`}>
+            <div className={`asidebar transition-all duration-300 ${isAsidebarOpen ? 'translate-x-0' : 'translate-x-full'} lg:translate-x-0 fixed lg:relative bg-[#011120] h-screen lg:bg-transparent py-5 px-2 flex flex-col justify-start items-center z-[9] lg:z-[2] gap-4`}>
                 <div className="w-full flex flex-col items-center">
                     <label htmlFor="amount" className="block text-sm font-medium mb-1">
                         Amount, Ð
@@ -191,7 +191,7 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
                         {action || "None"}
                     </span>
                 </div>
-                <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+                <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[3] shadow-lg p-4 transform ${isSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
                     <div className="flex justify-between items-center p-4">
                         <h2 className="text-white text-lg font-semibold">Trade History</h2>
                         <button onClick={toggleSidebar}>
@@ -224,7 +224,7 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
             </div>
             {isAsidebarOpen && (
                 <div
-                    className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+                    className="lg:hidden fixed inset-0 bg-black bg-opacity-50"
                     onClick={toggleAsidebar}
                 ></div>
             )}

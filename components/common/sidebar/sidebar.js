@@ -220,12 +220,12 @@ export default function Sidebar() {
     return (
         <>
             <Toaster reverseOrder={false} theme="dark" />
-            <div className="fixed top-0 left-0 w-[80px] h-screen z-[2]">
-                <button className={`sidebar-mobile-toggle lg:hidden fixed top-1/2 left-0 z-50 lg:z-0 bg-[#051524] text--base py-2 pr-3 ${isSidebarOpen ? 'active-class' : ''}`}
+            <div className="fixed top-[70px] lg:top-0 left-0 w-[80px] h-screen z-[3]">
+                <button className={`sidebar-mobile-toggle lg:hidden fixed top-1/2 left-0 z-50 lg:z-0 bg-[#0d1f30] text--base py-2 pr-3 ${isSidebarOpen ? 'active-class' : ''}`}
                     onClick={toggleSidebar}>
                     <StepForward size={25} />
                 </button>
-                <div className={`sidebar transition-all duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed top-0 left-0 w-[80px] h-screen section--bg border-r border-slate-800 py-5 px-2`}>
+                <div className={`sidebar transition-all duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed w-[80px] h-screen section--bg border-r border-slate-800 py-5 px-2 z-[9] lg:z-[2]`}>
                     <div className="sidebar-wrapper">
                         <Link href="/" className="site-logo relative overflow-hidden block mb-8">
                             <Image src={logo} 
@@ -299,12 +299,12 @@ export default function Sidebar() {
                 </div>
                 {isSidebarOpen && (
                     <div
-                        className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+                        className="lg:hidden fixed inset-0 bg-black bg-opacity-50"
                         onClick={toggleSidebar}
                     ></div>
                 )}
             </div>
-            <div className={`fixed bottom-0 left-0 h-full bg-[#051524] border-r-2 border-slate-800 w-[400px] z-[5] shadow-lg p-4 transform ${isAnalyticsSidebarOpen ? "translate-x-0" : "translate-x-[-100%]"} transition-transform duration-300 ease-in-out`}>
+            <div className={`fixed bottom-0 left-0 h-full bg-[#051524] border-r-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[5] shadow-lg p-4 transform ${isAnalyticsSidebarOpen ? "translate-x-0" : "translate-x-[-100%]"} transition-transform duration-300 ease-in-out`}>
                 <div className="flex justify-between items-center p-4">
                     <h2 className="text-white text-lg font-semibold">Analytics</h2>
                     <button onClick={closeAllSidebars}>
@@ -326,7 +326,7 @@ export default function Sidebar() {
                     ))}
                 </div>
             </div>
-            <div className={`fixed bottom-0 left-0 h-full bg-[#051524] border-r-2 border-slate-800 w-[400px] z-[5] shadow-lg p-4 transform ${isLogsSidebarOpen ? "translate-x-0" : "translate-x-[-100%]"} transition-transform duration-300 ease-in-out`}>
+            <div className={`fixed bottom-0 left-0 h-full bg-[#051524] border-r-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[5] shadow-lg p-4 transform ${isLogsSidebarOpen ? "translate-x-0" : "translate-x-[-100%]"} transition-transform duration-300 ease-in-out`}>
                 <div className="flex justify-between items-center p-4">
                     <h2 className="text-white text-lg font-semibold">All Logs</h2>
                     <button onClick={closeAllSidebars}>
@@ -343,7 +343,7 @@ export default function Sidebar() {
                     </ul>
                 </div>
             </div>
-            <div className={`fixed bottom-0 left-0 h-full bg-[#051524] border-r-2 border-slate-800 w-[400px] z-[5] shadow-lg p-4 transform ${isHelpSidebarOpen ? "translate-x-0" : "translate-x-[-100%]"} transition-transform duration-300 ease-in-out`}>
+            <div className={`fixed bottom-0 left-0 h-full bg-[#051524] border-r-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[5] shadow-lg p-4 transform ${isHelpSidebarOpen ? "translate-x-0" : "translate-x-[-100%]"} transition-transform duration-300 ease-in-out`}>
                 <div className="flex justify-between items-center p-4">
                     <h2 className="text-white text-lg font-semibold">Help</h2>
                     <button onClick={closeAllSidebars}>
@@ -355,7 +355,7 @@ export default function Sidebar() {
                     <button className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md" onClick={handleChatClick}>Support Chat</button>
                 </div>
             </div>
-            <div className={`fixed bottom-0 left-0 h-full bg-[#051524] border-r-2 border-slate-800 w-[400px] z-[5] shadow-lg p-4 transform ${isTicketsSidebarOpen ? "translate-x-0" : "translate-x-[-100%]"} transition-transform duration-300 ease-in-out`}>
+            <div className={`fixed bottom-0 left-0 h-full bg-[#051524] border-r-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[5] shadow-lg p-4 transform ${isTicketsSidebarOpen ? "translate-x-0" : "translate-x-[-100%]"} transition-transform duration-300 ease-in-out`}>
                 <div className="flex justify-between items-center p-4">
                     <h2 className="text-white text-lg font-semibold">Support Tickets</h2>
                     <button onClick={closeAllSidebars}>
@@ -393,7 +393,7 @@ export default function Sidebar() {
                     </button>
                 </div>
             </div>
-            <div className={`fixed bottom-0 left-0 h-full bg-[#051524] border-r-2 border-slate-800 w-[400px] z-[5] shadow-lg p-4 transform ${isCreateTicketsSidebarOpen ? "translate-x-0" : "translate-x-[-100%]"} transition-transform duration-300 ease-in-out`}>
+            <div className={`fixed bottom-0 left-0 h-full bg-[#051524] border-r-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[5] shadow-lg p-4 transform ${isCreateTicketsSidebarOpen ? "translate-x-0" : "translate-x-[-100%]"} transition-transform duration-300 ease-in-out`}>
                 <div className="flex justify-between items-center p-4">
                     <h2 className="text-white text-lg font-semibold">Create New Ticket</h2>
                     <button onClick={closeAllSidebars}>
@@ -493,7 +493,7 @@ export default function Sidebar() {
                     </button>
                 </form>
             </div>
-            <div className={`fixed bottom-0 left-0 h-full bg-[#051524] border-r-2 border-slate-800 w-[400px] z-[5] shadow-lg p-4 transform ${isChatSidebarOpen ? "translate-x-0" : "translate-x-[-100%]"} transition-transform duration-300 ease-in-out`}>
+            <div className={`fixed bottom-0 left-0 h-full bg-[#051524] border-r-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[5] shadow-lg p-4 transform ${isChatSidebarOpen ? "translate-x-0" : "translate-x-[-100%]"} transition-transform duration-300 ease-in-out`}>
                 <div className="flex justify-between items-center p-4">
                     <h2 className="text-white text-lg font-semibold">Support Chat</h2>
                     <button onClick={closeAllSidebars}>

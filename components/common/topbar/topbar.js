@@ -254,8 +254,8 @@ export default function Topbar() {
     return (
         <>
             <Toaster reverseOrder={false} theme="dark" />
-            <div className="relative lg:flex items-center justify-between py-3 px-4 z-[3]">
-                <div className="flex items-center gap-3">
+            <div className="topbar relative lg:flex items-center justify-between section--bg lg:bg-transparent py-3 px-4 z-[3]">
+                <div className="hidden lg:flex items-center gap-3">
                     <div className="relative w-11 h-11 flex justify-center items-center bg-[#0d1f30] rounded-md cursor-pointer" onClick={() => setIsTradeListOpen(!isTradeListOpen)}>
                         <div
                             className={`transition-transform duration-300 ${
@@ -341,7 +341,7 @@ export default function Topbar() {
                     </div>
                 </div>
             </div>
-            <div className={`fixed top-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg transform p-4 ${isSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+            <div className={`fixed top-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[3] shadow-lg transform p-4 ${isSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
                 <div className="flex justify-between items-center p-4">
                     <h2 className="text-white text-lg font-semibold">Accounts</h2>
                     <button onClick={closeAllSidebars}>
@@ -373,14 +373,14 @@ export default function Topbar() {
                     </button>
                 </div>
             </div>
-            <div className={`fixed top-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isProfileSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+            <div className={`fixed top-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[3] shadow-lg p-4 transform ${isProfileSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
                 <div className="flex justify-between items-center p-4">
                     <h2 className="text-white text-lg font-semibold">Profile</h2>
                     <button onClick={closeAllSidebars}>
                         <X className="text-white w-5 h-5" />
                     </button>
                 </div>
-                <div className="flex flex-col justify-between h-full p-4 pb-16">
+                <div className="flex flex-col justify-between h-[calc(100%-60px)] p-4">
                     <div className="flex items-center mb-4">
                         <div className="relative w-11 h-11 flex justify-center items-center bg-[#0d1f30] rounded-full cursor-pointer" onClick={toggleProfileSidebar}>
                             <UserRound className="w-5" />
@@ -401,7 +401,7 @@ export default function Topbar() {
                     </button>
                 </div>
             </div>
-            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isBottomSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[3] shadow-lg p-4 transform ${isBottomSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
                 <div className="flex justify-between items-center p-4">
                     <h2 className="text-white text-lg font-semibold">Settings</h2>
                     <button onClick={closeAllSidebars}>
@@ -423,7 +423,7 @@ export default function Topbar() {
                     </button>
                 </div>
             </div>
-            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isPaymentSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[3] shadow-lg p-4 transform ${isPaymentSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
                 <div className="flex justify-between items-center p-4">
                     <h2 className="text-white text-lg font-semibold">Payments</h2>
                     <button onClick={closeAllSidebars}>
@@ -442,7 +442,7 @@ export default function Topbar() {
                     </button>
                 </div>
             </div>
-            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isProfileFieldsSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[3] shadow-lg p-4 transform ${isProfileFieldsSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
                 <form onSubmit={handleSubmit}>
                     <div className="flex justify-between items-center p-4">
                         <h2 className="text-white text-lg font-semibold">Profile Information</h2>
@@ -585,7 +585,7 @@ export default function Topbar() {
                     </div>
                 </form>
             </div>
-            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isPasswordSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[3] shadow-lg p-4 transform ${isPasswordSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
                 <form onSubmit={handlePasswordChange}>
                     <div className="flex justify-between items-center p-4">
                         <h2 className="text-white text-lg font-semibold">Change Password</h2>
@@ -626,7 +626,7 @@ export default function Topbar() {
                     </div>
                 </form>
             </div>
-            <div className={`fixed top-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isNotificationSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+            <div className={`fixed top-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[3] shadow-lg p-4 transform ${isNotificationSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
                 <div className="flex justify-between items-center p-4">
                     <h2 className="text-white text-lg font-semibold">Notifications</h2>
                     <button onClick={closeAllSidebars}>
@@ -650,7 +650,7 @@ export default function Topbar() {
                     )}
                 </div>
             </div>
-            <div className={`fixed top-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${is2FASidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+            <div className={`fixed top-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[3] shadow-lg p-4 transform ${is2FASidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
                 <div className="flex justify-between items-center p-4">
                     <h2 className="text-white text-lg font-semibold">Two-Factor Authentication</h2>
                     <button onClick={closeAllSidebars}>
@@ -674,7 +674,7 @@ export default function Topbar() {
                     </div>
                 </div>
             </div>
-            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isDepositFieldsSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[3] shadow-lg p-4 transform ${isDepositFieldsSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
                 <div className="flex justify-between items-center p-4">
                     <h2 className="text-white text-lg font-semibold">Deposit</h2>
                     <button onClick={closeAllSidebars}>
@@ -776,7 +776,7 @@ export default function Topbar() {
                     </div>
                 </form>
             </div>
-            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isWithdrawFieldsSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[3] shadow-lg p-4 transform ${isWithdrawFieldsSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
                 <div className="flex justify-between items-center p-4">
                     <h2 className="text-white text-lg font-semibold">Withdraw</h2>
                     <button onClick={closeAllSidebars}>
@@ -878,7 +878,7 @@ export default function Topbar() {
                     </div>
                 </form>
             </div>
-            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-[400px] z-[3] shadow-lg p-4 transform ${isExchangeFieldsSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[3] shadow-lg p-4 transform ${isExchangeFieldsSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
                 <div className="flex justify-between items-center p-4">
                     <h2 className="text-white text-lg font-semibold">Exchange</h2>
                     <button onClick={closeAllSidebars}>
