@@ -92,3 +92,7 @@ h1{
 #tv-attr-logo{
 	display: none;
 }
+
+html.theme-dark .group-MBOVGQRI {
+    background-color: #000000 !important;
+}
