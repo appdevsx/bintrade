@@ -4,7 +4,7 @@ import Select from "react-select";
 import "react-phone-input-2/lib/style.css";
 import PhoneInput from "react-phone-input-2";
 import Flag from "react-world-flags";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { UserRound, ArrowUpLeft, Plus, ChevronDown, X, Settings, ArrowRightToLine, Pencil, Eye, EyeOff, Search } from 'lucide-react';
@@ -69,22 +69,11 @@ export default function Topbar() {
     const toggleBottomSidebar = () => setBottomSidebarOpen((prev) => !prev);
     const togglePaymentSidebar = () => setPaymentSidebarOpen((prev) => !prev);
     const [isTradeListOpen, setIsTradeListOpen] = useState(false);
-    const [selectedTrade, setSelectedTrade] = useState({
-        name: "Asia Composite Index",
-        icon: crypto,
-        profitability: "85%",
-    });
-
-    const tradeCurrencies = [
-        { name: "Official Trump Meme", profitability: "82%", icon: crypto },
-        { name: "Quickler", profitability: "85%", icon: crypto },
-        { name: "Asia Composite Index", profitability: "85%", icon: crypto },
-        { name: "Commodity Composite", profitability: "85%", icon: crypto },
-        { name: "Crypto Composite Index", profitability: "85%", icon: crypto },
-        { name: "Europe Composite Index", profitability: "85%", icon: crypto },
-        { name: "EUR/USD", profitability: "82%", icon: crypto },
-        { name: "GBP/USD", profitability: "82%", icon: crypto },
-    ];
+    const [selectedTrade, setSelectedTrade] = useState(null);
+    const [tradeCurrencies, setTradeCurrencies] = useState([]);
+    const [symbol, setSymbol] = useState("BTCUSDT");
+    const [interval, setInterval] = useState("1m");
+    const [limit, setLimit] = useState(100);
 
     const filteredTrades = tradeCurrencies.filter((trade) =>
         trade.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -251,33 +240,56 @@ export default function Topbar() {
         }));
     };
 
+    useEffect(() => {
+        const fetchTradeCurrencies = async () => {
+            try {
+                const response = await fetch("https://data-api.binance.vision/api/v3/exchangeInfo");
+                const data = await response.json();
+                
+                const formattedCurrencies = data.symbols.map((symbol) => ({
+                    name: symbol.symbol,
+                    profitability: `${Math.floor(Math.random() * 10) + 80}%`,
+                    icon: crypto,
+                }));
+
+                setTradeCurrencies(formattedCurrencies);
+                if (formattedCurrencies.length > 0) {
+                    setSelectedTrade(formattedCurrencies[0]);
+                }
+            } catch (error) {
+                console.error("Error fetching trade currencies:", error);
+            }
+        };
+
+        fetchTradeCurrencies();
+    }, []);
+
     return (
         <>
             <Toaster reverseOrder={false} theme="dark" />
             <div className="topbar relative lg:flex items-center justify-between section--bg lg:bg-transparent py-3 px-4 z-[3]">
                 <div className="hidden lg:flex items-center gap-3">
                     <div className="relative w-11 h-11 flex justify-center items-center bg-[#0d1f30] rounded-md cursor-pointer" onClick={() => setIsTradeListOpen(!isTradeListOpen)}>
-                        <div
-                            className={`transition-transform duration-300 ${
-                            isTradeListOpen ? "rotate-45" : "rotate-0"
-                            }`}
-                        >
+                        <div className={`transition-transform duration-300 ${isTradeListOpen ? "rotate-45" : "rotate-0"}`}>
                             <Plus className="w-6 text-white" />
                         </div>
                     </div>
-                    <div className="flex items-center bg-[#0d1f30] py-1.5 px-3 rounded-md">
-                        <div className="">
-                            <Image src={selectedTrade.icon} 
-                                className="object-cover" 
-                                width={30} 
-                                alt="currency"
-                            />
+                    {selectedTrade && (
+                        <div className="flex items-center bg-[#0d1f30] py-1.5 px-3 rounded-md">
+                            <div className="">
+                                <Image src={selectedTrade.icon} 
+                                    className="object-cover" 
+                                    width={30}
+                                    height={30}
+                                    alt="currency"
+                                />
+                            </div>
+                            <div className="pl-1">
+                                <div className="text-sm leading-[18px] text-white">{selectedTrade.name}</div>
+                                <div className="text-[12px] leading-[14px]">FT - <span className="text-emerald-400">{selectedTrade.profitability}</span></div>
+                            </div>
                         </div>
-                        <div className="pl-1">
-                            <div className="text-sm leading-[18px] text-white">{selectedTrade.name}</div>
-                            <div className="text-[12px] leading-[14px]">FT - <span className="text-emerald-400">{selectedTrade.profitability}</span></div>
-                        </div>
-                    </div>
+                    )}
                 </div>
                 {isTradeListOpen && (
                     <div className="absolute left-4 top-16 w-72 bg-[#0d1f30] shadow-lg rounded-md p-3 z-50">
@@ -322,6 +334,22 @@ export default function Topbar() {
                         </div>
                     </div>
                 )}
+                <div>
+                    <label>Symbol:</label>
+                                <select value={symbol} onChange={(e) => setSymbol(e.target.value)}>
+                                    <option value="BTCUSDT">BTC/USDT</option>
+                                    <option value="ETHUSDT">ETH/USDT</option>
+                                    <option value="BNBUSDT">BNB/USDT</option>
+                                </select>
+                    
+                                <label>Interval:</label>
+                                <select value={interval} onChange={(e) => setInterval(e.target.value)}>
+                                    <option value="1m">1m</option>
+                                    <option value="5m">5m</option>
+                                    <option value="15m">15m</option>
+                                    <option value="1h">1h</option>
+                                </select>
+                </div>
                 <div className="flex items-center gap-3">
                     <div className="relative top-1 mr-6 cursor-pointer" onClick={toggleSidebar}>
                         <div className="text-white font-semibold text-[18px] leading-[20px]">Đ{accountBalance.toFixed(2)}</div>
