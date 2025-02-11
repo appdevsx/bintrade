@@ -3,12 +3,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createChart } from 'lightweight-charts';
 import Asidebar from "@/components/common/asidebar/asidebar";
 import { Toaster, toast } from "react-hot-toast";
+import { useAccount } from "@/context/accountProvider/accountProvider";
 
 const RealtimeChart = () => {
     const chartContainerRef = useRef(null);
     const chartRef = useRef(null);
     const seriesRef = useRef(null);
     const wsRef = useRef(null);
+    const { symbol, interval } = useAccount();
 
     const [isProcessing, setIsProcessing] = useState(false);
     const [resultMarker, setResultMarker] = useState(null);
@@ -16,8 +18,6 @@ const RealtimeChart = () => {
     const [currentAction, setCurrentAction] = useState(null);
     const [duration, setDuration] = useState(1);
     const [chartHeight, setChartHeight] = useState(window.innerHeight - 102);
-    const [symbol, setSymbol] = useState("BTCUSDT");
-    const [interval, setInterval] = useState("1m");
     const [limit, setLimit] = useState(800);
 
     const fetchBinanceData = async (symbol, interval, limit) => {

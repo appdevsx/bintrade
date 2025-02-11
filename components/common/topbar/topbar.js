@@ -7,7 +7,7 @@ import Flag from "react-world-flags";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { UserRound, ArrowUpLeft, Plus, ChevronDown, X, Settings, ArrowRightToLine, Pencil, Eye, EyeOff, Search } from 'lucide-react';
+import { UserRound, ArrowUpLeft, Plus, ChevronDown, X, Settings, ArrowRightToLine, Pencil, Eye, EyeOff, Search, Clock12 } from 'lucide-react';
 import { useAccount } from "@/context/accountProvider/accountProvider";
 import { getCountryOptions } from "@/utils/getCountryOptions/getCountryOptions";
 import { getCurrencyOptions } from "@/utils/getCurrencyOptions/getCurrencyOptions";
@@ -21,6 +21,7 @@ const currencyOptions = getCurrencyOptions();
 
 export default function Topbar() {
     const { accountBalance } = useAccount();
+    const { symbol, setSymbol, interval, setInterval } = useAccount();
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const [selectedAccount, setSelectedAccount] = useState("Demo Account");
     const [isProfileSidebarOpen, setProfileSidebarOpen] = useState(false);
@@ -71,9 +72,7 @@ export default function Topbar() {
     const [isTradeListOpen, setIsTradeListOpen] = useState(false);
     const [selectedTrade, setSelectedTrade] = useState(null);
     const [tradeCurrencies, setTradeCurrencies] = useState([]);
-    const [symbol, setSymbol] = useState("BTCUSDT");
-    const [interval, setInterval] = useState("1m");
-    const [limit, setLimit] = useState(100);
+    const [isIntervalListOpen, setIsIntervalListOpen] = useState(false);
 
     const filteredTrades = tradeCurrencies.filter((trade) =>
         trade.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -268,87 +267,133 @@ export default function Topbar() {
         <>
             <Toaster reverseOrder={false} theme="dark" />
             <div className="topbar relative lg:flex items-center justify-between section--bg lg:bg-transparent py-3 px-4 z-[3]">
-                <div className="hidden lg:flex items-center gap-3">
-                    <div className="relative w-11 h-11 flex justify-center items-center bg-[#0d1f30] rounded-md cursor-pointer" onClick={() => setIsTradeListOpen(!isTradeListOpen)}>
-                        <div className={`transition-transform duration-300 ${isTradeListOpen ? "rotate-45" : "rotate-0"}`}>
-                            <Plus className="w-6 text-white" />
-                        </div>
-                    </div>
-                    {selectedTrade && (
-                        <div className="flex items-center bg-[#0d1f30] py-1.5 px-3 rounded-md">
-                            <div className="">
-                                <Image src={selectedTrade.icon} 
-                                    className="object-cover" 
-                                    width={30}
-                                    height={30}
-                                    alt="currency"
-                                />
-                            </div>
-                            <div className="pl-1">
-                                <div className="text-sm leading-[18px] text-white">{selectedTrade.name}</div>
-                                <div className="text-[12px] leading-[14px]">FT - <span className="text-emerald-400">{selectedTrade.profitability}</span></div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-                {isTradeListOpen && (
-                    <div className="absolute left-4 top-16 w-72 bg-[#0d1f30] shadow-lg rounded-md p-3 z-50">
-                        <div className="flex justify-between items-center py-2">
-                            <h2 className="text-white text-lg">Select Trade</h2>
-                            <button onClick={() => setIsTradeListOpen(false)}>
-                                <X className="text-white w-5 h-5" />
-                            </button>
-                        </div>
-                        <div className="relative mt-3">
-                            <input
-                                type="text"
-                                placeholder="Search..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full bg-[#1a2c3d] border-slate-700 text-white py-2 px-3 rounded-md outline-none"
-                            />
-                            <Search className="absolute right-3 top-3 text-gray-400 w-4 h-4" />
-                        </div>
-                        <div className="mt-3 space-y-2 max-h-72 overflow-y-auto">
-                            {filteredTrades.length > 0 ? (
-                            filteredTrades.map((trade, index) => (
-                                <div
-                                    key={index}
-                                    className="flex items-center justify-between bg-[#1a2c3d] p-2 rounded-md cursor-pointer hover:bg-[#223344]"
-                                    onClick={() => {
-                                        setSelectedTrade(trade);
-                                        setIsTradeListOpen(false);
-                                        setSearchQuery("");
-                                    }}
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <Image src={trade.icon} className="object-cover" width={24} height={24} alt="currency" />
-                                        <div className="text-white text-sm">{trade.name}</div>
-                                    </div>
-                                    <div className="text-emerald-400 text-sm">{trade.profitability}</div>
+                <div className="flex items-center gap-3">
+                    <div className="relative">
+                        <div className="hidden lg:flex items-center gap-3">
+                            <div className="relative w-11 h-11 flex justify-center items-center bg-[#0d1f30] rounded-md cursor-pointer" onClick={() => setIsTradeListOpen(!isTradeListOpen)}>
+                                <div className={`transition-transform duration-300 ${isTradeListOpen ? "rotate-45" : "rotate-0"}`}>
+                                    <Plus className="w-6 text-white" />
                                 </div>
-                                ))
-                            ) : (
-                                <p className="text-gray-400 text-center py-2">No results found</p>
+                            </div>
+                            {selectedTrade && (
+                                <div className="flex items-center bg-[#0d1f30] py-1.5 px-3 rounded-md">
+                                    <div className="">
+                                        <Image src={selectedTrade.icon} 
+                                            className="object-cover" 
+                                            width={30}
+                                            height={30}
+                                            alt="currency"
+                                        />
+                                    </div>
+                                    <div className="pl-1">
+                                        <div className="text-sm leading-[18px] text-white">{selectedTrade.name}</div>
+                                        <div className="text-[12px] leading-[14px]">FT - <span className="text-emerald-400">{selectedTrade.profitability}</span></div>
+                                    </div>
+                                </div>
                             )}
                         </div>
+                        {isTradeListOpen && (
+                            <div className="absolute left-0 top-14 w-72 bg-[#0d1f30] shadow-lg rounded-md p-3 z-50">
+                                <div className="flex justify-between items-center py-2">
+                                    <h2 className="text-white text-lg">Select Trade</h2>
+                                    <button onClick={() => setIsTradeListOpen(false)}>
+                                        <X className="text-white w-5 h-5" />
+                                    </button>
+                                </div>
+                                <div className="relative mt-3">
+                                    <input
+                                        type="text"
+                                        placeholder="Search..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="w-full bg-[#1a2c3d] border-slate-700 text-white py-2 px-3 rounded-md outline-none"
+                                    />
+                                    <Search className="absolute right-3 top-3 text-gray-400 w-4 h-4" />
+                                </div>
+                                <div className="mt-3 space-y-2 max-h-72 overflow-y-auto">
+                                    {filteredTrades.length > 0 ? (
+                                    filteredTrades.map((trade, index) => (
+                                        <div
+                                            key={index}
+                                            className="flex items-center justify-between bg-[#1a2c3d] p-2 rounded-md cursor-pointer hover:bg-[#223344]"
+                                            onClick={() => {
+                                                setSelectedTrade(trade);
+                                                setIsTradeListOpen(false);
+                                                setSearchQuery("");
+                                            }}
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <Image src={trade.icon} className="object-cover" width={24} height={24} alt="currency" />
+                                                <div className="text-white text-sm">{trade.name}</div>
+                                            </div>
+                                            <div className="text-emerald-400 text-sm">{trade.profitability}</div>
+                                        </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-slate-800 text-sm text-center py-2">No results found</p>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
-                )}
-                <div>
-                    <label>Symbol:</label>
-                                <select value={symbol} onChange={(e) => setSymbol(e.target.value)}>
-                                    <option value="BTCUSDT">BTC/USDT</option>
-                                    <option value="ETHUSDT">ETH/USDT</option>
-                                    <option value="BNBUSDT">BNB/USDT</option>
-                                </select>
-                    
-                                <label>Interval:</label>
-                                <select value={interval} onChange={(e) => setInterval(e.target.value)}>
-                                    <option value="1m">1m</option>
-                                    <option value="5m">5m</option>
-                                    <option value="15m">15m</option>
-                                    <option value="1h">1h</option>
-                                </select>
+                    <div className="relative">
+                        <div className="hidden lg:flex items-center gap-3">
+                            <div className="relative w-11 h-11 flex justify-center items-center bg-[#0d1f30] rounded-md cursor-pointer" onClick={() => setIsIntervalListOpen(!isIntervalListOpen)}>
+                                <div className={`transition-transform duration-300 ${isIntervalListOpen ? "rotate-45" : "rotate-0"}`}>
+                                    <Clock12 className="w-6 text-white" />
+                                </div>
+                            </div>
+                            {selectedTrade && (
+                                <div className="flex items-center bg-[#0d1f30] py-3 px-5 rounded-md">
+                                    <div className="text-sm leading-[18px] text-white">1m</div>
+                                </div>
+                            )}
+                        </div>
+                        {isIntervalListOpen && (
+                            <div className="absolute left-0 top-14 w-48 bg-[#0d1f30] shadow-lg rounded-md p-3 z-50">
+                                <div className="flex justify-between items-center py-2">
+                                    <h2 className="text-white text-md">Select Interval</h2>
+                                    <button onClick={() => setIsIntervalListOpen(false)}>
+                                        <X className="text-white w-5 h-5" />
+                                    </button>
+                                </div>
+                                <div className="mt-3 space-y-2 max-h-32 overflow-y-auto">
+                                    {filteredTrades.length > 0 ? (
+                                    filteredTrades.map((trade, index) => (
+                                        <div
+                                            key={index}
+                                            className="flex items-center justify-between bg-[#1a2c3d] py-2 px-5 rounded-md cursor-pointer hover:bg-[#223344]"
+                                            onClick={() => {
+                                                setSelectedTrade(trade);
+                                                setIsTradeListOpen(false);
+                                                setSearchQuery("");
+                                            }}
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <div className="text-white text-sm">1m</div>
+                                            </div>
+                                        </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-slate-800 text-sm text-center py-2">No results found</p>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+                <div className="flex gap-2">
+                    <select className="bg-[#0d1f30] shadow-lg rounded-md border-0 text-sm" value={symbol} onChange={(e) => setSymbol(e.target.value)}>
+                        <option value="BTCUSDT">BTC/USDT</option>
+                        <option value="ETHUSDT">ETH/USDT</option>
+                        <option value="BNBUSDT">BNB/USDT</option>
+                    </select>
+                    <select className="bg-[#0d1f30] shadow-lg rounded-md border-0 text-sm" value={interval} onChange={(e) => setInterval(e.target.value)}>
+                        <option value="1m">1m</option>
+                        <option value="5m">5m</option>
+                        <option value="15m">15m</option>
+                        <option value="1h">1h</option>
+                    </select>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="relative top-1 mr-6 cursor-pointer" onClick={toggleSidebar}>
