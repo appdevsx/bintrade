@@ -73,6 +73,9 @@ export default function Topbar() {
     const [selectedTrade, setSelectedTrade] = useState(null);
     const [tradeCurrencies, setTradeCurrencies] = useState([]);
     const [isIntervalListOpen, setIsIntervalListOpen] = useState(false);
+    const [selectedInterval, setSelectedInterval] = useState({
+        label: "1m",
+    });
 
     const filteredTrades = tradeCurrencies.filter((trade) =>
         trade.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -263,6 +266,16 @@ export default function Topbar() {
         fetchTradeCurrencies();
     }, []);
 
+    const intervalOptions = [
+        { label: "1s" },
+        { label: "1m" },
+        { label: "3m" },
+        { label: "5m" },
+        { label: "15m" },
+        { label: "30m" },
+        { label: "1h" },
+    ];
+
     return (
         <>
             <Toaster reverseOrder={false} theme="dark" />
@@ -319,6 +332,7 @@ export default function Topbar() {
                                             onClick={() => {
                                                 setSelectedTrade(trade);
                                                 setIsTradeListOpen(false);
+                                                setIsTradeListOpen(false);
                                                 setSearchQuery("");
                                             }}
                                         >
@@ -343,9 +357,9 @@ export default function Topbar() {
                                     <Clock12 className="w-6 text-white" />
                                 </div>
                             </div>
-                            {selectedTrade && (
-                                <div className="flex items-center bg-[#0d1f30] py-3 px-5 rounded-md">
-                                    <div className="text-sm leading-[18px] text-white">1m</div>
+                            {selectedInterval && (
+                                <div className="flex items-center bg-[#0d1f30] py-[13px] px-5 rounded-md">
+                                    <div className="text-sm leading-[18px] text-white">{selectedInterval.label}</div>
                                 </div>
                             )}
                         </div>
@@ -358,19 +372,18 @@ export default function Topbar() {
                                     </button>
                                 </div>
                                 <div className="mt-3 space-y-2 max-h-32 overflow-y-auto">
-                                    {filteredTrades.length > 0 ? (
-                                    filteredTrades.map((trade, index) => (
+                                    {intervalOptions.length > 0 ? (
+                                    intervalOptions.map((trade, index) => (
                                         <div
                                             key={index}
                                             className="flex items-center justify-between bg-[#1a2c3d] py-2 px-5 rounded-md cursor-pointer hover:bg-[#223344]"
                                             onClick={() => {
-                                                setSelectedTrade(trade);
+                                                setSelectedInterval(trade);
                                                 setIsTradeListOpen(false);
-                                                setSearchQuery("");
                                             }}
                                         >
                                             <div className="flex items-center gap-2">
-                                                <div className="text-white text-sm">1m</div>
+                                                <div className="text-white text-sm">{trade.label}</div>
                                             </div>
                                         </div>
                                         ))
