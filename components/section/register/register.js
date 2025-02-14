@@ -1,6 +1,6 @@
 'use client'
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import styles from "./register.module.css";
 import Link from "next/link";
 import Image from "next/image";
@@ -24,10 +24,11 @@ const accountWrapper = {
 export default function Register() {
     useAuthRedirect();
     const router = useRouter();
-    const [fullName, setFullName] = useState('');
-    const [lastName, setLastName] = useState('dfsdfsdfsdfd');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [agree, setAgree] = useState(false);
     const [loading, setLoading] = useState(false);
 
     const submitRegister = async (e) => {
@@ -35,22 +36,27 @@ export default function Register() {
         setLoading(true);
 
         const formData = new FormData();
-        formData.append("firstname", fullName);
+        formData.append("firstname", firstName);
         formData.append("lastname", lastName);
         formData.append("email", email);
         formData.append("password", password);
+        formData.append("agree", agree ? "true" : "false");
 
         try {
             const response = await registerAPI(formData);
+
+            console.log(response)
 
             if (response.status === 200 && response.data?.data?.token) {
                 const token = response.data.data.token;
                 const userInfo = response.data.data.user_info;
                 const successMessage = response.data.message.success || 'Registration Successful';
 
-                setFullName("");
+                setFirstName("");
+                setLastName("");
                 setEmail("");
                 setPassword("");
+                setAgree(false);
 
                 localStorage.setItem('jwtToken', token);
                 localStorage.setItem('userInfo', JSON.stringify(userInfo));
@@ -82,11 +88,6 @@ export default function Register() {
         }
     };
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        toast.success('Registration Successful!', {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
-    };
-
     return (
 		<section className="account-section relative overflow-hidden">
             <Toaster reverseOrder={false} theme="dark" />
@@ -113,8 +114,12 @@ export default function Register() {
                     <div className="account-footer section--bg p-8">
                         <form className="account-form" onSubmit={submitRegister}>
                             <div className="form-group mb-2">
-                                <label className="text-[13px] font-medium block mb-1">Full Name<span>*</span></label>
-                                <input type="text" placeholder="Type fullname here..." value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg" required></input>
+                                <label className="text-[13px] font-medium block mb-1">First Name<span>*</span></label>
+                                <input type="text" placeholder="Type first name here..." value={firstName} onChange={(e) => setFirstName(e.target.value)} className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg" required></input>
+                            </div>
+                            <div className="form-group mb-2">
+                                <label className="text-[13px] font-medium block mb-1">Last Name<span>*</span></label>
+                                <input type="text" placeholder="Type last name here..." value={lastName} onChange={(e) => setLastName(e.target.value)} className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg" required></input>
                             </div>
                             <div className="form-group mb-2">
                                 <label className="text-[13px] font-medium block mb-1">Email<span>*</span></label>
@@ -124,9 +129,20 @@ export default function Register() {
                                 <label className="text-[13px] font-medium block mb-1">Password<span>*</span></label>
                                 <input type="password" placeholder="Type password here..." value={password} onChange={(e) => setPassword(e.target.value)} className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg" required></input>
                             </div>
+                            <div className="form-group mb-4">
+                                <label className="inline-flex items-center cursor-pointer">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={agree} 
+                                        onChange={(e) => setAgree(e.target.checked)} 
+                                        className="mr-2"
+                                    />
+                                    <span className="text-sm">I agree to the <Link href="/terms" className="text--base font-bold">Terms and Conditions</Link></span>
+                                </label>
+                            </div>
                             <button type="submit" className={`baseBtn w-full justify-center text-sm mt-2 ${loading ? 'cursor-not-allowed' : ''}`} disabled={loading}>
                                 {loading ? (
-                                    <LoaderCircle className="inline-block w-5 h-6 animate-spin text-white__color" />
+                                    <LoaderCircle className="inline-block w-5 h-6 animate-spin text-white" />
                                 ) : (
                                     <>
                                         {accountWrapper.accountButton} 

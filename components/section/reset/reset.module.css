@@ -1,0 +1,22 @@
+.accountWrapper{
+    width: 460px;
+    border-radius: 10px;
+    box-shadow: 0 8px 10px -6px #0000008c, 0 18px 22px -4px #0910168c;
+    overflow: hidden;
+}
+@media only screen and (max-width: 575px){
+    .accountWrapper{
+        width: 100%;
+    }
+}
+.accountElement{
+    position: absolute;
+    top: 0;
+    left: calc(50.00000000000002% - 533px / 2);
+    width: 533px;
+    height: 444px;
+    background-color: #394a59;
+    filter: blur(100px);
+    z-index: -1;
+    overflow: hidden;
+}

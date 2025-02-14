@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Gauge, StepForward, Minimize2, RedoDot, MessageCircleQuestion, X, MessageSquare, PlusCircle, Paperclip, Send, ArrowRightToLine, TrendingUp, DollarSign, PieChart, Repeat, Maximize2, CheckCircle } from 'lucide-react';
+import { Gauge, StepForward, Minimize2, RedoDot, MessageCircleQuestion, X, MessageSquare, PlusCircle, Paperclip, Send, ArrowRightToLine, TrendingUp, DollarSign, PieChart, Repeat, Maximize2, CheckCircle, LogOut } from 'lucide-react';
 import styles from "./sidebar.module.css";
 
 import logo from '@/public/images/logo/favicon.png';
@@ -295,6 +295,10 @@ export default function Sidebar() {
                                 );
                             })}
                         </ul>
+                        <button className="p-2 flex flex-col justify-center items-center bg-[#0d1f30] rounded-md text-[13px] font-semibold leading-4">
+                            <LogOut className="w-4" />
+                            Logout
+                        </button>
                     </div>
                 </div>
                 {isSidebarOpen && (

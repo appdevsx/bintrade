@@ -45,8 +45,8 @@ apiClient.interceptors.response.use(
 );
 
 // Login API (post)
-export const loginAPI = (email, password) => {
-    return apiClient.post('/login', { email, password },);
+export const loginAPI = (credentials, password) => {
+    return apiClient.post('/login', { credentials, password },);
 };
 
 // Register API (post)
@@ -231,8 +231,8 @@ export const getBasicSettingsAPI = () => {
 
 
 // Send OTP Verification API (post)
-export const sendOtpVerificationAPI = (email) => {
-    return apiClient.post("/password/forgot/find/user", { email });
+export const sendOtpVerificationAPI = (credentials) => {
+    return apiClient.post("/password/forgot/find/user", { credentials });
 };
 
 
@@ -283,7 +283,7 @@ export const updatePasswordAPI = (currentPassword, newPassword, passwordConfirma
 
 // Authorization API (post)
 export const authorizationCodeAPI = (token, code) => {
-    return apiClient.post("/user/authorization/verify/code", {
+    return apiClient.post("/authorize/mail/verify/code", {
         token,
         code
     });
@@ -291,7 +291,7 @@ export const authorizationCodeAPI = (token, code) => {
 
 // Resend Authorization Code API (get)
 export const resendAuthorizationCodeAPI = (token) => {
-    return apiClient.get(`/user/authorization/resend/code`, {
+    return apiClient.get(`/authorize/mail/resend/code`, {
         params: { token },
     });
 };

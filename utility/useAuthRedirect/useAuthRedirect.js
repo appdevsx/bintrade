@@ -12,7 +12,7 @@ const useAuthRedirect = () => {
                 localStorage.getItem("jwtToken") ||
                 sessionStorage.getItem("jwtToken");
             if (token) {
-                router.push("/dashboard");
+                router.push("/trading");
             } else {
                 setLoading(false);
             }
