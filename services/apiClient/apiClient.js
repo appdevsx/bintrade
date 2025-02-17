@@ -58,7 +58,7 @@ export const registerAPI = (formData) => {
 export const logoutAPI = () => {
     const token = getToken();
     if (token) {
-        return apiClient.post('/user/auth/logout', {}, {
+        return apiClient.post('/user/logout', {}, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
@@ -72,7 +72,7 @@ export const logoutAPI = () => {
 export const getUserDataAPI = () => {
     const token = getToken();
     if (token) {
-        return apiClient.get('/user/profile', {
+        return apiClient.get('/user/profile/info', {
             headers: {
                 Authorization: `Bearer ${token}`
             }
@@ -86,7 +86,7 @@ export const getUserDataAPI = () => {
 export const userDataUpdateAPI = (formData) => {
     const token = getToken();
     if (token) {
-        return apiClient.post("/user/profile/update", formData, {
+        return apiClient.post("/user/profile/info/update", formData, {
             headers: {
                 Authorization: `Bearer ${token}`,
                 "Content-Type": "multipart/form-data",
@@ -262,11 +262,11 @@ export const resetPasswordAPI = (token, password, passwordConfirmation) => {
 };
 
 
-// Update Password API (put)
+// Update Password API (post)
 export const updatePasswordAPI = (currentPassword, newPassword, passwordConfirmation) => {
     const token = getToken();
     if (token) {
-        return apiClient.put("/user/profile/password-update", {
+        return apiClient.post("/user/profile/password/update", {
             current_password: currentPassword,
             password: newPassword,
             password_confirmation: passwordConfirmation
@@ -287,6 +287,22 @@ export const authorizationCodeAPI = (token, code) => {
         token,
         code
     });
+};
+
+// 2FA API (post)
+export const twoFactorVerifyAPI = (code) => {
+    const token = getToken();
+    if (token) {
+        return apiClient.post("/authorize/google/2fa/verify", {
+            code
+        }, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+    } else {
+        throw new Error("No token found. Please log in.");
+    }
 };
 
 // Resend Authorization Code API (get)

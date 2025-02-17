@@ -107,7 +107,7 @@ export default function Login() {
                         <form className="account-form" onSubmit={submitLogin}>
                             <div className="form-group mb-2">
                                 <label className="text-[13px] font-medium block mb-1">Email<span>*</span></label>
-                                <input id="email" type="email" value={credentials} placeholder="Type email here..." onChange={(event) => setCredentials(event.target.value)} className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg" required autoFocus></input>
+                                <input type="email" value={credentials} placeholder="Type email here..." onChange={(event) => setCredentials(event.target.value)} className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg" required></input>
                             </div>
                             <div className="form-group mb-2">
                                 <label className="text-[13px] font-medium block mb-1">Password<span>*</span></label>

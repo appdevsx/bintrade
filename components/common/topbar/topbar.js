@@ -7,11 +7,12 @@ import Flag from "react-world-flags";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { UserRound, ArrowUpLeft, Plus, ChevronDown, X, Settings, ArrowRightToLine, Pencil, Eye, EyeOff, Search, Clock12 } from 'lucide-react';
+import { UserRound, ArrowUpLeft, Plus, ChevronDown, X, Settings, ArrowRightToLine, Pencil, Eye, EyeOff, Search, Clock12, Info, LoaderCircle } from 'lucide-react';
 import { useAccount } from "@/context/accountProvider/accountProvider";
 import { getCountryOptions } from "@/utils/getCountryOptions/getCountryOptions";
 import { getCurrencyOptions } from "@/utils/getCurrencyOptions/getCurrencyOptions";
 import QRCode from "react-qr-code";
+import { getUserDataAPI, userDataUpdateAPI, updatePasswordAPI, twoFactorVerifyAPI } from "@/services/apiClient/apiClient";
 import styles from "./topbar.module.css";
 
 import crypto from '@/public/images/currency/crypto.svg';
@@ -38,13 +39,16 @@ export default function Topbar() {
     const [selectedGateway, setSelectedGateway] = useState("");
     const [amount, setAmount] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
-    const [passwords, setPasswords] = useState({
-        oldPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-    });
-    const [passwordVisibility, setPasswordVisibility] = useState({
-        oldPassword: false,
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const [userData, setUserData] = useState(null);
+    const [currentPassword, setCurrentPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [passwordConfirmation, setPasswordConfirmation] = useState("");
+    const [showPassword, setShowPassword] = useState({
+        currentPassword: false,
         newPassword: false,
         confirmPassword: false,
     });
@@ -63,8 +67,7 @@ export default function Topbar() {
         { id: 3, message: "You received a new connection request." },
     ]);
 
-    const [googleAuthSecret] = useState("DZHNX6AJVMT6677X");
-
+    const [code, setCode] = useState("217046");
     const toggleSidebar = () => setSidebarOpen((prev) => !prev);
     const toggleProfileSidebar = () => setProfileSidebarOpen((prev) => !prev);
     const toggleBottomSidebar = () => setBottomSidebarOpen((prev) => !prev);
@@ -151,9 +154,11 @@ export default function Topbar() {
         }));
     };
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        toast.success('Profile updated successfully!', {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
+    const togglePasswordVisibility = (field) => {
+        setShowPassword((prevState) => ({
+            ...prevState,
+            [field]: !prevState[field],
+        }));
     };
 
     const handleImageChange = (event) => {
@@ -180,23 +185,29 @@ export default function Topbar() {
         }
     };
 
-    const handlePasswordChange = (event) => {
-        event.preventDefault();
-        const { oldPassword, newPassword, confirmPassword } = passwords;
-    
-        if (!oldPassword || !newPassword || !confirmPassword) {
-          toast.error("All fields are required!" , {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
-          return;
+    const handlePasswordUpdate = async (e) => {
+        e.preventDefault();
+        if (loading) return;
+        setLoading(true);
+        try {
+            const response = await updatePasswordAPI(currentPassword, newPassword, passwordConfirmation);
+            response.data.message.success.forEach((msg) => {
+                toast.success(msg);
+            });
+            setCurrentPassword("");
+            setNewPassword("");
+            setPasswordConfirmation("");
+        } catch (error) {
+            if (error.response && error.response.data && error.response.data.message && error.response.data.message.error) {
+                error.response.data.message.error.forEach((msg) => {
+                    toast.error(msg);
+                });
+            } else {
+                toast.error("Failed to update password.");
+            }
+        } finally {
+            setLoading(false);
         }
-    
-        if (newPassword !== confirmPassword) {
-          toast.error("New password and confirm password do not match!" , {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
-          return;
-        }
-    
-        toast.success("Password updated successfully!" , {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
-        setPasswords({ oldPassword: "", newPassword: "", confirmPassword: "" });
-        setPasswordSidebarOpen(false); // Close password sidebar
     };
 
     const handleDepositSubmit = (e) => {
@@ -225,21 +236,6 @@ export default function Topbar() {
           return;
         }
         toast.success(`Currency exchanged to: ${profileInfo.currency.label}` , {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
-    };
-
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setPasswords((prev) => ({
-          ...prev,
-          [name]: value,
-        }));
-    };
-
-    const togglePasswordVisibility = (field) => {
-        setPasswordVisibility((prev) => ({
-          ...prev,
-          [field]: !prev[field],
-        }));
     };
 
     useEffect(() => {
@@ -275,6 +271,145 @@ export default function Topbar() {
         { label: "30m" },
         { label: "1h" },
     ];
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const response = await getUserDataAPI();
+                const userInfo = response.data.data.user_info;
+
+                setFirstName(userInfo.first_name || "");
+                setLastName(userInfo.last_name || "");
+                setPhoneNumber(userInfo.full_mobile || "");
+                setWhatsappNumber(userInfo.whatsapp_number || "");
+                setAddress(userInfo?.address?.address || "");
+                setState(userInfo?.address?.state || "");
+                setCity(userInfo?.address?.city || "");
+                setZipCode(userInfo?.address?.zip || "");
+
+                setUserData(response.data);
+
+                const baseUrl = response.data.data.image_paths.base_url.replace("public", "",);
+                const imageUrl = userInfo.image
+                    ? `${baseUrl}/${response.data.data.image_paths.path_location}/${userInfo.image}`
+                    : `${baseUrl}/${response.data.data.image_paths.default_image}`;
+
+                setUserImage(imageUrl);
+            } catch (err) {
+                setError("Server didn't respond for getting profile data");
+            }
+        };
+
+        fetchUserData();
+    }, []);
+
+    const submitProfileUpdate = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError("");
+
+        const formData = new FormData();
+        formData.append("first_name", firstName);
+        formData.append("last_name", lastName);
+        formData.append("full_phone", phoneNumber);
+        formData.append("whatsapp_number", whatsappNumber);
+        formData.append("address", address);
+        formData.append("state", state);
+        formData.append("city", city);
+        formData.append("zip_code", zipCode);
+        formData.append("_method", "PUT");
+        if (profileImage) {
+            formData.append("image", profileImage);
+        }
+
+        try {
+            const response = await userDataUpdateAPI(formData);
+
+            if (response.status === 200) {
+                toast.success(response.data.message.success || "Profile Updated Successfully");
+
+                    setUserData((prevData) => ({
+                    ...prevData,
+                    data: {
+                        ...prevData.data,
+                        user_info: {
+                            ...prevData.data.user_info,
+                            first_name: firstName,
+                            last_name: lastName,
+                            full_mobile: phoneNumber,
+                            whatsapp_number: whatsappNumber,
+                            address: {
+                                ...prevData.data.user_info.address,
+                                address,
+                                state,
+                                city,
+                                zip: zipCode,
+                            },
+                            image: profileImage || prevData.data.user_info.image,
+                        },
+                    },
+                }));
+            } else {
+                toast.error("Unexpected response from the server.");
+            }
+        } catch (err) {
+            const errors = err.response?.data?.message?.error;
+
+            if (Array.isArray(errors)) {
+                errors.reverse().forEach((errorMessage, index) => {
+                    setTimeout(() => {
+                        toast.error(errorMessage);
+                    }, index * 50);
+                });
+            } else {
+                toast.error(errors || "Server not responding please try again later");
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // const submitTwoFactor = async (e) => {
+    //     e.preventDefault();
+    //     setLoading(true);
+
+    //     try {
+    //         const response = await twoFactorVerifyAPI(code);
+
+    //         if (response.data.type === "error") {
+    //             toast.error(response.data.message.error[0]);
+    //         } else {
+    //             toast.success(response.data.message.success);
+    //         }
+    //     } catch (err) {
+    //         toast.error("Server did not respond");
+    //     }
+
+    //     setLoading(false);
+    // };
+
+    const submitTwoFactor = async (e) => {
+        e.preventDefault();
+        if (loading) return;
+        setLoading(true);
+        try {
+            const response = await twoFactorVerifyAPI(code);
+            response.data.message.success.forEach((msg) => {
+                toast.success(msg);
+            });
+            setCode("");
+        } catch (error) {
+            if (error.response && error.response.data && error.response.data.message && error.response.data.message.error) {
+                error.response.data.message.error.forEach((msg) => {
+                    toast.error(msg);
+                });
+            } else {
+                toast.error("Server did not respond");
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <>
@@ -529,185 +664,287 @@ export default function Topbar() {
                 </div>
             </div>
             <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[3] shadow-lg p-4 transform ${isProfileFieldsSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
-                <form onSubmit={handleSubmit}>
-                    <div className="flex justify-between items-center p-4">
-                        <h2 className="text-white text-lg font-semibold">Profile Information</h2>
-                        <button onClick={closeAllSidebars}>
-                            <X className="text-white w-5 h-5" />
-                        </button>
+                {error &&
+                    <div className="bg-[#0d1f30] py-6 px-6 rounded-[10px] mb-5 flex items-center">
+                        <Info className="w-6 h-auto me-2 text-red-500"/>
+                        <span className="text-sm">{error}</span>
                     </div>
-                    <div className="grid grid-cols-1 gap-3 p-4">
-                        <div className="relative w-[120px] h-[120px] rounded-[50%] mx-auto">
-                            <Image
-                                src={previewImage || profileInfo.profileImage}
-                                alt="Profile"
-                                width={120}
-                                height={120}
-                                className="rounded-full w-full h-full border-2 border-slate-800 mx-auto object-cover"
-                            />
-                            <label
-                                htmlFor="profileImage"
-                                className="absolute bottom-[-15px] left-[50%] transform translate-x-[-50%] bg-[#0d1f30] text-white w-10 h-10 flex justify-center items-center rounded-full cursor-pointer"
-                            >
-                                <Pencil className="w-4" />
-                            </label>
-                            <input
-                                type="file"
-                                id="profileImage"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={handleImageChange}
-                            />
+                }
+                {userData ? (
+                    <form onSubmit={submitProfileUpdate}>
+                        <div className="flex justify-between items-center p-4">
+                            <h2 className="text-white text-lg font-semibold">Profile Information</h2>
+                            <button onClick={closeAllSidebars}>
+                                <X className="text-white w-5 h-5" />
+                            </button>
                         </div>
-                        <div className="text-white">
-                            <label className="text-sm mb-2 block">First Name</label>
-                            <input
-                            type="text"
-                            className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
-                            placeholder={profileInfo.firstName}
-                            required
-                            />
-                        </div>
-                        <div className="text-white">
-                            <label className="text-sm mb-2 block">Last Name</label>
-                            <input
-                            type="text"
-                            className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
-                            placeholder={profileInfo.lastName}
-                            required
-                            />
-                        </div>
-                        <div className="text-white">
-                            <label className="text-sm mb-2 block">Country</label>
-                            <Select
-                                options={countryOptions}
-                                value={profileInfo.country}
-                                onChange={handleCountryChange}
+                        <div className="grid grid-cols-1 gap-3 p-4">
+                            <div className="relative w-[120px] h-[120px] rounded-[50%] mx-auto">
+                                <Image
+                                    src={previewImage || profileInfo.profileImage}
+                                    alt="Profile"
+                                    width={120}
+                                    height={120}
+                                    className="rounded-full w-full h-full border-2 border-slate-800 mx-auto object-cover"
+                                />
+                                <label
+                                    htmlFor="profileImage"
+                                    className="absolute bottom-[-15px] left-[50%] transform translate-x-[-50%] bg-[#0d1f30] text-white w-10 h-10 flex justify-center items-center rounded-full cursor-pointer"
+                                >
+                                    <Pencil className="w-4" />
+                                </label>
+                                <input
+                                    type="file"
+                                    id="profileImage"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={handleImageChange}
+                                />
+                            </div>
+                            <div className="text-white">
+                                <label className="text-sm mb-2 block">First Name</label>
+                                <input
+                                type="text"
                                 className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
-                                isSearchable
-                                getOptionLabel={(e) => (
-                                    <div className="flex items-center gap-2">
-                                      <Flag code={e.value} style={{ width: 20, height: 15 }} />{" "}
-                                      {e.label}
-                                    </div>
-                                )}
-                                styles={{
-                                    control: (base) => ({
-                                        ...base,
+                                placeholder={profileInfo.firstName}
+                                value={firstName}
+                                onChange={(e) =>
+                                    setFirstName(e.target.value)
+                                }
+                                required
+                                />
+                            </div>
+                            <div className="text-white">
+                                <label className="text-sm mb-2 block">Last Name</label>
+                                <input
+                                type="text"
+                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                placeholder={profileInfo.lastName}
+                                value={lastName}
+                                onChange={(e) =>
+                                    setLastName(e.target.value)
+                                }
+                                required
+                                />
+                            </div>
+                            <div className="text-white">
+                                <label className="text-sm mb-2 block">Country</label>
+                                <Select
+                                    options={countryOptions}
+                                    value={profileInfo.country}
+                                    onChange={handleCountryChange}
+                                    className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                    isSearchable
+                                    getOptionLabel={(e) => (
+                                        <div className="flex items-center gap-2">
+                                        <Flag code={e.value} style={{ width: 20, height: 15 }} />{" "}
+                                        {e.label}
+                                        </div>
+                                    )}
+                                    styles={{
+                                        control: (base) => ({
+                                            ...base,
+                                            background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
+                                            borderColor: "none",
+                                            height: "45px",
+                                            borderRadius: "0.375rem",
+                                            color: "#ffffff",
+                                            fontSize: "14px",
+                                            borderColor: "#1e293b",
+                                            "&:hover": {
+                                                borderColor: "#1e293b",
+                                            },
+                                        }),
+                                        menu: (base) => ({
+                                            ...base,
+                                            borderRadius: "0.375rem",
+                                            paddingTop: "0",
+                                            background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
+                                        }),
+                                        singleValue: (provided) => ({
+                                            ...provided,
+                                            color: "white",
+                                        }),
+                                        option: (base, state) => ({
+                                            ...base,
+                                            background: state.isSelected ? "#0d1f30" : "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)", // Highlight selected option
+                                            color: state.isSelected ? "white" : "white", // Text color for options
+                                            padding: "10px",
+                                            cursor: "pointer",
+                                            borderRadius: "0.375rem",
+                                        }),
+                                        dropdownIndicator: (provided) => ({
+                                            ...provided,
+                                            color: "#cbd5e1",
+                                        }),
+                                        indicatorSeparator: (provided) => ({
+                                            ...provided,
+                                            background: "#1e293b",
+                                        }),
+                                        placeholder: (base) => ({
+                                            ...base,
+                                            color: "#cbd5e1",
+                                            fontSize: "14px",
+                                        }),
+                                    }}
+                                />
+                            </div>
+                            <div className="text-white">
+                                <label className="text-sm mb-2 block">Phone</label>
+                                <PhoneInput
+                                    country={profileInfo.country.value}
+                                    value={profileInfo.phone}
+                                    disableDropdown
+                                    onChange={handlePhoneChange}
+                                    inputStyle={{
+                                        width: "100%",
+                                        height: "44px",
                                         background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
-                                        borderColor: "none",
-                                        height: "45px",
-                                        borderRadius: "0.375rem",
-                                        color: "#ffffff",
+                                        color: "#fff",
                                         fontSize: "14px",
                                         borderColor: "#1e293b",
-                                        "&:hover": {
-                                            borderColor: "#1e293b",
-                                        },
-                                    }),
-                                    menu: (base) => ({
-                                        ...base,
                                         borderRadius: "0.375rem",
-                                        paddingTop: "0",
+                                        paddingLeft: "10px"
+                                    }}
+                                    buttonStyle={{
+                                        display: "none",
+                                    }}
+                                    dropdownStyle={{
                                         background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
-                                    }),
-                                    singleValue: (provided) => ({
-                                        ...provided,
-                                        color: "white",
-                                    }),
-                                    option: (base, state) => ({
-                                        ...base,
-                                        background: state.isSelected ? "#0d1f30" : "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)", // Highlight selected option
-                                        color: state.isSelected ? "white" : "white", // Text color for options
-                                        padding: "10px",
-                                        cursor: "pointer",
-                                        borderRadius: "0.375rem",
-                                    }),
-                                    dropdownIndicator: (provided) => ({
-                                        ...provided,
-                                        color: "#cbd5e1",
-                                    }),
-                                    indicatorSeparator: (provided) => ({
-                                        ...provided,
-                                        background: "#1e293b",
-                                    }),
-                                    placeholder: (base) => ({
-                                        ...base,
-                                        color: "#cbd5e1",
-                                        fontSize: "14px",
-                                    }),
-                                }}
-                            />
-                        </div>
-                        <div className="text-white">
-                            <label className="text-sm mb-2 block">Phone</label>
-                            <PhoneInput
-                                country={profileInfo.country.value}
-                                value={profileInfo.phone}
-                                disableDropdown
-                                onChange={handlePhoneChange}
-                                inputStyle={{
-                                    width: "100%",
-                                    height: "44px",
-                                    background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
-                                    color: "#fff",
-                                    fontSize: "14px",
-                                    borderColor: "#1e293b",
-                                    borderRadius: "0.375rem",
-                                    paddingLeft: "10px"
-                                }}
-                                buttonStyle={{
-                                    display: "none",
-                                }}
-                                dropdownStyle={{
-                                    background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
-                                    color: "#fff",
-                                }}
-                            />
-                        </div>
-                        <div className="mt-2">
-                            <button type="submit" className="baseBtn flex justify-center w-full">Update <ArrowRightToLine /></button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[3] shadow-lg p-4 transform ${isPasswordSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
-                <form onSubmit={handlePasswordChange}>
-                    <div className="flex justify-between items-center p-4">
-                        <h2 className="text-white text-lg font-semibold">Change Password</h2>
-                        <button onClick={closeAllSidebars}>
-                            <X className="text-white w-5 h-5" />
-                        </button>
-                    </div>
-                    <div className="grid grid-cols-1 gap-3 p-4">
-                        {["oldPassword", "newPassword", "confirmPassword"].map((field) => (
-                            <div className="relative text-white" key={field}>
-                                <label className="text-sm mb-2 block">{field.replace("Password", " Password")}</label>
-                                <input
-                                    type={passwordVisibility[field] ? "text" : "password"}
-                                    id={field}
-                                    name={field}
-                                    value={passwords[field]}
-                                    placeholder={field.replace("Password", " Password")}
-                                    onChange={handleInputChange}
-                                    className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
-                                    required
+                                        color: "#fff",
+                                    }}
                                 />
-                                <button
-                                    type="button"
-                                    className="absolute right-5 top-[40px] text-gray-400"
-                                    onClick={() => togglePasswordVisibility(field)}
-                                >
-                                    {passwordVisibility[field] ? (
-                                        <EyeOff className="w-5 h-5" />
-                                        ) : (
-                                        <Eye className="w-5 h-5" />
+                            </div>
+                            <div className="mt-2">
+                                <button type="submit" className={`baseBtn flex justify-center w-full ${loading ? "cursor-not-allowed" : ""}`} disabled={loading}>
+                                    {loading ? (
+                                        <LoaderCircle className="inline-block w-5 h-6 animate-spin text-white" />
+                                    ) : (
+                                        <>
+                                            Update 
+                                            <ArrowRightToLine />
+                                        </>
                                     )}
                                 </button>
                             </div>
-                        ))}
+                        </div>
+                    </form>
+                ) : (
+                    <div className="animate-pulse p-4">
+                        <div className="flex justify-between items-center p-4">
+                            <div className="h-6 w-40 bg-gray-700 rounded"></div>
+                            <div className="w-5 h-5 bg-gray-700 rounded-full"></div>
+                        </div>
+                        <div className="grid grid-cols-1 gap-3 p-4">
+                            <div className="relative w-[120px] h-[120px] rounded-full mx-auto bg-gray-700"></div>
+                            <div className="h-4 w-20 bg-gray-700 rounded mx-auto mt-2"></div>
+                            <div className="space-y-2">
+                            <div className="h-4 w-24 bg-gray-700 rounded"></div>
+                            <div className="h-10 w-full bg-gray-700 rounded"></div>
+                            </div>
+                            <div className="space-y-2">
+                            <div className="h-4 w-24 bg-gray-700 rounded"></div>
+                            <div className="h-10 w-full bg-gray-700 rounded"></div>
+                            </div>
+                            <div className="space-y-2">
+                            <div className="h-4 w-24 bg-gray-700 rounded"></div>
+                            <div className="h-10 w-full bg-gray-700 rounded"></div>
+                            </div>
+                            <div className="space-y-2">
+                            <div className="h-4 w-24 bg-gray-700 rounded"></div>
+                            <div className="h-10 w-full bg-gray-700 rounded"></div>
+                            </div>
+                            <div className="mt-2 h-10 bg-gray-700 rounded w-full"></div>
+                        </div>
+                    </div>
+                )}
+            </div>
+            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[3] shadow-lg p-4 transform ${isPasswordSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+                <div className="flex justify-between items-center p-4">
+                    <h2 className="text-white text-lg font-semibold">Change Password</h2>
+                    <button onClick={closeAllSidebars}>
+                        <X className="text-white w-5 h-5" />
+                    </button>
+                </div>
+                <form onSubmit={handlePasswordUpdate}>
+                    <div className="grid grid-cols-1 gap-3 p-4">
+                        <div className="relative text-white">
+                            <label className="text-sm mb-2 block">Current Password</label>
+                            <input
+                                type={showPassword.currentPassword ? "text" : "password"}
+                                value={currentPassword}
+                                placeholder="Enter Current Password"
+                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                required
+                            />
+                            <button
+                                type="button"
+                                className="absolute right-4 top-[40px] text-gray-400"
+                                onClick={() => togglePasswordVisibility("currentPassword")}
+                            >
+                                {showPassword.currentPassword ? (
+                                    <EyeOff className="w-5 h-5" />
+                                    ) : (
+                                    <Eye className="w-5 h-5" />
+                                )}
+                            </button>
+                        </div>
+                        <div className="relative text-white">
+                            <label className="text-sm mb-2 block">New Password</label>
+                            <input
+                                type={showPassword.newPassword ? "text" : "password"}
+                                value={newPassword}
+                                placeholder="Enter Current Password"
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                required
+                            />
+                            <button
+                                type="button"
+                                className="absolute right-4 top-[40px] text-gray-400"
+                                onClick={() => togglePasswordVisibility("newPassword")}
+                            >
+                                {showPassword.newPassword ? (
+                                    <EyeOff className="w-5 h-5" />
+                                    ) : (
+                                    <Eye className="w-5 h-5" />
+                                )}
+                            </button>
+                        </div>
+                        <div className="relative text-white">
+                            <label className="text-sm mb-2 block">Confirm Password</label>
+                            <input
+                                type={showPassword.confirmPassword ? "text" : "password"}
+                                value={passwordConfirmation}
+                                placeholder="Enter Current Password"
+                                onChange={(e) => setPasswordConfirmation(e.target.value)}
+                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                required
+                            />
+                            <button
+                                type="button"
+                                className="absolute right-4 top-[40px] text-gray-400"
+                                onClick={() => togglePasswordVisibility("confirmPassword")}
+                            >
+                                {showPassword.confirmPassword ? (
+                                    <EyeOff className="w-5 h-5" />
+                                    ) : (
+                                    <Eye className="w-5 h-5" />
+                                )}
+                            </button>
+                        </div>
                         <div className="mt-2">
-                            <button type="submit" className="baseBtn flex justify-center w-full">Change <ArrowRightToLine /></button>
+                            <button type="submit" className={`baseBtn flex justify-center w-full ${loading ? "cursor-not-allowed" : ""}`} disabled={loading}>
+                                {loading ? (
+                                    <LoaderCircle className="inline-block w-5 h-6 animate-spin text-white" />
+                                ) : (
+                                    <>
+                                        Change 
+                                        <ArrowRightToLine />
+                                    </>
+                                )}
+                            </button>
                         </div>
                     </div>
                 </form>
@@ -744,10 +981,35 @@ export default function Topbar() {
                     </button>
                 </div>
                 <div className="space-y-3 p-4">
-                    <div className="p-4 bg-[#0d1f30] rounded-lg text-center">
+                    <div className="p-4 bg-[#0d1f30] rounded-lg">
                         <h3 className="text-white text-lg font-semibold mb-4">Scan with Google Authenticator</h3>
-                        <QRCode className="w-[200px] h-[200px] mx-auto" value={googleAuthSecret} />
-                        <div className="mt-4 text-white">Scan this code in your Google Authenticator app.</div>
+                        <form onSubmit={submitTwoFactor}>
+                            <div className="relative text-white mb-4">
+                                <label className="text-sm mb-2 block">Address</label>
+                                <input
+                                    type="text"
+                                    value={code}
+                                    className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                    readOnly
+                                />
+                            </div>
+                            <div className="relative text-white">
+                                <QRCode className="w-[200px] h-[200px] mx-auto" value={code} />
+                                <div className="mt-4 text-white text-center">Scan this code in your Google Authenticator app.</div>
+                            </div>
+                            <div className="mt-2">
+                                <button type="submit" className={`baseBtn flex justify-center w-full ${loading ? "cursor-not-allowed" : ""}`} disabled={loading}>
+                                    {loading ? (
+                                        <LoaderCircle className="inline-block w-5 h-6 animate-spin text-white" />
+                                    ) : (
+                                        <>
+                                            Enable 
+                                            <ArrowRightToLine />
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                     <div className="p-4 bg-[#0d1f30] rounded-lg text-white">
                         <h3 className="text-lg font-semibold mb-4">Google Authenticator Setup</h3>

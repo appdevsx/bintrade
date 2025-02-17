@@ -38,11 +38,17 @@ const header = {
 
 export default function Header() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const pathname = usePathname();
 
     useEffect(() => {
         setIsMobileMenuOpen(false);
     }, [pathname]);
+
+    useEffect(() => {
+        const token = localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
+        setIsLoggedIn(!!token);
+    }, []);
 
     const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
 
@@ -72,7 +78,13 @@ export default function Header() {
                     </ul>
                     <div className="header-action-wrapper flex items-center space-x-3">
                         <div className="header-action">
-                            <Link className={styles.headerAction} href="/login">{header.button} <CircleArrowRight /></Link>
+                            {isLoggedIn ? (
+                                <Link className={styles.headerAction} href="/trading">{header.button} <CircleArrowRight /></Link>
+                            ) : (
+                                <>
+                                    <Link className={styles.headerAction} href="/login">{header.button} <CircleArrowRight /></Link>
+                                </>
+                            )}
                         </div>
                         <div className="lg:hidden">
                             <button onClick={toggleMobileMenu} className="w-10 h-10 flex justify-center items-center border border-slate-800 rounded-full text--base">
