@@ -33,6 +33,7 @@ export default function Topbar() {
     const [isPasswordSidebarOpen, setPasswordSidebarOpen] = useState(false);
     const [isNotificationSidebarOpen, setNotificationSidebarOpen] = useState(false);
     const [is2FASidebarOpen, set2FASidebarOpen] = useState(false);
+    const [isKycSidebarOpen, setKycSidebarOpen] = useState(false);
     const [isDepositFieldsSidebarOpen, setDepositFieldsSidebarOpen] = useState(false);
     const [isWithdrawFieldsSidebarOpen, setWithdrawFieldsSidebarOpen] = useState(false);
     const [isExchangeFieldsSidebarOpen, setExchangeFieldsSidebarOpen] = useState(false);
@@ -41,6 +42,15 @@ export default function Topbar() {
     const [searchQuery, setSearchQuery] = useState("");
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
+    const [mobileCode, setMobileCode] = useState("");
+    const [mobile, setMobile] = useState("");
+    const [country, setCountry] = useState("");
+    const [address, setAddress] = useState("");
+    const [state, setState] = useState("");
+    const [city, setCity] = useState("");
+    const [postalCode, setPostalCode] = useState("");
+    const [profileImage, setProfileImage] = useState(null);
+    const [userImage, setUserImage] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [userData, setUserData] = useState(null);
@@ -92,6 +102,7 @@ export default function Topbar() {
         setPasswordSidebarOpen(false);
         setNotificationSidebarOpen(false);
         set2FASidebarOpen(false);
+        setKycSidebarOpen(false);
         setPaymentSidebarOpen(false);
         setDepositFieldsSidebarOpen(false);
         setWithdrawFieldsSidebarOpen(false);
@@ -117,6 +128,10 @@ export default function Topbar() {
 
     const handle2FAInformationClick = () => {
         set2FASidebarOpen(true);
+    };
+
+    const handleKycInformationClick = () => {
+        setKycSidebarOpen(true);
     };
 
     const handleDepositInformationClick = () => {
@@ -154,6 +169,10 @@ export default function Topbar() {
         }));
     };
 
+    const openFileInput = () => {
+        document.getElementById("profileImageInput").click();
+    };
+
     const togglePasswordVisibility = (field) => {
         setShowPassword((prevState) => ({
             ...prevState,
@@ -164,11 +183,9 @@ export default function Topbar() {
     const handleImageChange = (event) => {
         const file = event.target.files[0];
         if (file) {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            setPreviewImage(reader.result);
-          };
-          reader.readAsDataURL(file);
+            setProfileImage(file);
+            const imageUrl = URL.createObjectURL(file);
+            setUserImage(imageUrl);
         }
     };
 
@@ -278,16 +295,18 @@ export default function Topbar() {
                 const response = await getUserDataAPI();
                 const userInfo = response.data.data.user_info;
 
-                setFirstName(userInfo.first_name || "");
-                setLastName(userInfo.last_name || "");
-                setPhoneNumber(userInfo.full_mobile || "");
-                setWhatsappNumber(userInfo.whatsapp_number || "");
-                setAddress(userInfo?.address?.address || "");
-                setState(userInfo?.address?.state || "");
-                setCity(userInfo?.address?.city || "");
-                setZipCode(userInfo?.address?.zip || "");
+                setFirstName(userInfo.firstname || "");
+                setLastName(userInfo.lastname || "");
+                setMobileCode(userInfo.mobile_code || "");
+                setMobile(userInfo.mobile || "");
+                setCountry(userInfo.country || "");
+                setCity(userInfo.city || "");
+                setState(userInfo.state || "");
+                setPostalCode(userInfo.postal_code || "");
+                setAddress(userInfo.address || "");
 
-                setUserData(response.data);
+                setUserData(response?.data);
+
 
                 const baseUrl = response.data.data.image_paths.base_url.replace("public", "",);
                 const imageUrl = userInfo.image
@@ -307,54 +326,58 @@ export default function Topbar() {
         e.preventDefault();
         setLoading(true);
         setError("");
-
+    
         const formData = new FormData();
-        formData.append("first_name", firstName);
-        formData.append("last_name", lastName);
-        formData.append("full_phone", phoneNumber);
-        formData.append("whatsapp_number", whatsappNumber);
-        formData.append("address", address);
-        formData.append("state", state);
+        formData.append("firstname", firstName);
+        formData.append("lastname", lastName);
+        formData.append("mobile_code", mobileCode);
+        formData.append("mobile", mobile);
+        formData.append("country", country);
         formData.append("city", city);
-        formData.append("zip_code", zipCode);
-        formData.append("_method", "PUT");
+        formData.append("state", state);
+        formData.append("postal_code", postalCode);
+        formData.append("address", address);
         if (profileImage) {
             formData.append("image", profileImage);
         }
-
+    
         try {
             const response = await userDataUpdateAPI(formData);
-
-            if (response.status === 200) {
-                toast.success(response.data.message.success || "Profile Updated Successfully");
-
-                    setUserData((prevData) => ({
-                    ...prevData,
-                    data: {
-                        ...prevData.data,
-                        user_info: {
-                            ...prevData.data.user_info,
-                            first_name: firstName,
-                            last_name: lastName,
-                            full_mobile: phoneNumber,
-                            whatsapp_number: whatsappNumber,
-                            address: {
-                                ...prevData.data.user_info.address,
-                                address,
-                                state,
-                                city,
-                                zip: zipCode,
+    
+            if (response.status === 200 && response.data?.message?.success) {
+                toast.success(response.data.message.success[0] || "Profile Updated Successfully");
+    
+                setUserData((prevData) => {
+                    if (!prevData || !prevData.data || !prevData.data.user_info) {
+                        return prevData;
+                    }
+    
+                    return {
+                        ...prevData,
+                        data: {
+                            ...prevData.data,
+                            user_info: {
+                                ...prevData.data.user_info,
+                                firstname: firstName,
+                                lastname: lastName,
+                                mobile_code: mobileCode,
+                                mobile: mobile,
+                                country: country,
+                                address: address,
+                                state: state,
+                                city: city,
+                                postal_code: postalCode,
+                                image: profileImage || prevData.data.user_info.image,
                             },
-                            image: profileImage || prevData.data.user_info.image,
                         },
-                    },
-                }));
+                    };
+                });
             } else {
                 toast.error("Unexpected response from the server.");
             }
         } catch (err) {
             const errors = err.response?.data?.message?.error;
-
+    
             if (Array.isArray(errors)) {
                 errors.reverse().forEach((errorMessage, index) => {
                     setTimeout(() => {
@@ -362,31 +385,12 @@ export default function Topbar() {
                     }, index * 50);
                 });
             } else {
-                toast.error(errors || "Server not responding please try again later");
+                toast.error(errors || "Server not responding. Please try again later.");
             }
         } finally {
             setLoading(false);
         }
     };
-
-    // const submitTwoFactor = async (e) => {
-    //     e.preventDefault();
-    //     setLoading(true);
-
-    //     try {
-    //         const response = await twoFactorVerifyAPI(code);
-
-    //         if (response.data.type === "error") {
-    //             toast.error(response.data.message.error[0]);
-    //         } else {
-    //             toast.success(response.data.message.success);
-    //         }
-    //     } catch (err) {
-    //         toast.error("Server did not respond");
-    //     }
-
-    //     setLoading(false);
-    // };
 
     const submitTwoFactor = async (e) => {
         e.preventDefault();
@@ -636,6 +640,9 @@ export default function Topbar() {
                     <button className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md" onClick={handle2FAInformationClick}>
                         Two-Factor Authentication
                     </button>
+                    <button className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md" onClick={handleKycInformationClick}>
+                        KYC Verification
+                    </button>
                     <button className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md" onClick={handlePasswordInformationClick}>
                         Password
                     </button>
@@ -681,22 +688,23 @@ export default function Topbar() {
                         <div className="grid grid-cols-1 gap-3 p-4">
                             <div className="relative w-[120px] h-[120px] rounded-[50%] mx-auto">
                                 <Image
-                                    src={previewImage || profileInfo.profileImage}
+                                    src={userImage}
                                     alt="Profile"
                                     width={120}
                                     height={120}
                                     className="rounded-full w-full h-full border-2 border-slate-800 mx-auto object-cover"
                                 />
-                                <label
-                                    htmlFor="profileImage"
+                                <button
+                                    type="button"
+                                    onClick={openFileInput}
                                     className="absolute bottom-[-15px] left-[50%] transform translate-x-[-50%] bg-[#0d1f30] text-white w-10 h-10 flex justify-center items-center rounded-full cursor-pointer"
                                 >
                                     <Pencil className="w-4" />
-                                </label>
+                                </button>
                                 <input
                                     type="file"
-                                    id="profileImage"
-                                    accept="image/*"
+                                    id="profileImageInput"
+                                    accept=".png,.jpg,.jpeg,.webp,.svg"
                                     className="hidden"
                                     onChange={handleImageChange}
                                 />
@@ -728,6 +736,32 @@ export default function Topbar() {
                                 />
                             </div>
                             <div className="text-white">
+                                <label className="text-sm mb-2 block">Country</label>
+                                <input
+                                type="text"
+                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                placeholder={profileInfo.lastName}
+                                value={country}
+                                onChange={(e) =>
+                                    setCountry(e.target.value)
+                                }
+                                required
+                                />
+                            </div>
+                            <div className="text-white">
+                                <label className="text-sm mb-2 block">Mobile Code</label>
+                                <input
+                                type="number"
+                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                placeholder={profileInfo.lastName}
+                                value={mobileCode}
+                                onChange={(e) =>
+                                    setMobileCode(e.target.value)
+                                }
+                                required
+                                />
+                            </div>
+                            {/* <div className="text-white">
                                 <label className="text-sm mb-2 block">Country</label>
                                 <Select
                                     options={countryOptions}
@@ -788,10 +822,20 @@ export default function Topbar() {
                                         }),
                                     }}
                                 />
-                            </div>
+                            </div> */}
                             <div className="text-white">
-                                <label className="text-sm mb-2 block">Phone</label>
-                                <PhoneInput
+                                <label className="text-sm mb-2 block">Mobile</label>
+                                <input
+                                type="number"
+                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                placeholder={profileInfo.lastName}
+                                value={mobile}
+                                onChange={(e) =>
+                                    setMobile(e.target.value)
+                                }
+                                required
+                                />
+                                {/* <PhoneInput
                                     country={profileInfo.country.value}
                                     value={profileInfo.phone}
                                     disableDropdown
@@ -813,6 +857,58 @@ export default function Topbar() {
                                         background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
                                         color: "#fff",
                                     }}
+                                /> */}
+                            </div>
+                            <div className="text-white">
+                                <label className="text-sm mb-2 block">Address</label>
+                                <input
+                                type="text"
+                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                placeholder={profileInfo.lastName}
+                                value={address}
+                                onChange={(e) =>
+                                    setAddress(e.target.value)
+                                }
+                                required
+                                />
+                            </div>
+                            <div className="text-white">
+                                <label className="text-sm mb-2 block">State/Region</label>
+                                <input
+                                type="text"
+                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                placeholder={profileInfo.lastName}
+                                value={state}
+                                onChange={(e) =>
+                                    setState(e.target.value)
+                                }
+                                required
+                                />
+                            </div>
+                            <div className="text-white">
+                                <label className="text-sm mb-2 block">City</label>
+                                <input
+                                type="text"
+                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                placeholder={profileInfo.lastName}
+                                value={city}
+                                onChange={(e) =>
+                                    setCity(e.target.value)
+                                }
+                                required
+                                />
+                            </div>
+                            <div className="text-white">
+                                <label className="text-sm mb-2 block">ZIP/Postal Code</label>
+                                <input
+                                type="number"
+                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                placeholder={profileInfo.lastName}
+                                value={postalCode}
+                                onChange={(e) =>
+                                    setPostalCode(e.target.value)
+                                }
+                                required
                                 />
                             </div>
                             <div className="mt-2">
@@ -839,20 +935,20 @@ export default function Topbar() {
                             <div className="relative w-[120px] h-[120px] rounded-full mx-auto bg-gray-700"></div>
                             <div className="h-4 w-20 bg-gray-700 rounded mx-auto mt-2"></div>
                             <div className="space-y-2">
-                            <div className="h-4 w-24 bg-gray-700 rounded"></div>
-                            <div className="h-10 w-full bg-gray-700 rounded"></div>
+                                <div className="h-4 w-24 bg-gray-700 rounded"></div>
+                                <div className="h-10 w-full bg-gray-700 rounded"></div>
                             </div>
                             <div className="space-y-2">
-                            <div className="h-4 w-24 bg-gray-700 rounded"></div>
-                            <div className="h-10 w-full bg-gray-700 rounded"></div>
+                                <div className="h-4 w-24 bg-gray-700 rounded"></div>
+                                <div className="h-10 w-full bg-gray-700 rounded"></div>
                             </div>
                             <div className="space-y-2">
-                            <div className="h-4 w-24 bg-gray-700 rounded"></div>
-                            <div className="h-10 w-full bg-gray-700 rounded"></div>
+                                <div className="h-4 w-24 bg-gray-700 rounded"></div>
+                                <div className="h-10 w-full bg-gray-700 rounded"></div>
                             </div>
                             <div className="space-y-2">
-                            <div className="h-4 w-24 bg-gray-700 rounded"></div>
-                            <div className="h-10 w-full bg-gray-700 rounded"></div>
+                                <div className="h-4 w-24 bg-gray-700 rounded"></div>
+                                <div className="h-10 w-full bg-gray-700 rounded"></div>
                             </div>
                             <div className="mt-2 h-10 bg-gray-700 rounded w-full"></div>
                         </div>
@@ -1021,6 +1117,41 @@ export default function Topbar() {
                         </ul>
                     </div>
                 </div>
+            </div>
+            <div className={`fixed top-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[3] shadow-lg p-4 transform ${isKycSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+                <div className="flex justify-between items-center p-4">
+                    <h2 className="text-white text-lg font-semibold">KYC Information</h2>
+                    <button onClick={closeAllSidebars}>
+                        <X className="text-white w-5 h-5" />
+                    </button>
+                </div>
+                <form onSubmit={handlePasswordUpdate}>
+                    <div className="grid grid-cols-1 gap-3 p-4">
+                        <div className="relative text-white">
+                            <label className="text-sm mb-2 block">Type<span>*</span></label>
+                            <input
+                                type={showPassword.currentPassword ? "text" : "password"}
+                                value={currentPassword}
+                                placeholder="Enter Type..."
+                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                required
+                            />
+                        </div>
+                        <div className="mt-2">
+                            <button type="submit" className={`baseBtn flex justify-center w-full ${loading ? "cursor-not-allowed" : ""}`} disabled={loading}>
+                                {loading ? (
+                                    <LoaderCircle className="inline-block w-5 h-6 animate-spin text-white" />
+                                ) : (
+                                    <>
+                                        Submit 
+                                        <ArrowRightToLine />
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </div>
             <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[3] shadow-lg p-4 transform ${isDepositFieldsSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
                 <div className="flex justify-between items-center p-4">
