@@ -12,7 +12,7 @@ import { useAccount } from "@/context/accountProvider/accountProvider";
 import { getCountryOptions } from "@/utils/getCountryOptions/getCountryOptions";
 import { getCurrencyOptions } from "@/utils/getCurrencyOptions/getCurrencyOptions";
 import QRCode from "react-qr-code";
-import { getUserDataAPI, userDataUpdateAPI, updatePasswordAPI, twoFactorVerifyAPI } from "@/services/apiClient/apiClient";
+import { getUserDataAPI, userDataUpdateAPI, updatePasswordAPI, twoFactorVerifyAPI, getKycAPI, kycUpdateAPI } from "@/services/apiClient/apiClient";
 import styles from "./topbar.module.css";
 
 import crypto from '@/public/images/currency/crypto.svg';
@@ -57,6 +57,10 @@ export default function Topbar() {
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [passwordConfirmation, setPasswordConfirmation] = useState("");
+    const [fields, setFields] = useState([]);
+    const [idType, setIdType] = useState("");
+    const [frontFile, setFrontFile] = useState(null);
+    const [backFile, setBackFile] = useState(null);
     const [showPassword, setShowPassword] = useState({
         currentPassword: false,
         newPassword: false,
@@ -402,6 +406,49 @@ export default function Topbar() {
                 toast.success(msg);
             });
             setCode("");
+        } catch (error) {
+            if (error.response && error.response.data && error.response.data.message && error.response.data.message.error) {
+                error.response.data.message.error.forEach((msg) => {
+                    toast.error(msg);
+                });
+            } else {
+                toast.error("Server did not respond");
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        getKycAPI()
+            .then(response => {
+                const data = response.data.data;
+                setFields(data.input_fields);
+            })
+            .catch(error => {
+                toast.error(err.response?.data?.message?.error);
+            });
+    }, []);
+
+    const handleChange = (e) => {
+        const { name, files } = e.target;
+        if (files.length > 0) {
+            if (name === "front") setFrontFile(files[0]);
+            if (name === "back") setBackFile(files[0]);
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (loading) return;
+        setLoading(true);
+
+        try {
+            const response = await kycUpdateAPI(idType, frontFile, backFile);
+
+            response.data.message.success.forEach((msg) => {
+                toast.success(msg);
+            });
         } catch (error) {
             if (error.response && error.response.data && error.response.data.message && error.response.data.message.error) {
                 error.response.data.message.error.forEach((msg) => {
@@ -1125,20 +1172,35 @@ export default function Topbar() {
                         <X className="text-white w-5 h-5" />
                     </button>
                 </div>
-                <form onSubmit={handlePasswordUpdate}>
-                    <div className="grid grid-cols-1 gap-3 p-4">
-                        <div className="relative text-white">
-                            <label className="text-sm mb-2 block">Type<span>*</span></label>
-                            <input
-                                type={showPassword.currentPassword ? "text" : "password"}
-                                value={currentPassword}
-                                placeholder="Enter Type..."
-                                onChange={(e) => setCurrentPassword(e.target.value)}
-                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
-                                required
-                            />
-                        </div>
-                        <div className="mt-2">
+                <form onSubmit={handleSubmit}>
+                    <div className="p-4">
+                        {fields.map((field, index) => (
+                            <div className="relative text-white mb-3" key={index}>
+                                <label className="text-sm mb-2 block">{field.label} {field.required && '*'}</label>
+                                {field.type === 'select' ? (
+                                    <select
+                                        value={idType}
+                                        onChange={(e) => setIdType(e.target.value)}
+                                        className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                        required={field.required}
+                                    >
+                                        {field.validation.options.map((option, i) => (
+                                            <option key={i} value={option.trim()}>{option.trim()}</option>
+                                        ))}
+                                    </select>
+                                ) : field.type === 'file' ? (
+                                    <input
+                                        type="file"
+                                        name={field.name}
+                                        accept={field.validation.mimes.join(',')}
+                                        onChange={handleChange}
+                                        className="w-full h-11 leading-[36px] text-sm font-medium rounded-md shadow-sm border border-slate-800 text-slate-300 gradient--bg"
+                                        required={field.required}
+                                    />
+                                ) : null}
+                            </div>
+                        ))}
+                        <div className="mt-4">
                             <button type="submit" className={`baseBtn flex justify-center w-full ${loading ? "cursor-not-allowed" : ""}`} disabled={loading}>
                                 {loading ? (
                                     <LoaderCircle className="inline-block w-5 h-6 animate-spin text-white" />

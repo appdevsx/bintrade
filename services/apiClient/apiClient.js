@@ -82,7 +82,7 @@ export const getUserDataAPI = () => {
     }
 };
 
-// User Data Update API (put)
+// User Data Update API (post)
 export const userDataUpdateAPI = (formData) => {
     const token = getToken();
     if (token) {
@@ -95,6 +95,42 @@ export const userDataUpdateAPI = (formData) => {
     } else {
         throw new Error("No token found. Please log in.");
     }
+};
+
+// Get KYC Fields API (get)
+export const getKycAPI = () => {
+    const token = getToken();
+    if (token) {
+        return apiClient.get('/authorize/kyc/input-fields', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+    } else {
+        throw new Error('No token found. Please log in.');
+    }
+};
+
+// KYC Update API (post)
+export const kycUpdateAPI = (idType, frontFile, backFile) => {
+    const token = getToken();
+    if (!token) {
+        throw new Error("No token found. Please log in.");
+    }
+
+    const formData = new FormData();
+    formData.append("id_type", idType);
+    if (frontFile) formData.append("front", frontFile);
+    if (backFile) formData.append("back", backFile);
+
+    console.log([...formData.entries()]);
+
+    return apiClient.post("/authorize/kyc/submit", formData, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+        },
+    });
 };
 
 // Ticket API (get)
