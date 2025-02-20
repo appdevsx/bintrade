@@ -12,7 +12,7 @@ import { useAccount } from "@/context/accountProvider/accountProvider";
 import { getCountryOptions } from "@/utils/getCountryOptions/getCountryOptions";
 import { getCurrencyOptions } from "@/utils/getCurrencyOptions/getCurrencyOptions";
 import QRCode from "react-qr-code";
-import { getUserDataAPI, userDataUpdateAPI, updatePasswordAPI, twoFactorVerifyAPI, getKycAPI, kycUpdateAPI } from "@/services/apiClient/apiClient";
+import { getUserDataAPI, userDataUpdateAPI, updatePasswordAPI, twoFactorVerifyAPI, getKycAPI, kycUpdateAPI, getDepositAPI } from "@/services/apiClient/apiClient";
 import styles from "./topbar.module.css";
 
 import crypto from '@/public/images/currency/crypto.svg';
@@ -37,7 +37,9 @@ export default function Topbar() {
     const [isDepositFieldsSidebarOpen, setDepositFieldsSidebarOpen] = useState(false);
     const [isWithdrawFieldsSidebarOpen, setWithdrawFieldsSidebarOpen] = useState(false);
     const [isExchangeFieldsSidebarOpen, setExchangeFieldsSidebarOpen] = useState(false);
+    const [paymentGateways, setPaymentGateways] = useState([]);
     const [selectedGateway, setSelectedGateway] = useState("");
+    const [selectedCurrency, setSelectedCurrency] = useState("");
     const [amount, setAmount] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
     const [firstName, setFirstName] = useState("");
@@ -231,15 +233,6 @@ export default function Topbar() {
         }
     };
 
-    const handleDepositSubmit = (e) => {
-        e.preventDefault();
-        if (amount < 10 || amount > 5000) {
-            toast.error("Amount must be between $10 and $5,000." , {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
-            return;
-        }
-        toast.success("Deposit successfull.", {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
-    };
-
     const handleWithdrawSubmit = (e) => {
         e.preventDefault();
         if (amount < 10 || amount > 5000) {
@@ -426,7 +419,7 @@ export default function Topbar() {
                 setFields(data.input_fields);
             })
             .catch(error => {
-                toast.error(err.response?.data?.message?.error);
+                toast.error(error.response?.data?.message?.error);
             });
     }, []);
 
@@ -460,6 +453,31 @@ export default function Topbar() {
         } finally {
             setLoading(false);
         }
+    };
+
+    useEffect(() => {
+        const fetchGateways = async () => {
+            try {
+                const response = await getDepositAPI();
+                setPaymentGateways(response.data.data.payment_gateways || []);
+            } catch (error) {
+                console.error("Error fetching payment gateways:", error);
+            }
+        };
+        fetchGateways();
+    }, []);
+
+    const handleDepositSubmit = (e) => {
+        e.preventDefault();
+        if (!selectedCurrency || !amount) {
+            alert("Please select a payment method and enter an amount.");
+            return;
+        }
+
+        console.log("Submitting deposit:", {
+            paymentMethod: selectedCurrency,
+            amount: parseFloat(amount),
+        });
     };
 
     return (
@@ -718,6 +736,12 @@ export default function Topbar() {
                 </div>
             </div>
             <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[3] shadow-lg p-4 transform ${isProfileFieldsSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+                <div className="flex justify-between items-center p-4">
+                    <h2 className="text-white text-lg font-semibold">Profile Information</h2>
+                    <button onClick={closeAllSidebars}>
+                        <X className="text-white w-5 h-5" />
+                    </button>
+                </div>
                 {error &&
                     <div className="bg-[#0d1f30] py-6 px-6 rounded-[10px] mb-5 flex items-center">
                         <Info className="w-6 h-auto me-2 text-red-500"/>
@@ -726,12 +750,6 @@ export default function Topbar() {
                 }
                 {userData ? (
                     <form onSubmit={submitProfileUpdate}>
-                        <div className="flex justify-between items-center p-4">
-                            <h2 className="text-white text-lg font-semibold">Profile Information</h2>
-                            <button onClick={closeAllSidebars}>
-                                <X className="text-white w-5 h-5" />
-                            </button>
-                        </div>
                         <div className="grid grid-cols-1 gap-3 p-4">
                             <div className="relative w-[120px] h-[120px] rounded-[50%] mx-auto">
                                 <Image
@@ -1237,62 +1255,21 @@ export default function Topbar() {
                     <div className="grid grid-cols-1 gap-3 p-4">
                         <div className="relative text-white">
                             <label className="text-sm mb-2 block">Payment Gateway</label>
-                            <Select
-                                options={[
-                                    { value: "paypal", label: "PayPal" },
-                                    { value: "stripe", label: "Stripe" },
-                                    { value: "bank", label: "Bank Transfer" },
-                                ]}
-                                onChange={(e) => setSelectedGateway(e.value)}
-                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
-                                isSearchable
-                                styles={{
-                                    control: (base) => ({
-                                        ...base,
-                                        background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
-                                        borderColor: "none",
-                                        height: "45px",
-                                        borderRadius: "0.375rem",
-                                        color: "#ffffff",
-                                        fontSize: "14px",
-                                        borderColor: "#1e293b",
-                                        "&:hover": {
-                                            borderColor: "#1e293b",
-                                        },
-                                    }),
-                                    menu: (base) => ({
-                                        ...base,
-                                        borderRadius: "0.375rem",
-                                        paddingTop: "0",
-                                        background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
-                                    }),
-                                    singleValue: (provided) => ({
-                                        ...provided,
-                                        color: "white",
-                                    }),
-                                    option: (base, state) => ({
-                                        ...base,
-                                        background: state.isSelected ? "#0d1f30" : "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)", // Highlight selected option
-                                        color: state.isSelected ? "white" : "white", // Text color for options
-                                        padding: "10px",
-                                        cursor: "pointer",
-                                        borderRadius: "0.375rem",
-                                    }),
-                                    dropdownIndicator: (provided) => ({
-                                        ...provided,
-                                        color: "#cbd5e1",
-                                    }),
-                                    indicatorSeparator: (provided) => ({
-                                        ...provided,
-                                        background: "#1e293b",
-                                    }),
-                                    placeholder: (base) => ({
-                                        ...base,
-                                        color: "#cbd5e1",
-                                        fontSize: "14px",
-                                    }),
-                                }}
-                            />
+                            <select
+                                className="bg-[#0d1f30] shadow-lg rounded-md border-0 text-sm w-full p-2"
+                                value={selectedCurrency}
+                                onChange={(e) => setSelectedCurrency(e.target.value)}
+                                required
+                            >
+                                <option value="">Select Payment Gateway</option>
+                                {paymentGateways.map((gateway) =>
+                                    gateway.currencies.map((currency) => (
+                                        <option key={currency.id} value={currency.alias}>
+                                            {currency.name} ({currency.currency_symbol})
+                                        </option>
+                                    ))
+                                )}
+                            </select>
                         </div>
                         <div className="relative text-white">
                             <label className="text-sm mb-2 block">Amount</label>

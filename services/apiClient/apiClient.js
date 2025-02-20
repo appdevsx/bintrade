@@ -133,6 +133,20 @@ export const kycUpdateAPI = (idType, frontFile, backFile) => {
     });
 };
 
+// Get Deposit Fields API (get)
+export const getDepositAPI = () => {
+    const token = getToken();
+    if (token) {
+        return apiClient.get('/user/add-money/payment-gateways', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+    } else {
+        throw new Error('No token found. Please log in.');
+    }
+};
+
 // Ticket API (get)
 export const getSupportTicketsAPI = (page = 1) => {
     const token = getToken();
