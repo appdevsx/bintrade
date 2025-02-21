@@ -12,7 +12,7 @@ import { useAccount } from "@/context/accountProvider/accountProvider";
 import { getCountryOptions } from "@/utils/getCountryOptions/getCountryOptions";
 import { getCurrencyOptions } from "@/utils/getCurrencyOptions/getCurrencyOptions";
 import QRCode from "react-qr-code";
-import { getUserDataAPI, userDataUpdateAPI, updatePasswordAPI, twoFactorVerifyAPI, getKycAPI, kycUpdateAPI, getDepositAPI } from "@/services/apiClient/apiClient";
+import { getUserDataAPI, userDataUpdateAPI, updatePasswordAPI, twoFactorVerifyAPI, getKycAPI, kycUpdateAPI, getDepositAPI, automaticDepositAPI, manualDepositAPI } from "@/services/apiClient/apiClient";
 import styles from "./topbar.module.css";
 
 import crypto from '@/public/images/currency/crypto.svg';
@@ -41,6 +41,18 @@ export default function Topbar() {
     const [selectedGateway, setSelectedGateway] = useState("");
     const [selectedCurrency, setSelectedCurrency] = useState("");
     const [amount, setAmount] = useState("");
+    const [selectedCurrencyDetails, setSelectedCurrencyDetails] = useState(null);
+    const [exchangeRate, setExchangeRate] = useState(0);
+    const [minLimit, setMinLimit] = useState(0);
+    const [maxLimit, setMaxLimit] = useState(0);
+    const [percentCharge, setPercentCharge] = useState(0);
+    const [fixedCharge, setFixedCharge] = useState(0);
+    const [baseCurrency, setBaseCurrency] = useState("USD");
+    const [selectedCurrencyCode, setSelectedCurrencyCode] = useState("");
+    const [gatewayType, setGatewayType] = useState("");
+    const [fullName, setFullName] = useState("");
+    const [transactionId, setTransactionId] = useState("");
+    const [screenshot, setScreenshot] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -461,23 +473,109 @@ export default function Topbar() {
                 const response = await getDepositAPI();
                 setPaymentGateways(response.data.data.payment_gateways || []);
             } catch (error) {
-                console.error("Error fetching payment gateways:", error);
+                toast.error("Error fetching payment gateways:", error);
             }
         };
         fetchGateways();
     }, []);
 
-    const handleDepositSubmit = (e) => {
-        e.preventDefault();
-        if (!selectedCurrency || !amount) {
-            alert("Please select a payment method and enter an amount.");
+    useEffect(() => {
+        if (selectedCurrency) {
+            const currencyDetails = paymentGateways
+                .flatMap((gateway) => gateway.currencies)
+                .find((currency) => currency.alias === selectedCurrency);
+            setSelectedCurrencyDetails(currencyDetails || null);
+        } else {
+            setSelectedCurrencyDetails(null);
+        }
+    }, [selectedCurrency, paymentGateways]);
+
+    const handleCurrency = (e) => {
+        const selectedAlias = e.target.value;
+        setSelectedCurrency(selectedAlias);
+
+        if (!selectedAlias) {
+            setExchangeRate(0);
+            setMinLimit(0);
+            setMaxLimit(0);
+            setPercentCharge(0);
+            setFixedCharge(0);
+            setSelectedCurrencyCode("");
             return;
         }
 
-        console.log("Submitting deposit:", {
-            paymentMethod: selectedCurrency,
+        let selectedCurrencyData = null;
+        for (const gateway of paymentGateways) {
+            const foundCurrency = gateway.currencies.find(
+                (currency) => currency.alias === selectedAlias
+            );
+            if (foundCurrency) {
+                selectedCurrencyData = foundCurrency;
+                break;
+            }
+        }
+
+        if (selectedCurrencyData) {
+            setExchangeRate(parseFloat(selectedCurrencyData.rate));
+            setMinLimit(parseFloat(selectedCurrencyData.min_limit));
+            setMaxLimit(parseFloat(selectedCurrencyData.max_limit));
+            setPercentCharge(parseFloat(selectedCurrencyData.percent_charge));
+            setFixedCharge(parseFloat(selectedCurrencyData.fixed_charge));
+            setSelectedCurrencyCode(selectedCurrencyData.currency_code);
+        }
+    };
+
+    const handleDepositSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!selectedCurrency || !amount) {
+            toast.error("Please select a currency and enter an amount.");
+            return;
+        }
+
+        const requestData = {
+            currency: selectedCurrency,
             amount: parseFloat(amount),
-        });
+            wallet_currency: baseCurrency,
+        };
+
+        if (gatewayType === "automatic") {
+            try {
+                const response = await automaticDepositAPI(requestData);
+
+                if (response.data.type === "error") {
+                    toast.error(response.data.message.error[0]);
+                } else {
+                    toast.success(response.data.message.success);
+                }
+            } catch (error) {
+                toast.error("An error occurred while processing the deposit.");
+            }
+        } else {
+            // if (!fullName || !transactionId || !screenshot) {
+            //     toast.error("Please provide all required fields.");
+            //     return;
+            // }
+    
+            const formData = new FormData();
+            formData.append("currency", selectedCurrency);
+            formData.append("amount", parseFloat(amount));
+            formData.append("wallet_currency", baseCurrency);
+            formData.append("full_name", fullName);
+            formData.append("transaction_id", transactionId);
+            formData.append("screenshoot", screenshot);
+    
+            try {
+                const response = await manualDepositAPI(formData);
+                if (response.data.type === "success") {
+                    toast.success(response.data.message.success);
+                } else {
+                    toast.error(response.data.message.error[0]);
+                }
+            } catch (error) {
+                toast.error("Server did not respond");
+            }
+        }
     };
 
     return (
@@ -1199,7 +1297,7 @@ export default function Topbar() {
                                     <select
                                         value={idType}
                                         onChange={(e) => setIdType(e.target.value)}
-                                        className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                        className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 bg-[#0d1f30]"
                                         required={field.required}
                                     >
                                         {field.validation.options.map((option, i) => (
@@ -1243,22 +1341,22 @@ export default function Topbar() {
                 <form onSubmit={handleDepositSubmit}>
                     <div className="p-4 text-white">
                         <p className="text-sm">
-                            <span className="font-semibold">Exchange Rate:</span> 1 USD = 85.00 XYZ
+                            <span className="font-semibold">Exchange Rate:</span> 1 {baseCurrency} = {exchangeRate} {selectedCurrencyCode}
                         </p>
                         <p className="text-sm mt-2">
-                            <span className="font-semibold">Limits:</span> Min $10, Max $5,000
+                            <span className="font-semibold">Limits:</span> Min {minLimit} {selectedCurrencyCode}, Max {maxLimit} {selectedCurrencyCode}
                         </p>
                         <p className="text-sm mt-2">
-                            <span className="font-semibold">Charge:</span> $2.00
+                            <span className="font-semibold">Charge:</span> {fixedCharge} + {percentCharge}%
                         </p>
                     </div>
                     <div className="grid grid-cols-1 gap-3 p-4">
                         <div className="relative text-white">
                             <label className="text-sm mb-2 block">Payment Gateway</label>
                             <select
-                                className="bg-[#0d1f30] shadow-lg rounded-md border-0 text-sm w-full p-2"
+                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 bg-[#0d1f30]"
                                 value={selectedCurrency}
-                                onChange={(e) => setSelectedCurrency(e.target.value)}
+                                onChange={handleCurrency}
                                 required
                             >
                                 <option value="">Select Payment Gateway</option>
@@ -1273,20 +1371,19 @@ export default function Topbar() {
                         </div>
                         <div className="relative text-white">
                             <label className="text-sm mb-2 block">Amount</label>
-                            <input
-                                type="number"
-                                value={amount}
-                                placeholder="Enter amount"
-                                onChange={(e) => setAmount(e.target.value)}
-                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
-                                required
-                            />
-                        </div>
-                        <div className="mt-2 text-sm text-white">
-                            <p>
-                                <span className="font-semibold">Total:</span> $
-                                {(parseFloat(amount) || 0) + 2.0}
-                            </p>
+                            <div className="relative">
+                                <input
+                                    type="number"
+                                    value={amount}
+                                    placeholder="Enter amount"
+                                    onChange={(e) => setAmount(e.target.value)}
+                                    className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                    required
+                                />
+                                <span className="absolute inset-y-0 right-3 flex items-center text-sm text-gray-400">
+                                    USD
+                                </span>
+                            </div>
                         </div>
                         <div className="mt-2">
                             <button type="submit" className="baseBtn flex justify-center w-full">Deposit <ArrowRightToLine /></button>

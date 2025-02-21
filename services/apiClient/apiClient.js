@@ -147,6 +147,36 @@ export const getDepositAPI = () => {
     }
 };
 
+// Submit Automatic Deposit Fields API (post)
+export const automaticDepositAPI = () => {
+    const token = getToken();
+    if (token) {
+        return apiClient.get('/user/add-money/automatic/submit', formData, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            }
+        });
+    } else {
+        throw new Error('No token found. Please log in.');
+    }
+};
+
+// Submit Manual Deposit Fields API (post)
+export const manualDepositAPI = () => {
+    const token = getToken();
+    if (token) {
+        return apiClient.get('/user/add-money/manual/submit', formData, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            }
+        });
+    } else {
+        throw new Error('No token found. Please log in.');
+    }
+};
+
 // Ticket API (get)
 export const getSupportTicketsAPI = (page = 1) => {
     const token = getToken();
