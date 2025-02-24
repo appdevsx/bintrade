@@ -527,54 +527,34 @@ export default function Topbar() {
 
     const handleDepositSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
 
-        if (!selectedCurrency || !amount) {
-            toast.error("Please select a currency and enter an amount.");
-            return;
-        }
+        try {
+            const response = await automaticDepositAPI(selectedCurrency, amount, baseCurrency);
 
-        const requestData = {
-            currency: selectedCurrency,
-            amount: parseFloat(amount),
-            wallet_currency: baseCurrency,
-        };
+            console.log(response);
 
-        if (gatewayType === "automatic") {
-            try {
-                const response = await automaticDepositAPI(requestData);
-
-                if (response.data.type === "error") {
+            const depositType = response.data.type;
+            if (depositType === "AUTOMATIC") {
+                if (response.data.message?.error) {
                     toast.error(response.data.message.error[0]);
                 } else {
                     toast.success(response.data.message.success);
                 }
-            } catch (error) {
-                toast.error("An error occurred while processing the deposit.");
-            }
-        } else {
-            // if (!fullName || !transactionId || !screenshot) {
-            //     toast.error("Please provide all required fields.");
-            //     return;
-            // }
-    
-            const formData = new FormData();
-            formData.append("currency", selectedCurrency);
-            formData.append("amount", parseFloat(amount));
-            formData.append("wallet_currency", baseCurrency);
-            formData.append("full_name", fullName);
-            formData.append("transaction_id", transactionId);
-            formData.append("screenshoot", screenshot);
-    
-            try {
-                const response = await manualDepositAPI(formData);
-                if (response.data.type === "success") {
+            } else if (depositType === "MANUAL") {  
+                const manualResponse = await manualDepositAPI(selectedCurrency, amount, baseCurrency, fullName, transactionId, screenshot);
+                if (manualResponse.data.type === "success") {
                     toast.success(response.data.message.success);
                 } else {
                     toast.error(response.data.message.error[0]);
                 }
-            } catch (error) {
-                toast.error("Server did not respond");
+            } else {
+                toast.error("Unknown deposit type.");
             }
+        } catch (error) {
+            toast.error("Server did not respond");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -1363,7 +1343,7 @@ export default function Topbar() {
                                 {paymentGateways.map((gateway) =>
                                     gateway.currencies.map((currency) => (
                                         <option key={currency.id} value={currency.alias}>
-                                            {currency.name} ({currency.currency_symbol})
+                                            {currency.name} ({gateway.type})
                                         </option>
                                     ))
                                 )}
@@ -1386,7 +1366,16 @@ export default function Topbar() {
                             </div>
                         </div>
                         <div className="mt-2">
-                            <button type="submit" className="baseBtn flex justify-center w-full">Deposit <ArrowRightToLine /></button>
+                            <button type="submit" className={`baseBtn flex justify-center w-full ${loading ? "cursor-not-allowed" : ""}`} disabled={loading}>
+                                {loading ? (
+                                    <LoaderCircle className="inline-block w-5 h-6 animate-spin text-white" />
+                                ) : (
+                                    <>
+                                        Deposit 
+                                        <ArrowRightToLine />
+                                    </>
+                                )}
+                            </button>
                         </div>
                     </div>
                 </form>

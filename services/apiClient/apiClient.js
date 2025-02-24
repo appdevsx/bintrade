@@ -123,8 +123,6 @@ export const kycUpdateAPI = (idType, frontFile, backFile) => {
     if (frontFile) formData.append("front", frontFile);
     if (backFile) formData.append("back", backFile);
 
-    console.log([...formData.entries()]);
-
     return apiClient.post("/authorize/kyc/submit", formData, {
         headers: {
             Authorization: `Bearer ${token}`,
@@ -148,33 +146,48 @@ export const getDepositAPI = () => {
 };
 
 // Submit Automatic Deposit Fields API (post)
-export const automaticDepositAPI = () => {
+export const automaticDepositAPI = (selectedCurrency, amount, baseCurrency) => {
     const token = getToken();
-    if (token) {
-        return apiClient.get('/user/add-money/automatic/submit', formData, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-            }
-        });
-    } else {
-        throw new Error('No token found. Please log in.');
+    if (!token) {
+        throw new Error("No token found. Please log in.");
     }
+
+    const formData = new FormData();
+    formData.append("currency", selectedCurrency);
+    formData.append("amount", parseFloat(amount));
+    formData.append("wallet_currency", baseCurrency);
+
+    return apiClient.post("/user/add-money/automatic/submit", formData, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+        },
+    });
 };
 
 // Submit Manual Deposit Fields API (post)
-export const manualDepositAPI = () => {
+export const manualDepositAPI = (selectedCurrency, amount, baseCurrency, fullName, transactionId, screenshot) => {
     const token = getToken();
-    if (token) {
-        return apiClient.get('/user/add-money/manual/submit', formData, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-            }
-        });
-    } else {
-        throw new Error('No token found. Please log in.');
+    if (!token) {
+        throw new Error("No token found. Please log in.");
     }
+
+    const formData = new FormData();
+    formData.append("currency", selectedCurrency);
+    formData.append("amount", parseFloat(amount));
+    formData.append("wallet_currency", baseCurrency);
+    formData.append("full_name", fullName);
+    formData.append("transaction_id", transactionId);
+    formData.append("screenshoot", screenshot);
+
+    console.log([...formData.entries()]);
+
+    return apiClient.post("/user/add-money/manual/submit", formData, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+        },
+    });
 };
 
 // Ticket API (get)
