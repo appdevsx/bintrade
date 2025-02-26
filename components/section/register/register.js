@@ -45,7 +45,7 @@ export default function Register() {
         try {
             const response = await registerAPI(formData);
 
-            console.log(response)
+            console.log(response);
 
             if (response.status === 200 && response.data?.data?.token) {
                 const token = response.data.data.token;

@@ -50,8 +50,8 @@ export const loginAPI = (credentials, password) => {
 };
 
 // Register API (post)
-export const registerAPI = (formData) => {
-    return apiClient.post('/register', formData);
+export const registerAPI = (formData, type) => {
+    return apiClient.post(`/register?type=${type}`, formData);
 };
 
 // Logout API (post)
@@ -66,6 +66,11 @@ export const logoutAPI = () => {
     } else {
         throw new Error('No token found. Please log in.');
     }
+};
+
+// Switch Account API (post)
+export const switchAccountAPI = (switcher) => {
+    return apiClient.post('/user/switch/account', { switcher });
 };
 
 // Get User Data API (get)
@@ -186,6 +191,55 @@ export const manualDepositAPI = (selectedCurrency, amount, baseCurrency, fullNam
         headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
+        },
+    });
+};
+
+// Get Exchange Fields API (get)
+export const getExchangeAPI = () => {
+    const token = getToken();
+    if (token) {
+        return apiClient.get('/user/exchange-money/get-info', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+    } else {
+        throw new Error('No token found. Please log in.');
+    }
+};
+
+// Submit Exchange API (post)
+export const submitExchangeAPI = (exchangeId) => {
+    const token = getToken();
+    if (!token) {
+        throw new Error("No token found. Please log in.");
+    }
+
+    const formData = new FormData();
+    formData.append("exchange_currency_id", exchangeId);
+
+    return apiClient.post("/user/exchange-money/exchange", formData, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+};
+
+// Exchange Charge API (post)
+export const exchangeChargeAPI = (walletId, exchangeId) => {
+    const token = getToken();
+    if (!token) {
+        throw new Error("No token found. Please log in.");
+    }
+
+    const formData = new FormData();
+    formData.append("wallet_currency_id", walletId);
+    formData.append("exchange_currency_id", exchangeId);
+
+    return apiClient.post("/user/exchange-money/get-charges", formData, {
+        headers: {
+            Authorization: `Bearer ${token}`,
         },
     });
 };

@@ -12,7 +12,7 @@ import { useAccount } from "@/context/accountProvider/accountProvider";
 import { getCountryOptions } from "@/utils/getCountryOptions/getCountryOptions";
 import { getCurrencyOptions } from "@/utils/getCurrencyOptions/getCurrencyOptions";
 import QRCode from "react-qr-code";
-import { getUserDataAPI, userDataUpdateAPI, updatePasswordAPI, twoFactorVerifyAPI, getKycAPI, kycUpdateAPI, getDepositAPI, automaticDepositAPI, manualDepositAPI } from "@/services/apiClient/apiClient";
+import { getUserDataAPI, userDataUpdateAPI, updatePasswordAPI, twoFactorVerifyAPI, getKycAPI, kycUpdateAPI, getDepositAPI, automaticDepositAPI, manualDepositAPI, switchAccountAPI, getExchangeAPI, submitExchangeAPI, exchangeChargeAPI } from "@/services/apiClient/apiClient";
 import styles from "./topbar.module.css";
 
 import crypto from '@/public/images/currency/crypto.svg';
@@ -24,7 +24,7 @@ export default function Topbar() {
     const { accountBalance } = useAccount();
     const { symbol, setSymbol, interval, setInterval } = useAccount();
     const [isSidebarOpen, setSidebarOpen] = useState(false);
-    const [selectedAccount, setSelectedAccount] = useState("Demo Account");
+    const [selectedAccount, setSelectedAccount] = useState("LIVE");
     const [isProfileSidebarOpen, setProfileSidebarOpen] = useState(false);
     const [isPaymentSidebarOpen, setPaymentSidebarOpen] = useState(false);
     const [isBottomSidebarOpen, setBottomSidebarOpen] = useState(false);
@@ -43,6 +43,7 @@ export default function Topbar() {
     const [amount, setAmount] = useState("");
     const [selectedCurrencyDetails, setSelectedCurrencyDetails] = useState(null);
     const [exchangeRate, setExchangeRate] = useState(0);
+    const [exchangeData, setExchangeData] = useState(null);
     const [minLimit, setMinLimit] = useState(0);
     const [maxLimit, setMaxLimit] = useState(0);
     const [percentCharge, setPercentCharge] = useState(0);
@@ -96,6 +97,9 @@ export default function Topbar() {
     ]);
 
     const [code, setCode] = useState("217046");
+    const [exchangeId, setExchangeId] = useState("");
+    const [charge, setCharge] = useState(null);
+    const [loadingCharge, setLoadingCharge] = useState(false);
     const toggleSidebar = () => setSidebarOpen((prev) => !prev);
     const toggleProfileSidebar = () => setProfileSidebarOpen((prev) => !prev);
     const toggleBottomSidebar = () => setBottomSidebarOpen((prev) => !prev);
@@ -127,9 +131,24 @@ export default function Topbar() {
         setExchangeFieldsSidebarOpen(false);
     };
 
-    const selectAccount = (accountType) => {
-        setSelectedAccount(accountType);
-        toggleSidebar();
+    const selectAccount = async (accountType) => {
+        try {
+            const switcherValue = accountType.toUpperCase();
+            const response = await switchAccountAPI(switcherValue);
+            console.log(response);
+    
+            if (response.data?.type === 'success') {
+                setSelectedAccount(switcherValue);
+                toast.success(response.data.message.success[0]);
+            } else {
+                toast.error(response.data.message.error[0]);
+            }
+        } catch (error) {
+            console.error("Account switch error:", error);
+            toast.error("Server did not respond");
+        }
+    
+        toggleSidebar(); // Close sidebar
     };
 
     const handleProfileInformationClick = () => {
@@ -252,16 +271,6 @@ export default function Topbar() {
             return;
         }
         toast.success("Withdraw successfull.", {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
-    };
-
-    const handleExchangeSubmit = (e) => {
-        e.preventDefault();
-    
-        if (!profileInfo.currency) {
-        toast.error("Currency selection is required." , {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
-          return;
-        }
-        toast.success(`Currency exchanged to: ${profileInfo.currency.label}` , {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
     };
 
     useEffect(() => {
@@ -532,8 +541,6 @@ export default function Topbar() {
         try {
             const response = await automaticDepositAPI(selectedCurrency, amount, baseCurrency);
 
-            console.log(response);
-
             const depositType = response.data.type;
             if (depositType === "AUTOMATIC") {
                 if (response.data.message?.error) {
@@ -557,6 +564,72 @@ export default function Topbar() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        const fetchExchangeData = async () => {
+            try {
+                const response = await getExchangeAPI();
+                setExchangeData(response.data.data);
+            } catch (error) {
+                toast.error("Failed to fetch exchange data.");
+            }
+        };
+        fetchExchangeData();
+    }, []);
+
+    const handleExchangeSubmit = async (e) => {
+        e.preventDefault();
+        if (loading) return;
+        if (!exchangeId) {
+            toast.error("Please select a currency to exchange.");
+            return;
+        }
+        setLoading(true);
+        try {
+            const response = await submitExchangeAPI(exchangeId);
+            console.log(response);
+            if (response?.data?.message?.success) {
+                response.data.message.success.forEach((msg) => {
+                    toast.success(msg);
+                });
+            } else {
+                toast.error("Unexpected response from server.");
+            }
+    
+            setExchangeId("");
+        } catch (error) {
+            if (error.response?.data?.message?.error) {
+                error.response.data.message.error.forEach((msg) => {
+                    toast.error(msg);
+                });
+            } else {
+                toast.error("Server did not respond");
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (!selectedCurrency || !exchangeId) return;
+
+        const fetchCharge = async () => {
+            setLoadingCharge(true);
+            try {
+                const response = await exchangeChargeAPI(exchangeData?.user_wallet.currency.id, exchangeId);
+                console.log("Exchange Charge Response:", response);
+                setCharge(response.data);
+            } catch (error) {
+                console.error("Error fetching charge:", error);
+                toast.error("Failed to load exchange charges");
+                setCharge(null);
+            } finally {
+                setLoadingCharge(false);
+            }
+        };
+
+        fetchCharge();
+    }, [selectedCurrency, exchangeId, exchangeData]);
 
     return (
         <>
@@ -693,7 +766,7 @@ export default function Topbar() {
                 <div className="flex items-center gap-3">
                     <div className="relative top-1 mr-6 cursor-pointer" onClick={toggleSidebar}>
                         <div className="text-white font-semibold text-[18px] leading-[20px]">Đ{accountBalance.toFixed(2)}</div>
-                        <div className="text-[12px] text-emerald-400">{selectedAccount}</div>
+                        <div className="text-[12px] text-emerald-400">{selectedAccount === 'live' ? 'Live Account' : 'Demo Account'}</div>
                         <div className="absolute bottom-[4px] right-[-20px]">
                             <ChevronDown className="w-4" />
                         </div>
@@ -1490,12 +1563,22 @@ export default function Topbar() {
                     </button>
                 </div>
                 <form onSubmit={handleExchangeSubmit}>
+                    <div className="p-4 text-white">
+                        <p className="text-sm">
+                            <span className="font-semibold">Exchange Rate:</span> {exchangeData ? `1 USD = ${exchangeData.currencies.find(c => c.code === selectedCurrency)?.rate || 0} ${selectedCurrency}` : "Loading..."}
+                        </p>
+                        <p className="text-sm mt-2">
+                            <span className="font-semibold">Charge:</span> {loadingCharge ? "Calculating..." : charge ? 
+                        `${charge.fixed_charge} USD + ${charge.percent_charge}%` 
+                        : "N/A"}
+                        </p>
+                    </div>
                     <div className="grid grid-cols-1 gap-3 p-4">
                         <div className="relative text-white">
-                            <label className="text-sm mb-2 block">From Wallet</label>
+                            <label className="text-sm mb-2 block">Your Wallet</label>
                             <input
                                 type="text"
-                                value="USD"
+                                value={exchangeData ? exchangeData.user_wallet.currency.code : "Loading..."}
                                 placeholder="Enter wallet"
                                 className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
                                 readOnly
@@ -1503,68 +1586,39 @@ export default function Topbar() {
                         </div>
                         <div className="relative text-white">
                             <label className="text-sm mb-2 block">Exchange To</label>
-                            <Select
-                                options={currencyOptions}
-                                value={profileInfo.currency}
-                                onChange={handleCurrencyChange}
-                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
-                                isSearchable
-                                getOptionLabel={(e) => (
-                                    <div className="flex items-center gap-2">
-                                      <Flag code={e.value} style={{ width: 20, height: 15 }} />{" "}
-                                      {e.label}
-                                    </div>
-                                )}
-                                styles={{
-                                    control: (base) => ({
-                                        ...base,
-                                        background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
-                                        borderColor: "none",
-                                        height: "45px",
-                                        borderRadius: "0.375rem",
-                                        color: "#ffffff",
-                                        fontSize: "14px",
-                                        borderColor: "#1e293b",
-                                        "&:hover": {
-                                            borderColor: "#1e293b",
-                                        },
-                                    }),
-                                    menu: (base) => ({
-                                        ...base,
-                                        borderRadius: "0.375rem",
-                                        paddingTop: "0",
-                                        background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
-                                    }),
-                                    singleValue: (provided) => ({
-                                        ...provided,
-                                        color: "white",
-                                    }),
-                                    option: (base, state) => ({
-                                        ...base,
-                                        background: state.isSelected ? "#0d1f30" : "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)", // Highlight selected option
-                                        color: state.isSelected ? "white" : "white", // Text color for options
-                                        padding: "10px",
-                                        cursor: "pointer",
-                                        borderRadius: "0.375rem",
-                                    }),
-                                    dropdownIndicator: (provided) => ({
-                                        ...provided,
-                                        color: "#cbd5e1",
-                                    }),
-                                    indicatorSeparator: (provided) => ({
-                                        ...provided,
-                                        background: "#1e293b",
-                                    }),
-                                    placeholder: (base) => ({
-                                        ...base,
-                                        color: "#cbd5e1",
-                                        fontSize: "14px",
-                                    }),
+                            <select
+                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 bg-[#0d1f30]"
+                                value={selectedCurrency}
+                                onChange={(e) => {
+                                    setSelectedCurrency(e.target.value);
+                            
+                                    const selectedCurrencyData = exchangeData?.currencies.find(c => c.code === e.target.value);
+                                    if (selectedCurrencyData) {
+                                        setExchangeId(selectedCurrencyData.id);
+                                    }
                                 }}
-                            />
+                                required
+                            >
+                                {exchangeData
+                                ? exchangeData.currencies.map((currency) => (
+                                    <option key={currency.id} value={currency.code}>
+                                        {currency.code}
+                                    </option>
+                                ))
+                                : <option>Loading...</option>}
+                            </select>
                         </div>
                         <div className="mt-2">
-                            <button type="submit" className="baseBtn flex justify-center w-full">Exchange <ArrowRightToLine /></button>
+                            <button type="submit" className={`baseBtn flex justify-center w-full ${loading ? "cursor-not-allowed" : ""}`} disabled={loading}>
+                                {loading ? (
+                                    <LoaderCircle className="inline-block w-5 h-6 animate-spin text-white" />
+                                ) : (
+                                    <>
+                                        Exchange Wallet 
+                                        <ArrowRightToLine />
+                                    </>
+                                )}
+                            </button>
                         </div>
                     </div>
                 </form>
