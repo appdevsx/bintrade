@@ -185,12 +185,43 @@ export const manualDepositAPI = (selectedCurrency, amount, baseCurrency, fullNam
     formData.append("transaction_id", transactionId);
     formData.append("screenshoot", screenshot);
 
-    console.log([...formData.entries()]);
-
     return apiClient.post("/user/add-money/manual/submit", formData, {
         headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
+        },
+    });
+};
+
+// Get Withdraw Fields API (get)
+export const getWithdrawAPI = () => {
+    const token = getToken();
+    if (token) {
+        return apiClient.get('/user/withdraw/get-info', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+    } else {
+        throw new Error('No token found. Please log in.');
+    }
+};
+
+// Withdraw Request API (post)
+export const withdrawRequestAPI = (gatewayCurrencyId, amount) => {
+    const token = getToken();
+    if (!token) {
+        throw new Error("No token found. Please log in.");
+    }
+
+    const formData = new FormData();
+    formData.append("amount", parseFloat(amount));
+    formData.append("gateway_currency", gatewayCurrencyId);
+
+    console.log([...formData.entries()]);
+
+    return apiClient.post("/user/withdraw/make-request", formData, {
+        headers: {
+            Authorization: `Bearer ${token}`,
         },
     });
 };

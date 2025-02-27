@@ -12,7 +12,7 @@ import { useAccount } from "@/context/accountProvider/accountProvider";
 import { getCountryOptions } from "@/utils/getCountryOptions/getCountryOptions";
 import { getCurrencyOptions } from "@/utils/getCurrencyOptions/getCurrencyOptions";
 import QRCode from "react-qr-code";
-import { getUserDataAPI, userDataUpdateAPI, updatePasswordAPI, twoFactorVerifyAPI, getKycAPI, kycUpdateAPI, getDepositAPI, automaticDepositAPI, manualDepositAPI, switchAccountAPI, getExchangeAPI, submitExchangeAPI, exchangeChargeAPI } from "@/services/apiClient/apiClient";
+import { getUserDataAPI, userDataUpdateAPI, updatePasswordAPI, twoFactorVerifyAPI, getKycAPI, kycUpdateAPI, getDepositAPI, automaticDepositAPI, manualDepositAPI, getWithdrawAPI, withdrawRequestAPI, switchAccountAPI, getExchangeAPI, submitExchangeAPI, exchangeChargeAPI } from "@/services/apiClient/apiClient";
 import styles from "./topbar.module.css";
 
 import crypto from '@/public/images/currency/crypto.svg';
@@ -42,6 +42,7 @@ export default function Topbar() {
     const [selectedCurrency, setSelectedCurrency] = useState("");
     const [amount, setAmount] = useState("");
     const [selectedCurrencyDetails, setSelectedCurrencyDetails] = useState(null);
+    const [gateways, setGateways] = useState([]);
     const [exchangeRate, setExchangeRate] = useState(0);
     const [exchangeData, setExchangeData] = useState(null);
     const [minLimit, setMinLimit] = useState(0);
@@ -135,7 +136,6 @@ export default function Topbar() {
         try {
             const switcherValue = accountType.toUpperCase();
             const response = await switchAccountAPI(switcherValue);
-            console.log(response);
     
             if (response.data?.type === 'success') {
                 setSelectedAccount(switcherValue);
@@ -144,7 +144,6 @@ export default function Topbar() {
                 toast.error(response.data.message.error[0]);
             }
         } catch (error) {
-            console.error("Account switch error:", error);
             toast.error("Server did not respond");
         }
     
@@ -290,7 +289,7 @@ export default function Topbar() {
                     setSelectedTrade(formattedCurrencies[0]);
                 }
             } catch (error) {
-                console.error("Error fetching trade currencies:", error);
+                toast.error("Error fetching trade currencies:", error);
             }
         };
 
@@ -566,6 +565,63 @@ export default function Topbar() {
     };
 
     useEffect(() => {
+        const fetchWithdrawData = async () => {
+            try {
+                const response = await getWithdrawAPI();
+                if (response.data?.data?.gateway_currencies) {
+                    setGateways(response.data.data.gateway_currencies);
+                }
+            } catch (error) {
+                toast.error("Error fetching withdrawal data:", error);
+            }
+        };
+        fetchWithdrawData();
+    }, []);
+
+    const handleGatewayChange = (e) => {
+        const gatewayId = e.target.value;
+        const selected = gateways.find((g) => g.id.toString() === gatewayId);
+
+        if (selected) {
+            setSelectedGateway(selected);
+            setMinLimit(parseFloat(selected.min_limit));
+            setMaxLimit(parseFloat(selected.max_limit));
+            setCharge(parseFloat(selected.fixed_charge));
+            setExchangeRate(parseFloat(selected.rate));
+        }
+    };
+
+    const handleWithdrawRequest = async (e) => {
+        e.preventDefault();
+    
+        if (!selectedGateway || !amount) {
+            toast.error("Please select a payment gateway and enter an amount.");
+            return;
+        }
+    
+        if (amount < 10 || amount > 5000) {
+            toast.error("Amount must be between $10 and $5,000.");
+            return;
+        }
+    
+        setLoading(true);
+        try {
+            const response = await withdrawRequestAPI(selectedGateway.id, amount);
+    
+            if (response.data.type === "success") {
+                toast.success(response.data.message.success[0]);
+                console.log("Withdrawal Token:", response.data.data.token);
+            } else {
+                toast.error("Withdraw request failed. Please try again.");
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Something went wrong.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         const fetchExchangeData = async () => {
             try {
                 const response = await getExchangeAPI();
@@ -587,7 +643,6 @@ export default function Topbar() {
         setLoading(true);
         try {
             const response = await submitExchangeAPI(exchangeId);
-            console.log(response);
             if (response?.data?.message?.success) {
                 response.data.message.success.forEach((msg) => {
                     toast.success(msg);
@@ -617,10 +672,8 @@ export default function Topbar() {
             setLoadingCharge(true);
             try {
                 const response = await exchangeChargeAPI(exchangeData?.user_wallet.currency.id, exchangeId);
-                console.log("Exchange Charge Response:", response);
                 setCharge(response.data);
             } catch (error) {
-                console.error("Error fetching charge:", error);
                 toast.error("Failed to load exchange charges");
                 setCharge(null);
             } finally {
@@ -1475,62 +1528,19 @@ export default function Topbar() {
                     <div className="grid grid-cols-1 gap-3 p-4">
                         <div className="relative text-white">
                             <label className="text-sm mb-2 block">Payment Gateway</label>
-                            <Select
-                                options={[
-                                    { value: "paypal", label: "PayPal" },
-                                    { value: "stripe", label: "Stripe" },
-                                    { value: "bank", label: "Bank Transfer" },
-                                ]}
-                                onChange={(e) => setSelectedGateway(e.value)}
-                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
-                                isSearchable
-                                styles={{
-                                    control: (base) => ({
-                                        ...base,
-                                        background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
-                                        borderColor: "none",
-                                        height: "45px",
-                                        borderRadius: "0.375rem",
-                                        color: "#ffffff",
-                                        fontSize: "14px",
-                                        borderColor: "#1e293b",
-                                        "&:hover": {
-                                            borderColor: "#1e293b",
-                                        },
-                                    }),
-                                    menu: (base) => ({
-                                        ...base,
-                                        borderRadius: "0.375rem",
-                                        paddingTop: "0",
-                                        background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
-                                    }),
-                                    singleValue: (provided) => ({
-                                        ...provided,
-                                        color: "white",
-                                    }),
-                                    option: (base, state) => ({
-                                        ...base,
-                                        background: state.isSelected ? "#0d1f30" : "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)", // Highlight selected option
-                                        color: state.isSelected ? "white" : "white", // Text color for options
-                                        padding: "10px",
-                                        cursor: "pointer",
-                                        borderRadius: "0.375rem",
-                                    }),
-                                    dropdownIndicator: (provided) => ({
-                                        ...provided,
-                                        color: "#cbd5e1",
-                                    }),
-                                    indicatorSeparator: (provided) => ({
-                                        ...provided,
-                                        background: "#1e293b",
-                                    }),
-                                    placeholder: (base) => ({
-                                        ...base,
-                                        color: "#cbd5e1",
-                                        fontSize: "14px",
-                                    }),
-                                }}
-                            />
+                            <select
+                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 bg-[#0d1f30]"
+                                value={selectedGateway?.id || ""}
+                                onChange={handleGatewayChange}
+                                required
+                            >
+                                <option value="">Select Payment Gateway</option>
+                                {gateways.map((gateway) => (
+                                    <option key={gateway.id} value={gateway.id}>
+                                        {gateway.name}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                         <div className="relative text-white">
                             <label className="text-sm mb-2 block">Amount</label>
@@ -1543,14 +1553,17 @@ export default function Topbar() {
                                 required
                             />
                         </div>
-                        <div className="mt-2 text-sm text-white">
-                            <p>
-                                <span className="font-semibold">Total:</span> $
-                                {(parseFloat(amount) || 0) + 2.0}
-                            </p>
-                        </div>
                         <div className="mt-2">
-                            <button type="submit" className="baseBtn flex justify-center w-full">Withdraw <ArrowRightToLine /></button>
+                            <button type="submit" className={`baseBtn flex justify-center w-full ${loading ? "cursor-not-allowed" : ""}`} disabled={loading}>
+                                {loading ? (
+                                    <LoaderCircle className="inline-block w-5 h-6 animate-spin text-white" />
+                                ) : (
+                                    <>
+                                        Withdraw 
+                                        <ArrowRightToLine />
+                                    </>
+                                )}
+                            </button>
                         </div>
                     </div>
                 </form>
