@@ -36,6 +36,7 @@ export default function Topbar() {
     const [isKycSidebarOpen, setKycSidebarOpen] = useState(false);
     const [isDepositFieldsSidebarOpen, setDepositFieldsSidebarOpen] = useState(false);
     const [isWithdrawFieldsSidebarOpen, setWithdrawFieldsSidebarOpen] = useState(false);
+    const [isWithdrawAdditionalFieldsSidebarOpen, setWithdrawAdditionalFieldsSidebarOpen] = useState(false);
     const [isExchangeFieldsSidebarOpen, setExchangeFieldsSidebarOpen] = useState(false);
     const [paymentGateways, setPaymentGateways] = useState([]);
     const [selectedGateway, setSelectedGateway] = useState("");
@@ -77,6 +78,7 @@ export default function Topbar() {
     const [idType, setIdType] = useState("");
     const [frontFile, setFrontFile] = useState(null);
     const [backFile, setBackFile] = useState(null);
+    const [inputFields, setInputFields] = useState([]);
     const [showPassword, setShowPassword] = useState({
         currentPassword: false,
         newPassword: false,
@@ -129,6 +131,7 @@ export default function Topbar() {
         setPaymentSidebarOpen(false);
         setDepositFieldsSidebarOpen(false);
         setWithdrawFieldsSidebarOpen(false);
+        setWithdrawAdditionalFieldsSidebarOpen(false);
         setExchangeFieldsSidebarOpen(false);
     };
 
@@ -261,15 +264,6 @@ export default function Topbar() {
         } finally {
             setLoading(false);
         }
-    };
-
-    const handleWithdrawSubmit = (e) => {
-        e.preventDefault();
-        if (amount < 10 || amount > 5000) {
-            toast.error("Amount must be between $10 and $5,000." , {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
-            return;
-        }
-        toast.success("Withdraw successfull.", {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
     };
 
     useEffect(() => {
@@ -593,29 +587,18 @@ export default function Topbar() {
 
     const handleWithdrawRequest = async (e) => {
         e.preventDefault();
-    
-        if (!selectedGateway || !amount) {
-            toast.error("Please select a payment gateway and enter an amount.");
-            return;
-        }
-    
-        if (amount < 10 || amount > 5000) {
-            toast.error("Amount must be between $10 and $5,000.");
-            return;
-        }
-    
         setLoading(true);
         try {
-            const response = await withdrawRequestAPI(selectedGateway.id, amount);
+            const response = await withdrawRequestAPI(selectedGateway.alias, amount);
     
             if (response.data.type === "success") {
                 toast.success(response.data.message.success[0]);
-                console.log("Withdrawal Token:", response.data.data.token);
+                setWithdrawAdditionalFieldsSidebarOpen(true);
             } else {
-                toast.error("Withdraw request failed. Please try again.");
+                toast.error(response.data.message.error[0]);
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || "Something went wrong.");
+            toast.error("Server did not respond");
         } finally {
             setLoading(false);
         }
@@ -1513,10 +1496,10 @@ export default function Topbar() {
                         <X className="text-white w-5 h-5" />
                     </button>
                 </div>
-                <form onSubmit={handleWithdrawSubmit}>
+                <form onSubmit={handleWithdrawRequest}>
                     <div className="p-4 text-white">
                         <p className="text-sm">
-                            <span className="font-semibold">Exchange Rate:</span> 1 USD = 85.00 XYZ
+                            <span className="font-semibold">Exchange Rate:</span> 1 USD = 85.00 GBP
                         </p>
                         <p className="text-sm mt-2">
                             <span className="font-semibold">Limits:</span> Min $10, Max $5,000
@@ -1553,6 +1536,54 @@ export default function Topbar() {
                                 required
                             />
                         </div>
+                        <div className="mt-2">
+                            <button type="submit" className={`baseBtn flex justify-center w-full ${loading ? "cursor-not-allowed" : ""}`} disabled={loading}>
+                                {loading ? (
+                                    <LoaderCircle className="inline-block w-5 h-6 animate-spin text-white" />
+                                ) : (
+                                    <>
+                                        Withdraw 
+                                        <ArrowRightToLine />
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[3] shadow-lg p-4 transform ${isWithdrawAdditionalFieldsSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+                <div className="flex justify-between items-center p-4">
+                    <h2 className="text-white text-lg font-semibold">Withdraw</h2>
+                    <button onClick={closeAllSidebars}>
+                        <X className="text-white w-5 h-5" />
+                    </button>
+                </div>
+                <form onSubmit={handleWithdrawRequest}>
+                    <div className="grid grid-cols-1 gap-3 p-4">
+                        {inputFields.map((field, index) => (
+                            <div key={index} className="mb-4">
+                                <label className="block text-sm mb-2">{field.label}</label>
+                                {field.type === "file" ? (
+                                    <input
+                                        type="file"
+                                        accept={field.validation.mimes.join(",")}
+                                        name={field.name}
+                                        required={field.required}
+                                        onChange={handleInputChange}
+                                        className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"
+                                    />
+                                ) : (
+                                    <input
+                                        type="text"
+                                        name={field.name}
+                                        value={formData[field.name] || ""}
+                                        required={field.required}
+                                        onChange={handleInputChange}
+                                        className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"
+                                    />
+                                )}
+                            </div>
+                        ))}
                         <div className="mt-2">
                             <button type="submit" className={`baseBtn flex justify-center w-full ${loading ? "cursor-not-allowed" : ""}`} disabled={loading}>
                                 {loading ? (

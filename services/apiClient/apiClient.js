@@ -165,7 +165,6 @@ export const automaticDepositAPI = (selectedCurrency, amount, baseCurrency) => {
     return apiClient.post("/user/add-money/automatic/submit", formData, {
         headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
         },
     });
 };
@@ -220,6 +219,55 @@ export const withdrawRequestAPI = (gatewayCurrencyId, amount) => {
     console.log([...formData.entries()]);
 
     return apiClient.post("/user/withdraw/make-request", formData, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+};
+
+// Get Withdraw Instructions API (get)
+export const getWithdrawInstructionsAPI = (withdrawToken) => {
+    const token = getToken();
+    if (token) {
+        return apiClient.get(`/user/withdraw/get-instructions/${withdrawToken}`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+    } else {
+        throw new Error('No token found. Please log in.');
+    }
+};
+
+// Submit Withdraw API (post)
+export const submitWithdrawAPI = (transaction, withdrawToken) => {
+    const token = getToken();
+    if (!token) {
+        throw new Error("No token found. Please log in.");
+    }
+
+    const formData = new FormData();
+    formData.append("transaction_id", transaction);
+
+    return apiClient.post(`/user/withdraw/submit/${withdrawToken}`, formData, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+};
+
+// Withdraw Charge API (post)
+export const withdrawChargeAPI = (gatewayCurrencyAlias, amount) => {
+    const token = getToken();
+    if (!token) {
+        throw new Error("No token found. Please log in.");
+    }
+
+    const formData = new FormData();
+    formData.append("gateway_currency_alias", gatewayCurrencyAlias);
+    formData.append("amount", parseFloat(amount));
+
+    return apiClient.post("/user/withdraw/get-charges", formData, {
         headers: {
             Authorization: `Bearer ${token}`,
         },
