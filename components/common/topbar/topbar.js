@@ -12,7 +12,7 @@ import { useAccount } from "@/context/accountProvider/accountProvider";
 import { getCountryOptions } from "@/utils/getCountryOptions/getCountryOptions";
 import { getCurrencyOptions } from "@/utils/getCurrencyOptions/getCurrencyOptions";
 import QRCode from "react-qr-code";
-import { getUserDataAPI, userDataUpdateAPI, updatePasswordAPI, twoFactorVerifyAPI, getKycAPI, kycUpdateAPI, getDepositAPI, automaticDepositAPI, manualDepositAPI, getWithdrawAPI, withdrawRequestAPI, switchAccountAPI, getExchangeAPI, submitExchangeAPI, exchangeChargeAPI } from "@/services/apiClient/apiClient";
+import { getUserDataAPI, userDataUpdateAPI, updatePasswordAPI, twoFactorVerifyAPI, getKycAPI, kycUpdateAPI, getDepositAPI, automaticDepositAPI, manualDepositAPI, getWithdrawAPI, withdrawRequestAPI, getWithdrawInstructionsAPI, submitWithdrawAPI, withdrawChargeAPI, switchAccountAPI, getExchangeAPI, submitExchangeAPI, exchangeChargeAPI } from "@/services/apiClient/apiClient";
 import styles from "./topbar.module.css";
 
 import crypto from '@/public/images/currency/crypto.svg';
@@ -37,6 +37,7 @@ export default function Topbar() {
     const [isDepositFieldsSidebarOpen, setDepositFieldsSidebarOpen] = useState(false);
     const [isWithdrawFieldsSidebarOpen, setWithdrawFieldsSidebarOpen] = useState(false);
     const [isWithdrawAdditionalFieldsSidebarOpen, setWithdrawAdditionalFieldsSidebarOpen] = useState(false);
+    const [transaction, setTransaction] = useState(false);
     const [isExchangeFieldsSidebarOpen, setExchangeFieldsSidebarOpen] = useState(false);
     const [paymentGateways, setPaymentGateways] = useState([]);
     const [selectedGateway, setSelectedGateway] = useState("");
@@ -592,7 +593,11 @@ export default function Topbar() {
             const response = await withdrawRequestAPI(selectedGateway.alias, amount);
     
             if (response.data.type === "success") {
+                const withdrawToken = response.data.data.token;
                 toast.success(response.data.message.success[0]);
+                const newUrl = new URL(window.location.href);
+                newUrl.searchParams.set("withdrawToken", withdrawToken);
+                window.history.pushState({}, "", newUrl);
                 setWithdrawAdditionalFieldsSidebarOpen(true);
             } else {
                 toast.error(response.data.message.error[0]);
@@ -603,6 +608,39 @@ export default function Topbar() {
             setLoading(false);
         }
     };
+
+    const handleWithdrawSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            const response = await submitWithdrawAPI(transaction);
+            if (response.data.type === "success") {
+                toast.success(response.data.message.success[0]);
+                setTransaction("");
+                onClose();
+            } else {
+                toast.error(response.data.message.error[0]);
+            }
+        } catch (error) {
+            toast.error("Server did not respond");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        const handleWithdrawCharge = async () => {
+            try {
+                const response = await withdrawChargeAPI(gatewayCurrencyAlias, amount);
+                setCharge(response.data);
+            } catch (error) {
+                // toast.error("Failed to load exchange charges");
+                setCharge(null);
+            }
+        };
+
+        handleWithdrawCharge();
+    }, []);
 
     useEffect(() => {
         const fetchExchangeData = async () => {
@@ -657,7 +695,6 @@ export default function Topbar() {
                 const response = await exchangeChargeAPI(exchangeData?.user_wallet.currency.id, exchangeId);
                 setCharge(response.data);
             } catch (error) {
-                toast.error("Failed to load exchange charges");
                 setCharge(null);
             } finally {
                 setLoadingCharge(false);
@@ -1499,13 +1536,13 @@ export default function Topbar() {
                 <form onSubmit={handleWithdrawRequest}>
                     <div className="p-4 text-white">
                         <p className="text-sm">
-                            <span className="font-semibold">Exchange Rate:</span> 1 USD = 85.00 GBP
+                            <span className="font-semibold">Exchange Rate:</span> 1 {baseCurrency} = {exchangeRate} {selectedCurrencyCode}
                         </p>
                         <p className="text-sm mt-2">
-                            <span className="font-semibold">Limits:</span> Min $10, Max $5,000
+                            <span className="font-semibold">Limits:</span> Min {minLimit} {selectedCurrencyCode}, Max {maxLimit} {selectedCurrencyCode}
                         </p>
                         <p className="text-sm mt-2">
-                            <span className="font-semibold">Charge:</span> $2.00
+                            <span className="font-semibold">Charge:</span> {fixedCharge} + {percentCharge}%
                         </p>
                     </div>
                     <div className="grid grid-cols-1 gap-3 p-4">
@@ -1558,7 +1595,7 @@ export default function Topbar() {
                         <X className="text-white w-5 h-5" />
                     </button>
                 </div>
-                <form onSubmit={handleWithdrawRequest}>
+                <form onSubmit={handleWithdrawSubmit}>
                     <div className="grid grid-cols-1 gap-3 p-4">
                         {inputFields.map((field, index) => (
                             <div key={index} className="mb-4">
@@ -1569,7 +1606,7 @@ export default function Topbar() {
                                         accept={field.validation.mimes.join(",")}
                                         name={field.name}
                                         required={field.required}
-                                        onChange={handleInputChange}
+                                        onChange={(e) => setFormData((prev) => ({ ...prev, [field.name]: e.target.files[0] }))}
                                         className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"
                                     />
                                 ) : (
@@ -1578,7 +1615,7 @@ export default function Topbar() {
                                         name={field.name}
                                         value={formData[field.name] || ""}
                                         required={field.required}
-                                        onChange={handleInputChange}
+                                        onChange={(e) => setFormData((prev) => ({ ...prev, [field.name]: e.target.value }))}
                                         className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"
                                     />
                                 )}
@@ -1590,7 +1627,7 @@ export default function Topbar() {
                                     <LoaderCircle className="inline-block w-5 h-6 animate-spin text-white" />
                                 ) : (
                                     <>
-                                        Withdraw 
+                                        Submit 
                                         <ArrowRightToLine />
                                     </>
                                 )}
@@ -1612,9 +1649,7 @@ export default function Topbar() {
                             <span className="font-semibold">Exchange Rate:</span> {exchangeData ? `1 USD = ${exchangeData.currencies.find(c => c.code === selectedCurrency)?.rate || 0} ${selectedCurrency}` : "Loading..."}
                         </p>
                         <p className="text-sm mt-2">
-                            <span className="font-semibold">Charge:</span> {loadingCharge ? "Calculating..." : charge ? 
-                        `${charge.fixed_charge} USD + ${charge.percent_charge}%` 
-                        : "N/A"}
+                            <span className="font-semibold">Charge:</span> {loadingCharge ? "Calculating..." : exchangeData?.charges ? `${exchangeData.charges.fixed_charge} ${exchangeData.user_wallet.currency.code} + ${exchangeData.charges.percent_charge}%`: "N/A"}
                         </p>
                     </div>
                     <div className="grid grid-cols-1 gap-3 p-4">
@@ -1643,6 +1678,7 @@ export default function Topbar() {
                                 }}
                                 required
                             >
+                                <option value="">Select Wallet</option>
                                 {exchangeData
                                 ? exchangeData.currencies.map((currency) => (
                                     <option key={currency.id} value={currency.code}>
