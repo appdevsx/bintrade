@@ -216,8 +216,6 @@ export const withdrawRequestAPI = (gatewayCurrencyId, amount) => {
     formData.append("amount", parseFloat(amount));
     formData.append("gateway_currency", gatewayCurrencyId);
 
-    console.log([...formData.entries()]);
-
     return apiClient.post("/user/withdraw/make-request", formData, {
         headers: {
             Authorization: `Bearer ${token}`,
@@ -248,6 +246,8 @@ export const submitWithdrawAPI = (transaction, withdrawToken) => {
 
     const formData = new FormData();
     formData.append("transaction_id", transaction);
+
+    console.log([...formData.entries()]);
 
     return apiClient.post(`/user/withdraw/submit/${withdrawToken}`, formData, {
         headers: {

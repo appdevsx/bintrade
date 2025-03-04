@@ -5,6 +5,7 @@ import "react-phone-input-2/lib/style.css";
 import PhoneInput from "react-phone-input-2";
 import Flag from "react-world-flags";
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { UserRound, ArrowUpLeft, Plus, ChevronDown, X, Settings, ArrowRightToLine, Pencil, Eye, EyeOff, Search, Clock12, Info, LoaderCircle } from 'lucide-react';
@@ -22,6 +23,8 @@ const currencyOptions = getCurrencyOptions();
 
 export default function Topbar() {
     const { accountBalance } = useAccount();
+    const searchParams = useSearchParams();
+    const withdrawToken = searchParams.get("withdrawToken");
     const { symbol, setSymbol, interval, setInterval } = useAccount();
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const [selectedAccount, setSelectedAccount] = useState("LIVE");
@@ -44,6 +47,7 @@ export default function Topbar() {
     const [selectedCurrency, setSelectedCurrency] = useState("");
     const [amount, setAmount] = useState("");
     const [selectedCurrencyDetails, setSelectedCurrencyDetails] = useState(null);
+    const [instructions, setInstructions] = useState("");
     const [gateways, setGateways] = useState([]);
     const [exchangeRate, setExchangeRate] = useState(0);
     const [exchangeData, setExchangeData] = useState(null);
@@ -609,11 +613,31 @@ export default function Topbar() {
         }
     };
 
+    useEffect(() => {
+        if (isWithdrawAdditionalFieldsSidebarOpen && withdrawToken) {
+            fetchWithdrawInstructions();
+        }
+    }, [isWithdrawAdditionalFieldsSidebarOpen, withdrawToken]);
+
+    const fetchWithdrawInstructions = async () => {
+        try {
+            const response = await getWithdrawInstructionsAPI(withdrawToken);
+            if (response.data.type === "success") {
+                setInstructions(response.data.data.instructions);
+                setInputFields(response.data.data.input_fields);
+            } else {
+                toast.error("Error fetching instructions:", response.data.message);
+            }
+        } catch (error) {
+            toast.error("Server did not respond");
+        }
+    };
+
     const handleWithdrawSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         try {
-            const response = await submitWithdrawAPI(transaction);
+            const response = await submitWithdrawAPI(transaction, withdrawToken);
             if (response.data.type === "success") {
                 toast.success(response.data.message.success[0]);
                 setTransaction("");
@@ -634,7 +658,6 @@ export default function Topbar() {
                 const response = await withdrawChargeAPI(gatewayCurrencyAlias, amount);
                 setCharge(response.data);
             } catch (error) {
-                // toast.error("Failed to load exchange charges");
                 setCharge(null);
             }
         };
@@ -1598,7 +1621,7 @@ export default function Topbar() {
                 <form onSubmit={handleWithdrawSubmit}>
                     <div className="grid grid-cols-1 gap-3 p-4">
                         {inputFields.map((field, index) => (
-                            <div key={index} className="mb-4">
+                            <div key={index} className="mb-2">
                                 <label className="block text-sm mb-2">{field.label}</label>
                                 {field.type === "file" ? (
                                     <input
@@ -1606,17 +1629,17 @@ export default function Topbar() {
                                         accept={field.validation.mimes.join(",")}
                                         name={field.name}
                                         required={field.required}
-                                        onChange={(e) => setFormData((prev) => ({ ...prev, [field.name]: e.target.files[0] }))}
-                                        className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"
+                                        className="w-full h-11 leading-[36px] text-sm font-medium rounded-md shadow-sm border border-slate-800 text-slate-300 gradient--bg"
                                     />
                                 ) : (
                                     <input
                                         type="text"
                                         name={field.name}
-                                        value={formData[field.name] || ""}
+                                        placeholder="Enter ID here..."
                                         required={field.required}
-                                        onChange={(e) => setFormData((prev) => ({ ...prev, [field.name]: e.target.value }))}
-                                        className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"
+                                        maxLength={field.validation.max}
+                                        minLength={field.validation.min}
+                                        className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
                                     />
                                 )}
                             </div>
