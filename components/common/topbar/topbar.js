@@ -743,30 +743,6 @@ export default function Topbar() {
         fetchCharge();
     }, [selectedCurrency, exchangeId, exchangeData]);
 
-    useEffect(() => {
-        const fetchWalletInfo = async () => {
-            try {
-                setLoading(true);
-                const response = await getInfoAPI();
-                if (response.data.type === "success" && response.data.data.user_wallet) {
-                    const wallet = response.data.data.user_wallet;
-                    setUserAccountBalance(parseFloat(wallet.balance).toFixed(2));
-                    setCurrencySymbol(wallet.currency.symbol);
-                    setAccountType(wallet.type.toLowerCase());
-                    setCurrencyCode(response.data.data.user_wallet.currency.code);
-                } else {
-                    toast.error(response.data.message.error[0]);
-                }
-            } catch (error) {
-                toast.error("Server did not respond");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchWalletInfo();
-    }, []);
-
     return (
         <>
             <Toaster reverseOrder={false} theme="dark" />
