@@ -13,7 +13,7 @@ import { useAccount } from "@/context/accountProvider/accountProvider";
 import { getCountryOptions } from "@/utils/getCountryOptions/getCountryOptions";
 import { getCurrencyOptions } from "@/utils/getCurrencyOptions/getCurrencyOptions";
 import QRCode from "react-qr-code";
-import { getUserDataAPI, userDataUpdateAPI, updatePasswordAPI, twoFactorVerifyAPI, getKycAPI, kycUpdateAPI, getDepositAPI, automaticDepositAPI, manualDepositAPI, getWithdrawAPI, withdrawRequestAPI, getWithdrawInstructionsAPI, submitWithdrawAPI, withdrawChargeAPI, switchAccountAPI, getExchangeAPI, submitExchangeAPI, exchangeChargeAPI } from "@/services/apiClient/apiClient";
+import { getUserDataAPI, userDataUpdateAPI, updatePasswordAPI, twoFactorVerifyAPI, getKycAPI, kycUpdateAPI, getDepositAPI, automaticDepositAPI, manualDepositAPI, getWithdrawAPI, withdrawRequestAPI, getWithdrawInstructionsAPI, submitWithdrawAPI, withdrawChargeAPI, switchAccountAPI, getExchangeAPI, submitExchangeAPI, exchangeChargeAPI, getInfoAPI } from "@/services/apiClient/apiClient";
 import styles from "./topbar.module.css";
 
 import crypto from '@/public/images/currency/crypto.svg';
@@ -23,10 +23,14 @@ const currencyOptions = getCurrencyOptions();
 
 export default function Topbar() {
     const { accountBalance } = useAccount();
+    const [userAccountBalance, setUserAccountBalance] = useState(null);
     const searchParams = useSearchParams();
     const withdrawToken = searchParams.get("withdrawToken");
+    const [currencySymbol, setCurrencySymbol] = useState("");
+    const [currencyCode, setCurrencyCode] = useState(null);
     const { symbol, setSymbol, interval, setInterval } = useAccount();
     const [isSidebarOpen, setSidebarOpen] = useState(false);
+    const [accountType, setAccountType] = useState(null);
     const [selectedAccount, setSelectedAccount] = useState("LIVE");
     const [isProfileSidebarOpen, setProfileSidebarOpen] = useState(false);
     const [isPaymentSidebarOpen, setPaymentSidebarOpen] = useState(false);
@@ -43,7 +47,7 @@ export default function Topbar() {
     const [transaction, setTransaction] = useState(false);
     const [isExchangeFieldsSidebarOpen, setExchangeFieldsSidebarOpen] = useState(false);
     const [paymentGateways, setPaymentGateways] = useState([]);
-    const [selectedGateway, setSelectedGateway] = useState("");
+    const [selectedGateway, setSelectedGateway] = useState(null);
     const [selectedCurrency, setSelectedCurrency] = useState("");
     const [amount, setAmount] = useState("");
     const [selectedCurrencyDetails, setSelectedCurrencyDetails] = useState(null);
@@ -55,9 +59,10 @@ export default function Topbar() {
     const [maxLimit, setMaxLimit] = useState(0);
     const [percentCharge, setPercentCharge] = useState(0);
     const [fixedCharge, setFixedCharge] = useState(0);
-    const [baseCurrency, setBaseCurrency] = useState("USD");
+    const [baseCurrency, setBaseCurrency] = useState("");
     const [selectedCurrencyCode, setSelectedCurrencyCode] = useState("");
     const [gatewayType, setGatewayType] = useState("");
+    const [selectedGatewayType, setSelectedGatewayType] = useState(null);
     const [fullName, setFullName] = useState("");
     const [transactionId, setTransactionId] = useState("");
     const [screenshot, setScreenshot] = useState(null);
@@ -479,6 +484,10 @@ export default function Topbar() {
             try {
                 const response = await getDepositAPI();
                 setPaymentGateways(response.data.data.payment_gateways || []);
+
+                if (response.data.data.payment_gateways && response.data.data.payment_gateways.length > 0) {
+                    setSelectedGatewayType(response.data.data.payment_gateways[0].type);
+                }
             } catch (error) {
                 toast.error("Error fetching payment gateways:", error);
             }
@@ -500,7 +509,7 @@ export default function Topbar() {
     const handleCurrency = (e) => {
         const selectedAlias = e.target.value;
         setSelectedCurrency(selectedAlias);
-
+    
         if (!selectedAlias) {
             setExchangeRate(0);
             setMinLimit(0);
@@ -510,18 +519,21 @@ export default function Topbar() {
             setSelectedCurrencyCode("");
             return;
         }
-
+    
         let selectedCurrencyData = null;
+        let selectedGatewayType = "";
+    
         for (const gateway of paymentGateways) {
             const foundCurrency = gateway.currencies.find(
                 (currency) => currency.alias === selectedAlias
             );
             if (foundCurrency) {
                 selectedCurrencyData = foundCurrency;
+                selectedGatewayType = gateway.type;
                 break;
             }
         }
-
+    
         if (selectedCurrencyData) {
             setExchangeRate(parseFloat(selectedCurrencyData.rate));
             setMinLimit(parseFloat(selectedCurrencyData.min_limit));
@@ -529,29 +541,32 @@ export default function Topbar() {
             setPercentCharge(parseFloat(selectedCurrencyData.percent_charge));
             setFixedCharge(parseFloat(selectedCurrencyData.fixed_charge));
             setSelectedCurrencyCode(selectedCurrencyData.currency_code);
+            setSelectedGatewayType(selectedGatewayType);
         }
     };
+    
 
     const handleDepositSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
 
-        try {
-            const response = await automaticDepositAPI(selectedCurrency, amount, baseCurrency);
+        console.log("Selected Gateway Type:", selectedGatewayType);
 
-            const depositType = response.data.type;
-            if (depositType === "AUTOMATIC") {
+        try {
+            if (selectedGatewayType === "AUTOMATIC") {
+                const response = await automaticDepositAPI(selectedCurrency, amount, currencyCode);
                 if (response.data.message?.error) {
                     toast.error(response.data.message.error[0]);
                 } else {
                     toast.success(response.data.message.success);
                 }
-            } else if (depositType === "MANUAL") {  
-                const manualResponse = await manualDepositAPI(selectedCurrency, amount, baseCurrency, fullName, transactionId, screenshot);
+            } else if (selectedGatewayType === "MANUAL") {  
+                const manualResponse = await manualDepositAPI(selectedCurrency, amount, currencyCode, fullName, transactionId, screenshot);
+                console.log(manualResponse);
                 if (manualResponse.data.type === "success") {
-                    toast.success(response.data.message.success);
+                    toast.success(manualResponse.data.message.success);
                 } else {
-                    toast.error(response.data.message.error[0]);
+                    toast.error(manualResponse.data.message.error[0]);
                 }
             } else {
                 toast.error("Unknown deposit type.");
@@ -587,6 +602,7 @@ export default function Topbar() {
             setMaxLimit(parseFloat(selected.max_limit));
             setCharge(parseFloat(selected.fixed_charge));
             setExchangeRate(parseFloat(selected.rate));
+            setSelectedCurrencyCode(selected.currency_code);
         }
     };
 
@@ -727,6 +743,30 @@ export default function Topbar() {
         fetchCharge();
     }, [selectedCurrency, exchangeId, exchangeData]);
 
+    useEffect(() => {
+        const fetchWalletInfo = async () => {
+            try {
+                setLoading(true);
+                const response = await getInfoAPI();
+                if (response.data.type === "success" && response.data.data.user_wallet) {
+                    const wallet = response.data.data.user_wallet;
+                    setUserAccountBalance(parseFloat(wallet.balance).toFixed(2));
+                    setCurrencySymbol(wallet.currency.symbol);
+                    setAccountType(wallet.type.toLowerCase());
+                    setCurrencyCode(response.data.data.user_wallet.currency.code);
+                } else {
+                    toast.error(response.data.message.error[0]);
+                }
+            } catch (error) {
+                toast.error("Server did not respond");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchWalletInfo();
+    }, []);
+
     return (
         <>
             <Toaster reverseOrder={false} theme="dark" />
@@ -861,11 +901,20 @@ export default function Topbar() {
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="relative top-1 mr-6 cursor-pointer" onClick={toggleSidebar}>
-                        <div className="text-white font-semibold text-[18px] leading-[20px]">Đ{accountBalance.toFixed(2)}</div>
-                        <div className="text-[12px] text-emerald-400">{selectedAccount === 'live' ? 'Live Account' : 'Demo Account'}</div>
-                        <div className="absolute bottom-[4px] right-[-20px]">
-                            <ChevronDown className="w-4" />
-                        </div>
+                        {loading ? (
+                            <div className="animate-pulse">
+                                <div className="h-6 w-20 bg-gray-700 rounded-md"></div>
+                                <div className="h-4 w-24 bg-gray-800 mt-1 rounded-md"></div>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="text-white font-semibold text-[18px] leading-[20px]">{currencySymbol} {userAccountBalance}</div>
+                                <div className="text-[12px] text-emerald-400">{accountType} Account</div>
+                                <div className="absolute bottom-[4px] right-[-20px]">
+                                    <ChevronDown className="w-4" />
+                                </div>
+                            </>
+                        )}
                     </div>
                     <div onClick={togglePaymentSidebar}>
                         <button className="baseBtn !py-2 !px-4">Payments</button>
@@ -1490,7 +1539,7 @@ export default function Topbar() {
                 <form onSubmit={handleDepositSubmit}>
                     <div className="p-4 text-white">
                         <p className="text-sm">
-                            <span className="font-semibold">Exchange Rate:</span> 1 {baseCurrency} = {exchangeRate} {selectedCurrencyCode}
+                            <span className="font-semibold">Exchange Rate:</span> 1 {currencyCode} = {exchangeRate} {selectedCurrencyCode}
                         </p>
                         <p className="text-sm mt-2">
                             <span className="font-semibold">Limits:</span> Min {minLimit} {selectedCurrencyCode}, Max {maxLimit} {selectedCurrencyCode}
@@ -1504,15 +1553,14 @@ export default function Topbar() {
                             <label className="text-sm mb-2 block">Payment Gateway</label>
                             <select
                                 className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 bg-[#0d1f30]"
-                                value={selectedCurrency}
                                 onChange={handleCurrency}
                                 required
                             >
-                                <option value="">Select Payment Gateway</option>
-                                {paymentGateways.map((gateway) =>
+                                <option value="">Select Currency</option>
+                                {paymentGateways.flatMap((gateway) =>
                                     gateway.currencies.map((currency) => (
-                                        <option key={currency.id} value={currency.alias}>
-                                            {currency.name} ({gateway.type})
+                                        <option key={currency.alias} value={currency.alias}>
+                                            {gateway.name} ({gateway.type})
                                         </option>
                                     ))
                                 )}
@@ -1530,10 +1578,44 @@ export default function Topbar() {
                                     required
                                 />
                                 <span className="absolute inset-y-0 right-3 flex items-center text-sm text-gray-400">
-                                    USD
+                                    {currencyCode}
                                 </span>
                             </div>
                         </div>
+                        {selectedGatewayType === "MANUAL" && (
+                            <>
+                                <div className="relative text-white">
+                                    <label className="text-sm mb-2 block">Full Name</label>
+                                    <input
+                                        type="text"
+                                        className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                        placeholder="Enter Full Name"
+                                        value={fullName}
+                                        onChange={(e) => setFullName(e.target.value)}
+                                    />
+                                </div>
+                                <div className="relative text-white">
+                                    <label className="text-sm mb-2 block">Transaction ID</label>
+                                    <input
+                                        type="text"
+                                        className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                        placeholder="Enter Transaction ID"
+                                        value={transactionId}
+                                        onChange={(e) => setTransactionId(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                <div className="relative text-white">
+                                    <label className="text-sm mb-2 block">Screenshot</label>
+                                    <input
+                                        type="file"
+                                        className="w-full h-11 leading-[36px] text-sm font-medium rounded-md shadow-sm border border-slate-800 text-slate-300 gradient--bg"
+                                        accept="image/*"
+                                        onChange={(e) => setScreenshot(e.target.files[0])}
+                                    />
+                                </div>
+                            </>
+                        )}
                         <div className="mt-2">
                             <button type="submit" className={`baseBtn flex justify-center w-full ${loading ? "cursor-not-allowed" : ""}`} disabled={loading}>
                                 {loading ? (
@@ -1559,7 +1641,7 @@ export default function Topbar() {
                 <form onSubmit={handleWithdrawRequest}>
                     <div className="p-4 text-white">
                         <p className="text-sm">
-                            <span className="font-semibold">Exchange Rate:</span> 1 {baseCurrency} = {exchangeRate} {selectedCurrencyCode}
+                            <span className="font-semibold">Exchange Rate:</span> 1 {currencyCode} = {exchangeRate} {selectedCurrencyCode}
                         </p>
                         <p className="text-sm mt-2">
                             <span className="font-semibold">Limits:</span> Min {minLimit} {selectedCurrencyCode}, Max {maxLimit} {selectedCurrencyCode}
@@ -1587,14 +1669,19 @@ export default function Topbar() {
                         </div>
                         <div className="relative text-white">
                             <label className="text-sm mb-2 block">Amount</label>
-                            <input
-                                type="number"
-                                value={amount}
-                                placeholder="Enter amount"
-                                onChange={(e) => setAmount(e.target.value)}
-                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
-                                required
-                            />
+                            <div className="relative">
+                                <input
+                                    type="number"
+                                    value={amount}
+                                    placeholder="Enter amount"
+                                    onChange={(e) => setAmount(e.target.value)}
+                                    className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
+                                    required
+                                />
+                                <span className="absolute inset-y-0 right-3 flex items-center text-sm text-gray-400">
+                                    {currencyCode}
+                                </span>
+                            </div>
                         </div>
                         <div className="mt-2">
                             <button type="submit" className={`baseBtn flex justify-center w-full ${loading ? "cursor-not-allowed" : ""}`} disabled={loading}>

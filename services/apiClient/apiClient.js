@@ -151,7 +151,7 @@ export const getDepositAPI = () => {
 };
 
 // Submit Automatic Deposit Fields API (post)
-export const automaticDepositAPI = (selectedCurrency, amount, baseCurrency) => {
+export const automaticDepositAPI = (selectedCurrency, amount, currencyCode) => {
     const token = getToken();
     if (!token) {
         throw new Error("No token found. Please log in.");
@@ -160,7 +160,7 @@ export const automaticDepositAPI = (selectedCurrency, amount, baseCurrency) => {
     const formData = new FormData();
     formData.append("currency", selectedCurrency);
     formData.append("amount", parseFloat(amount));
-    formData.append("wallet_currency", baseCurrency);
+    formData.append("wallet_currency", currencyCode);
 
     return apiClient.post("/user/add-money/automatic/submit", formData, {
         headers: {
@@ -170,7 +170,7 @@ export const automaticDepositAPI = (selectedCurrency, amount, baseCurrency) => {
 };
 
 // Submit Manual Deposit Fields API (post)
-export const manualDepositAPI = (selectedCurrency, amount, baseCurrency, fullName, transactionId, screenshot) => {
+export const manualDepositAPI = (selectedCurrency, amount, currencyCode, fullName, transactionId, screenshot) => {
     const token = getToken();
     if (!token) {
         throw new Error("No token found. Please log in.");
@@ -179,10 +179,12 @@ export const manualDepositAPI = (selectedCurrency, amount, baseCurrency, fullNam
     const formData = new FormData();
     formData.append("currency", selectedCurrency);
     formData.append("amount", parseFloat(amount));
-    formData.append("wallet_currency", baseCurrency);
+    formData.append("wallet_currency", currencyCode);
     formData.append("full_name", fullName);
     formData.append("transaction_id", transactionId);
     formData.append("screenshoot", screenshot);
+
+    console.log([...formData.entries()]);
 
     return apiClient.post("/user/add-money/manual/submit", formData, {
         headers: {
@@ -246,8 +248,6 @@ export const submitWithdrawAPI = (transaction, withdrawToken) => {
 
     const formData = new FormData();
     formData.append("transaction_id", transaction);
-
-    console.log([...formData.entries()]);
 
     return apiClient.post(`/user/withdraw/submit/${withdrawToken}`, formData, {
         headers: {
@@ -321,6 +321,20 @@ export const exchangeChargeAPI = (walletId, exchangeId) => {
             Authorization: `Bearer ${token}`,
         },
     });
+};
+
+// Get Info API (get)
+export const getInfoAPI = () => {
+    const token = getToken();
+    if (token) {
+        return apiClient.get('/user/analytics/get-info', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+    } else {
+        throw new Error('No token found. Please log in.');
+    }
 };
 
 // Ticket API (get)
