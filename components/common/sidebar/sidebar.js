@@ -7,7 +7,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Gauge, StepForward, Minimize2, RedoDot, MessageCircleQuestion, X, MessageSquare, PlusCircle, Paperclip, Send, ArrowRightToLine, TrendingUp, DollarSign, PieChart, Repeat, Maximize2, CheckCircle, LogOut, LoaderCircle } from 'lucide-react';
 import styles from "./sidebar.module.css";
-import { logoutAPI } from "@/services/apiClient/apiClient";
+import { logoutAPI, getInfoAPI } from "@/services/apiClient/apiClient";
 
 import logo from '@/public/images/logo/favicon.png';
 import user from '@/public/images/user/user-1.webp';
@@ -58,7 +58,9 @@ export default function Sidebar() {
     const [openSubmenus, setOpenSubmenus] = useState(defaultOpenSubmenus);
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const [isAnalyticsSidebarOpen, setIsAnalyticsSidebarOpen] = useState(false);
+    const [analyticsData, setAnalyticsData] = useState([]);
     const [isLogsSidebarOpen, setLogsSidebarOpen] = useState(false);
+    const [transactions, setTransactions] = useState([]);
     const [isHelpSidebarOpen, setHelpSidebarOpen] = useState(false);
     const [isTicketsSidebarOpen, setTicketsSidebarOpen] = useState(false);
     const [isCreateTicketsSidebarOpen, setCreateTicketsSidebarOpen] = useState(false);
@@ -248,17 +250,6 @@ export default function Sidebar() {
         setTimeout(() => setModalOpen(false), 300);
     };
 
-    const analyticsData = [
-        { title: "Trades Count", value: "152", icon: <TrendingUp className="text-blue-400 w-6 h-6" /> },
-        { title: "Trades Profit", value: "$2,350", icon: <DollarSign className="text-green-400 w-6 h-6" /> },
-        { title: "Profitable Trades", value: "67%", icon: <PieChart className="text-yellow-400 w-6 h-6" /> },
-        { title: "Average Profit", value: "$35.12", icon: <DollarSign className="text-green-400 w-6 h-6" /> },
-        { title: "Win/Loss Ratio", value: "3:1", icon: <Repeat className="text-indigo-400 w-6 h-6" /> },
-        { title: "Min Trade Amount", value: "$10", icon: <Minimize2 className="text-purple-400 w-6 h-6" /> },
-        { title: "Max Trade Amount", value: "$500", icon: <Maximize2 className="text-red-400 w-6 h-6" /> },
-        { title: "Max Trade Profit", value: "$150", icon: <CheckCircle className="text-green-400 w-6 h-6" /> },
-    ];
-
     const transactionLogs = [
         { type: "Deposit", amount: "$100" },
         { type: "Withdraw", amount: "$50" },
@@ -269,6 +260,54 @@ export default function Sidebar() {
         { ticketId: "12345", subject: "Issue with payment", status: "Open" },
         { ticketId: "67890", subject: "Account not accessible", status: "Closed" },
     ];
+
+    useEffect(() => {
+        const fetchAnalytics = async () => {
+            try {
+                const response = await getInfoAPI();
+                const statistics = response.data?.data?.statistics || {};
+
+                const mappedData = [
+                    { title: "Trades Count", value: statistics.total_trade, icon: <TrendingUp className="text-blue-400 w-6 h-6" /> },
+                    { title: "Trades Profit", value: `$${statistics.total_profit}`, icon: <DollarSign className="text-green-400 w-6 h-6" /> },
+                    { title: "Profitable Trades", value: `${statistics.total_profit_count}%`, icon: <PieChart className="text-yellow-400 w-6 h-6" /> },
+                    { title: "Average Profit", value: `$${statistics.avg_profit}`, icon: <DollarSign className="text-green-400 w-6 h-6" /> },
+                    { title: "Win/Loss Ratio", value: `${statistics.total_profit_count}:${statistics.total_lose_count}`, icon: <Repeat className="text-indigo-400 w-6 h-6" /> },
+                    { title: "Min Trade Amount", value: `$${statistics.min_trade_amount}`, icon: <Minimize2 className="text-purple-400 w-6 h-6" /> },
+                    { title: "Max Trade Amount", value: `$${statistics.max_trade_amount}`, icon: <Maximize2 className="text-red-400 w-6 h-6" /> },
+                    { title: "Max Trade Profit", value: `$${statistics.max_trade_profit}`, icon: <CheckCircle className="text-green-400 w-6 h-6" /> },
+                ];
+
+                setAnalyticsData(mappedData);
+            } catch (error) {
+                toast.error("Server did not respond");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchAnalytics();
+    }, []);
+
+    useEffect(() => {
+        const fetchTransactions = async () => {
+            try {
+                setLoading(true);
+                const response = await getInfoAPI();
+                if (response.data.type === "success" && response.data.data.transactions) {
+                    setTransactions(response.data.data.transactions);
+                } else {
+                    toast.error(response.data.message.error[0]);
+                }
+            } catch (error) {
+                toast.error("Server did not respond");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchTransactions();
+    }, []);
 
     return (
         <>
@@ -371,18 +410,30 @@ export default function Sidebar() {
                     </button>
                 </div>
                 <div className="p-4 space-y-4">
-                    {analyticsData.map((data, index) => (
-                        <div
-                            key={index}
-                            className="bg-[#0d1f30] rounded-lg p-4 shadow-md flex items-center space-x-4"
-                        >
-                            <div>{data.icon}</div>
-                            <div>
-                                <h3 className="text-white font-medium text-lg">{data.title}</h3>
-                                <p className="text-xl font-bold text-green-400">{data.value}</p>
+                    {loading ? (
+                        [...Array(8)].map((_, index) => (
+                            <div key={index} className="bg-[#0d1f30] rounded-lg p-4 shadow-md flex items-center space-x-4 animate-pulse">
+                                <div className="w-6 h-6 bg-gray-700 rounded"></div>
+                                <div className="flex-1">
+                                    <div className="h-4 bg-gray-700 rounded w-32 mb-2"></div>
+                                    <div className="h-6 bg-gray-700 rounded w-20"></div>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        ))
+                    ) : (
+                        analyticsData.map((data, index) => (
+                            <div
+                                key={index}
+                                className="bg-[#0d1f30] rounded-lg p-4 shadow-md flex items-center space-x-4"
+                            >
+                                <div>{data.icon}</div>
+                                <div>
+                                    <h3 className="text-white font-medium text-lg">{data.title}</h3>
+                                    <p className="text-xl font-bold text-green-400">{data.value}</p>
+                                </div>
+                            </div>
+                        ))
+                    )}
                 </div>
             </div>
             <div className={`fixed bottom-0 left-0 h-full bg-[#051524] border-r-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[5] shadow-lg p-4 transform ${isLogsSidebarOpen ? "translate-x-0" : "translate-x-[-100%]"} transition-transform duration-300 ease-in-out`}>
@@ -393,13 +444,35 @@ export default function Sidebar() {
                     </button>
                 </div>
                 <div className="p-4">
-                    <ul className="space-y-4">
-                        {transactionLogs.map((log, index) => (
-                            <li key={index} className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md">
-                                {log.type} - {log.amount || log.details}
-                            </li>
-                        ))}
-                    </ul>
+                    {loading ? (
+                        <ul className="space-y-4">
+                            {[...Array(5)].map((_, index) => (
+                                <li key={index} className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md animate-pulse">
+                                    <span className="block h-4 w-1/4 bg-gray-700 rounded"></span>
+                                    <span className="block h-4 w-1/3 bg-gray-700 rounded mt-2"></span>
+                                    <span className="block h-4 w-1/2 bg-gray-700 rounded mt-2"></span>
+                                    <span className="block h-4 w-1/4 bg-gray-700 rounded mt-2"></span>
+                                    <span className="block h-4 w-1/3 bg-gray-700 rounded mt-2"></span>
+                                    <span className="block h-4 w-1/2 bg-gray-700 rounded mt-2"></span>
+                                    <span className="block h-4 w-1/4 bg-gray-700 rounded mt-2"></span>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <ul className="space-y-4">
+                            {transactions.map((trx, index) => (
+                                <li key={index} className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md">
+                                    <span className="block">ID - {trx.id}</span>
+                                    <span className="block">Transaction ID - {trx.trx_id}</span>
+                                    <span className="block">Type - {trx.type}</span>
+                                    <span className="block">Amount - {trx.request_amount}</span>
+                                    <span className="block">Currency - {trx.request_currency}</span>
+                                    <span className="block">Status - <span className="inline-flex items-center rounded-md bg-[#11273c] px-2 py-1 text-xs font-medium text--base ring-1 ring-blue-700/10 ring-inset">{trx.string_status.value}</span></span>
+                                    <span className="block">Date - {new Date(trx.created_at).toLocaleString()}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
             </div>
             <div className={`fixed bottom-0 left-0 h-full bg-[#051524] border-r-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[5] shadow-lg p-4 transform ${isHelpSidebarOpen ? "translate-x-0" : "translate-x-[-100%]"} transition-transform duration-300 ease-in-out`}>
