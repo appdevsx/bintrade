@@ -1,11 +1,11 @@
 "use client";
+import { useSearchParams } from "next/navigation";
 import { Toaster, toast } from "react-hot-toast";
 import Select from "react-select";
 import "react-phone-input-2/lib/style.css";
 import PhoneInput from "react-phone-input-2";
 import Flag from "react-world-flags";
-import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { UserRound, ArrowUpLeft, Plus, ChevronDown, X, Settings, ArrowRightToLine, Pencil, Eye, EyeOff, Search, Clock12, Info, LoaderCircle } from 'lucide-react';
@@ -21,7 +21,7 @@ import crypto from '@/public/images/currency/crypto.svg';
 const countryOptions = getCountryOptions();
 const currencyOptions = getCurrencyOptions();
 
-export default function Topbar() {
+function TopbarContent() {
     const { accountBalance } = useAccount();
     const [userAccountBalance, setUserAccountBalance] = useState(null);
     const searchParams = useSearchParams();
@@ -160,7 +160,7 @@ export default function Topbar() {
             toast.error("Server did not respond");
         }
     
-        toggleSidebar(); // Close sidebar
+        toggleSidebar();
     };
 
     const handleProfileInformationClick = () => {
@@ -742,6 +742,30 @@ export default function Topbar() {
 
         fetchCharge();
     }, [selectedCurrency, exchangeId, exchangeData]);
+
+    useEffect(() => {
+        const fetchWalletInfo = async () => {
+            try {
+                setLoading(true);
+                const response = await getInfoAPI();
+                if (response.data.type === "success" && response.data.data.user_wallet) {
+                    const wallet = response.data.data.user_wallet;
+                    setUserAccountBalance(parseFloat(wallet.balance).toFixed(2));
+                    setCurrencySymbol(wallet.currency.symbol);
+                    setAccountType(wallet.type.toLowerCase());
+                    setCurrencyCode(response.data.data.user_wallet.currency.code);
+                } else {
+                    toast.error(response.data.message.error[0]);
+                }
+            } catch (error) {
+                toast.error("Server did not respond");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchWalletInfo();
+    }, []);
 
     return (
         <>
@@ -1791,4 +1815,12 @@ export default function Topbar() {
             </div>
         </>
     )
+};
+
+export default function Topbar() {
+    return (
+        <Suspense>
+            <TopbarContent />
+        </Suspense>
+    );
 }
