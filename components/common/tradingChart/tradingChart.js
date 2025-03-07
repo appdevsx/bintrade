@@ -4,13 +4,14 @@ import { createChart } from 'lightweight-charts';
 import Asidebar from "@/components/common/asidebar/asidebar";
 import { Toaster, toast } from "react-hot-toast";
 import { useAccount } from "@/context/accountProvider/accountProvider";
+import { demoTradingInfoAPI, liveTradingInfoAPI } from "@/services/apiClient/apiClient";
 
 const RealtimeChart = () => {
     const chartContainerRef = useRef(null);
     const chartRef = useRef(null);
     const seriesRef = useRef(null);
     const wsRef = useRef(null);
-    const { symbol, interval } = useAccount();
+    const { symbol, interval, selectedAccount, accountType, } = useAccount();
 
     const [isProcessing, setIsProcessing] = useState(false);
     const [resultMarker, setResultMarker] = useState(null);
@@ -55,6 +56,31 @@ const RealtimeChart = () => {
             window.removeEventListener('resize', updateChartHeight);
         };
     }, []);
+
+    const fetchTradingInfo = async () => {
+        // const switcherValue = accountType === "Demo Account" ? "DEMO" : "LIVE";
+        try {
+            // const response = switcherValue 
+            //     ? await demoTradingInfoAPI(1, 10) 
+            //     : await liveTradingInfoAPI(10);
+
+            const response = await liveTradingInfoAPI(limit);
+
+            console.log(response);
+    
+            if (response?.data) {
+                setTradingData(response.data);
+            } else {
+                toast.error(response.data.message.error[0]);
+            }
+        } catch (error) {
+            toast.error("Server did not respond");
+        }
+    };
+
+    useEffect(() => {
+        fetchTradingInfo(selectedAccount);
+    }, [selectedAccount]);
 
     useEffect(() => {
         if (!symbol || !interval || !limit) return;

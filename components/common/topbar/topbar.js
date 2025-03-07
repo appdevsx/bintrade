@@ -146,12 +146,14 @@ function TopbarContent() {
     };
 
     const selectAccount = async (accountType) => {
+        const switcherValue = accountType === "Demo Account" ? "DEMO" : "LIVE";
         try {
-            const switcherValue = accountType.toUpperCase();
             const response = await switchAccountAPI(switcherValue);
+
+            console.log(response);
     
             if (response.data?.type === 'success') {
-                setSelectedAccount(switcherValue);
+                setSelectedAccount(accountType);
                 toast.success(response.data.message.success[0]);
             } else {
                 toast.error(response.data.message.error[0]);
@@ -943,7 +945,7 @@ function TopbarContent() {
                         }`}
                         onClick={() => selectAccount("Demo Account")}
                     >
-                        <div className="text-white font-semibold text-[18px] leading-[20px]">Đ{accountBalance.toFixed(2)}</div>
+                        <div className="text-white font-semibold text-[18px] leading-[20px]">{currencySymbol} {userAccountBalance}</div>
                         <div className="text-[12px] text-emerald-400">Demo Account</div>
                     </button>
                     <button
@@ -954,7 +956,7 @@ function TopbarContent() {
                         }`}
                         onClick={() => selectAccount("Live Account")}
                     >
-                        <div className="text-white font-semibold text-[18px] leading-[20px]">Đ{accountBalance.toFixed(2)}</div>
+                        <div className="text-white font-semibold text-[18px] leading-[20px]">{currencySymbol} {userAccountBalance}</div>
                         <div className="text-[12px] text-emerald-400">Live Account</div>
                     </button>
                 </div>

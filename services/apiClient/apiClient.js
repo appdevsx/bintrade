@@ -70,7 +70,19 @@ export const logoutAPI = () => {
 
 // Switch Account API (post)
 export const switchAccountAPI = (switcher) => {
-    return apiClient.post('/user/switch/account', { switcher });
+    const token = getToken();
+    if (!token) {
+        throw new Error("No token found. Please log in.");
+    }
+
+    const formData = new FormData();
+    formData.append("switcher", switcher);
+
+    return apiClient.post("/user/switch/account", formData, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
 };
 
 // Get User Data API (get)
@@ -335,6 +347,75 @@ export const getInfoAPI = () => {
     } else {
         throw new Error('No token found. Please log in.');
     }
+};
+
+// Demo Trading Info API (get)
+export const demoTradingInfoAPI = (page = 1, limit) => {
+    const token = getToken();
+    if (token) {
+        return apiClient.get(`/user/demo/trade/get-info?limit=${limit}&page=${page}`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+    } else {
+        throw new Error('No token found. Please log in.');
+    }
+};
+
+// Live Trading Info API (get)
+export const liveTradingInfoAPI = (limit) => {
+    const token = getToken();
+    if (token) {
+        return apiClient.get(`/user/live/trade/get-info?limit=${limit}`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+    } else {
+        throw new Error('No token found. Please log in.');
+    }
+};
+
+// Store Order API (post)
+export const storeOrderAPI = (investAmount, time, actionType, symbol, currentTime, currentOHLC) => {
+    const token = getToken();
+    if (!token) {
+        throw new Error("No token found. Please log in.");
+    }
+
+    const formData = new FormData();
+    formData.append("investAmount", parseFloat(investAmount));
+    formData.append("time", time);
+    formData.append("actionType", actionType);
+    formData.append("symbol", symbol);
+    formData.append("currentTime", currentTime);
+    formData.append("currentOHLC", currentOHLC);
+
+    return apiClient.post("/user/binary/trading/order/store", formData, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+};
+
+// Submit Order API (post)
+export const submitOrderAPI = (orderID) => {
+    const token = getToken();
+    if (!token) {
+        throw new Error("No token found. Please log in.");
+    }
+
+    const formData = new FormData();
+    formData.append("order_id", orderID);
+
+    console.log([...formData.entries()]);
+
+    return apiClient.post("/user/binary/trading/order/result", formData, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
 };
 
 // Ticket API (get)
