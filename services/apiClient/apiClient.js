@@ -409,8 +409,6 @@ export const submitOrderAPI = (orderID) => {
     const formData = new FormData();
     formData.append("order_id", orderID);
 
-    console.log([...formData.entries()]);
-
     return apiClient.post("/user/binary/trading/order/result", formData, {
         headers: {
             Authorization: `Bearer ${token}`,
@@ -422,7 +420,7 @@ export const submitOrderAPI = (orderID) => {
 export const getSupportTicketsAPI = (page = 1) => {
     const token = getToken();
     if (token) {
-        return apiClient.get(`/user/support/ticket/get?page=${page}`, {
+        return apiClient.get(`/user/support/ticket/get-tickets?page=${page}`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
@@ -432,52 +430,31 @@ export const getSupportTicketsAPI = (page = 1) => {
     }
 };
 
-// Renew Ticket API (for INTERNAL payment type)
-export const renewTicketAPI = (ticketId, successUrl, cancelUrl) => {
+// Store Support Ticket API (post)
+export const storeSupportTicketAPI = (fullName, email, subject, desc, attachments) => {
     const token = getToken();
-    if (token) {
-        return apiClient.post(
-            `/user/support/ticket/renew/${ticketId}`,
-            { success_url: successUrl, cancel_url: cancelUrl },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
-    } else {
+    if (!token) {
         throw new Error("No token found. Please log in.");
     }
-};
 
-// Function for payment success GET request
-export const getPaymentSuccess = (trxRef) => {
-    const token = getToken();
-    if (token) {
-        return apiClient.get(`/user/support/ticket/renew/payment/success/${trxRef}`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
-    } else {
-        throw new Error("Payment failed.");
-    }
-};
+    const formData = new FormData();
+    formData.append("name", fullName);
+    formData.append("email", email);
+    formData.append("subject", subject);
+    formData.append("desc", desc);
 
-// Function for payment cancel GET request
-export const getPaymentCancel = (trxRef) => {
-    const token = getToken();
-    if (token) {
-        return apiClient.get(`/user/support/ticket/renew/payment/cancel/${trxRef}`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
-    } else {
-        throw new Error("Payment cancellation failed.");
-    }
-};
+    // Append multiple files correctly
+    attachments.forEach((file) => {
+        formData.append("attachments[]", file);
+    });
 
+    return apiClient.post("/user/support/ticket/store", formData, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+        },
+    });
+};
 
 // Fetch conversation data API (get)
 export const getConversationDataAPI = (id) => {
@@ -754,21 +731,6 @@ export const removeFileAPI = (path) => {
 // Fetch Resources API (get)
 export const getResourcesAPI = () => {
     return apiClient.get('/support/ticket/get-resources');
-};
-
-// Store Support Ticket API (post)
-export const storeSupportTicketAPI = (formData) => {
-    const token = getToken();
-    if (token) {
-        return apiClient.post("/user/support/ticket/store", formData, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "multipart/form-data",
-            },
-        });
-    } else {
-        throw new Error("No token found. Please log in.");
-    }
 };
 
 // Validate Purchase Code API (POST) - v2

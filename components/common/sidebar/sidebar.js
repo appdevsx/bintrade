@@ -7,7 +7,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Gauge, StepForward, Minimize2, RedoDot, MessageCircleQuestion, X, MessageSquare, PlusCircle, Paperclip, Send, ArrowRightToLine, TrendingUp, DollarSign, PieChart, Repeat, Maximize2, CheckCircle, LogOut, LoaderCircle } from 'lucide-react';
 import styles from "./sidebar.module.css";
-import { logoutAPI, getInfoAPI } from "@/services/apiClient/apiClient";
+import { logoutAPI, getInfoAPI, getSupportTicketsAPI, storeSupportTicketAPI } from "@/services/apiClient/apiClient";
 
 import logo from '@/public/images/logo/favicon.png';
 import user from '@/public/images/user/user-1.webp';
@@ -64,6 +64,9 @@ export default function Sidebar() {
     const [isHelpSidebarOpen, setHelpSidebarOpen] = useState(false);
     const [isTicketsSidebarOpen, setTicketsSidebarOpen] = useState(false);
     const [isCreateTicketsSidebarOpen, setCreateTicketsSidebarOpen] = useState(false);
+    const [tickets, setTickets] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
     const [ticketForm, setTicketForm] = useState({
         name: "",
         email: "",
@@ -260,6 +263,58 @@ export default function Sidebar() {
         { ticketId: "12345", subject: "Issue with payment", status: "Open" },
         { ticketId: "67890", subject: "Account not accessible", status: "Closed" },
     ];
+
+    useEffect(() => {
+        sessionStorage.setItem("currentPage", currentPage);
+        const fetchTicketsData = async () => {
+            setLoading(true);
+            try {
+                const response = await getSupportTicketsAPI(currentPage);
+                const { data } = response.data.data.support_tickets;
+                setTickets(data);
+                setTotalPages(response.data.data.support_tickets.last_page);
+            } catch (err) {
+                const errors = err.response?.data?.message?.error;
+                toast.error(errors || "Server did not respond");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchTicketsData();
+    }, [currentPage]);
+
+    const handleTicketSubmit = async (e) => {
+        e.preventDefault();
+        if (loading) return;
+        setLoading(true);
+
+        try {
+            const response = await storeSupportTicketAPI(
+                ticketForm.name,
+                ticketForm.email,
+                ticketForm.subject,
+                ticketForm.message,
+                attachments
+            );
+
+            response.data.message.success.forEach((msg) => {
+                toast.success(msg);
+                setTicketForm({ name: "", email: "", subject: "", message: "" });
+                setAttachments([]);
+            });
+        } catch (error) {
+            if (error.response && error.response.data && error.response.data.message && error.response.data.message.error) {
+                error.response.data.message.error.forEach((msg) => {
+                    toast.error(msg);
+                });
+            } else {
+                toast.error("Server did not respond");
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         const fetchAnalytics = async () => {
@@ -494,28 +549,28 @@ export default function Sidebar() {
                     </button>
                 </div>
                 <div className="p-4 space-y-4">
-                    {supportTickets.map((ticket, index) => (
+                    {tickets.map((ticket, index) => (
                         <div
                             key={index}
                             className="w-full py-3 px-4 bg-[#0d1f30] text-white rounded-md flex justify-between items-center"
                         >
                             <div>
-                                <p className="text-sm font-semibold">Ticket ID: {ticket.ticketId}</p>
-                                <p className="text-sm">{ticket.subject}</p>
+                                <p className="text-sm font-semibold">Ticket ID: {ticket.token}</p>
+                                <p className="text-sm">Subject: {ticket.subject}</p>
                                 <p className="text-sm">
                                     Status:{" "}
                                     <span
-                                        className={`font-bold ${
-                                        ticket.status === "Open" ? "text-[#2dd674]" : "text-[#ff5765]"
+                                        className={`text-[12px] font-bold ${
+                                            ticket.stringStatus.value === "Closed" ? "text-[#2dd674]" : "text-[#ff5765]"
                                         }`}
                                     >
-                                        {ticket.status}
+                                        {ticket.stringStatus.value}
                                     </span>
                                 </p>
                             </div>
-                            <button onClick={handleChatClick}>
+                            <Link href={{pathname: `/trading/conversation`, query: { Id:ticket.id },}}>
                                 <MessageSquare className="w-5 h-5 text-gray-400" />
-                            </button>
+                            </Link>
                         </div>
                     ))}
                     <button className="baseBtn flex justify-center w-full" onClick={handleCreateTicketsClick}>
@@ -531,7 +586,7 @@ export default function Sidebar() {
                         <X className="text-white w-5 h-5" />
                     </button>
                 </div>
-                <form onSubmit={handleSubmit} className="p-4 space-y-4">
+                <form onSubmit={handleTicketSubmit} className="p-4 space-y-4">
                     <div>
                         <label className="block text-white mb-2">Name</label>
                         <input
@@ -602,7 +657,7 @@ export default function Sidebar() {
                                 Choose Files
                             </label>
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-2 mt-2">
                             {attachments.map((file, index) => (
                                 <div
                                     key={index}
@@ -620,7 +675,14 @@ export default function Sidebar() {
                         type="submit"
                         className="baseBtn flex justify-center w-full !mt-6"
                     >
-                        Create Ticket <ArrowRightToLine />
+                        {loading ? (
+                            <LoaderCircle className="inline-block w-5 h-6 animate-spin text-white" />
+                        ) : (
+                            <>
+                                Create Ticket 
+                                <ArrowRightToLine />
+                            </>
+                        )}
                     </button>
                 </form>
             </div>

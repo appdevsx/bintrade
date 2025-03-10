@@ -57,30 +57,30 @@ const RealtimeChart = () => {
         };
     }, []);
 
-    const fetchTradingInfo = async () => {
-        // const switcherValue = accountType === "Demo Account" ? "DEMO" : "LIVE";
-        try {
-            // const response = switcherValue 
-            //     ? await demoTradingInfoAPI(1, 10) 
-            //     : await liveTradingInfoAPI(10);
+    // const fetchTradingInfo = async () => {
+    //     // const switcherValue = accountType === "Demo Account" ? "DEMO" : "LIVE";
+    //     try {
+    //         // const response = switcherValue 
+    //         //     ? await demoTradingInfoAPI(1, 10) 
+    //         //     : await liveTradingInfoAPI(10);
 
-            const response = await liveTradingInfoAPI(limit);
+    //         const response = await liveTradingInfoAPI(limit);
 
-            console.log(response);
+    //         console.log(response);
     
-            if (response?.data) {
-                setTradingData(response.data);
-            } else {
-                toast.error(response.data.message.error[0]);
-            }
-        } catch (error) {
-            toast.error("Server did not respond");
-        }
-    };
+    //         if (response?.data) {
+    //             setTradingData(response.data);
+    //         } else {
+    //             toast.error(response.data.message.error[0]);
+    //         }
+    //     } catch (error) {
+    //         toast.error("Server did not respond");
+    //     }
+    // };
 
-    useEffect(() => {
-        fetchTradingInfo(selectedAccount);
-    }, [selectedAccount]);
+    // useEffect(() => {
+    //     fetchTradingInfo(selectedAccount);
+    // }, [selectedAccount]);
 
     useEffect(() => {
         if (!symbol || !interval || !limit) return;
