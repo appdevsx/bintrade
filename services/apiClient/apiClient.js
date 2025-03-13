@@ -495,7 +495,7 @@ export const sendMessageAPI = (supportToken, message, files = []) => {
             formData.append(`files[]`, devPath);
         });
 
-        return apiClient.post("/user/support/ticket/conversation/send-message", formData, {
+        return apiClient.post("/user/support/ticket/conversation/message/send", formData, {
             headers: {
                 Authorization: `Bearer ${token}`,
                 "Content-Type": "multipart/form-data",

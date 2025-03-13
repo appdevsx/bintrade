@@ -300,9 +300,12 @@ export default function Sidebar() {
 
             response.data.message.success.forEach((msg) => {
                 toast.success(msg);
-                setTicketForm({ name: "", email: "", subject: "", message: "" });
-                setAttachments([]);
             });
+
+            const newTicket = response.data.data;
+            setTickets((prevTickets) => [newTicket, ...prevTickets]);
+            setTicketForm({ name: "", email: "", subject: "", message: "" });
+            setAttachments([]);
         } catch (error) {
             if (error.response && error.response.data && error.response.data.message && error.response.data.message.error) {
                 error.response.data.message.error.forEach((msg) => {
@@ -561,10 +564,10 @@ export default function Sidebar() {
                                     Status:{" "}
                                     <span
                                         className={`text-[12px] font-bold ${
-                                            ticket.stringStatus.value === "Closed" ? "text-[#2dd674]" : "text-[#ff5765]"
+                                            ticket.stringStatus?.value === "Pending" ? "text-[#2dd674]" : "text-[#ff5765]"
                                         }`}
                                     >
-                                        {ticket.stringStatus.value}
+                                        {ticket.stringStatus?.value}
                                     </span>
                                 </p>
                             </div>
