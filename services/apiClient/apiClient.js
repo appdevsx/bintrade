@@ -392,7 +392,7 @@ export const storeOrderAPI = (investAmount, time, actionType, symbol, currentTim
     formData.append("currentTime", currentTime);
     formData.append("currentOHLC", currentOHLC);
 
-    return apiClient.post("/user/binary/trading/order/store", formData, {
+    return apiClient.post("/user/binary/trading/order/store/DEMO", formData, {
         headers: {
             Authorization: `Bearer ${token}`,
         },

@@ -4,7 +4,7 @@ import { createChart } from 'lightweight-charts';
 import Asidebar from "@/components/common/asidebar/asidebar";
 import { Toaster, toast } from "react-hot-toast";
 import { useAccount } from "@/context/accountProvider/accountProvider";
-import { demoTradingInfoAPI, liveTradingInfoAPI } from "@/services/apiClient/apiClient";
+import { demoTradingInfoAPI, liveTradingInfoAPI, storeOrderAPI } from "@/services/apiClient/apiClient";
 
 const RealtimeChart = () => {
     const chartContainerRef = useRef(null);
@@ -20,6 +20,13 @@ const RealtimeChart = () => {
     const [duration, setDuration] = useState(1);
     const [chartHeight, setChartHeight] = useState(window.innerHeight - 102);
     const [limit, setLimit] = useState(800);
+    const [tradingData, setTradingData] = useState(null);
+    const [ongoingOrders, setOngoingOrders] = useState([]);
+    const [tradingSettings, setTradingSettings] = useState(null);
+    const [intervals, setIntervals] = useState([]);
+    const [currencyImagePath, setCurrencyImagePath] = useState("");
+    const [investAmount, setInvestAmount] = useState("");
+    const [time, setTime] = useState("");
 
     const fetchBinanceData = async (symbol, interval, limit) => {
         if (!symbol || !interval || !limit) {
@@ -57,30 +64,32 @@ const RealtimeChart = () => {
         };
     }, []);
 
-    // const fetchTradingInfo = async () => {
-    //     // const switcherValue = accountType === "Demo Account" ? "DEMO" : "LIVE";
-    //     try {
-    //         // const response = switcherValue 
-    //         //     ? await demoTradingInfoAPI(1, 10) 
-    //         //     : await liveTradingInfoAPI(10);
+    const fetchTradingInfo = async () => {
+        // const switcherValue = accountType === "Demo Account" ? "DEMO" : "LIVE";
+        try {
+            // const response = switcherValue 
+            //     ? await demoTradingInfoAPI(1, 10) 
+            //     : await liveTradingInfoAPI(10);
 
-    //         const response = await liveTradingInfoAPI(limit);
-
-    //         console.log(response);
+            const response =  await demoTradingInfoAPI(1, 10)
     
-    //         if (response?.data) {
-    //             setTradingData(response.data);
-    //         } else {
-    //             toast.error(response.data.message.error[0]);
-    //         }
-    //     } catch (error) {
-    //         toast.error("Server did not respond");
-    //     }
-    // };
+            if (response?.data) {
+                setTradingData(response.data);
+                setOngoingOrders(response.data.data.ongoing_orders || []);
+                setTradingSettings(response.data.data.trading_settings || null);
+                setIntervals(response.data.data.intervals || []);
+                setCurrencyImagePath(response.data.data.currency_image_paths?.base_url || "");
+            } else {
+                toast.error(response.data.message.error[0]);
+            }
+        } catch (error) {
+            toast.error("Server did not respond");
+        }
+    };
 
-    // useEffect(() => {
-    //     fetchTradingInfo(selectedAccount);
-    // }, [selectedAccount]);
+    useEffect(() => {
+        fetchTradingInfo(selectedAccount);
+    }, [selectedAccount]);
 
     useEffect(() => {
         if (!symbol || !interval || !limit) return;
@@ -141,56 +150,73 @@ const RealtimeChart = () => {
 
                 candleSeries.update(newCandle);
             }
+            if (message.type === "success") {
+                const { ongoing_orders, trading_settings, intervals } = message.data;
+    
+                setOngoingOrders(ongoing_orders);
+                setTradingSettings(trading_settings);
+                setIntervals(intervals);
+    
+                if (ongoing_orders.length > 0) {
+                    const formattedData = ongoing_orders.map(order => {
+                        const ohlc = order.start_ohlc_data.split(",");
+                        return {
+                            time: parseInt(ohlc[0]) / 1000,
+                            open: parseFloat(ohlc[1]),
+                            high: parseFloat(ohlc[2]),
+                            low: parseFloat(ohlc[3]),
+                            close: parseFloat(ohlc[4]),
+                        };
+                    });
+    
+                    candleSeries.setData(formattedData);
+                }
+            }
         };
 
         return () => {
             chart.remove();
             if (wsRef.current) wsRef.current.close();
         };
-    }, [symbol, interval, limit]);
+    }, [symbol, interval, limit, ongoingOrders, tradingSettings, intervals]);
 
-    const handleTradeClick = (direction) => {
-        if (isProcessing || !chartRef.current || !seriesRef.current) return;
+    // const placeOrder = async (investAmount, time, actionType, symbol, currentTime, currentOHLC) => {
+    //     setIsProcessing(true);
+    //     try {
+    //         const response = await storeOrderAPI(investAmount, time, actionType, symbol, currentTime, currentOHLC);
+    //         console.log(response);
+    //         if (response.data && response.data.order) {
+    //             setOngoingOrders((prevOrders) => [...prevOrders, response.data.order]);
+    //         }
+    //         toast.success(response.data.message.success[0]);
+    //     } catch (error) {
+    //         toast.error(response.data.message.error[0]);
+    //         console.error("Error placing order:", error);
+    //     } finally {
+    //         setIsProcessing(false);
+    //     }
+    // };
 
+    const handleTradeClick = async () => {
+        const symbol = "ETHBTC";
+        const actionType = "HIGH";
+        const currentTime = Math.floor(Date.now() / 1000);
+        const currentOHLC = "[1741148452000,\"0.02486000\",\"0.02486000\",\"0.02486000\",\"0.02486000\",\"0.00000000\",1741148452999,\"0.00000000\",0,\"0.00000000\",\"0.00000000\",\"0\"]";
         setIsProcessing(true);
-        setCurrentAction(direction);
 
-        setResultMarker({
-            time: Date.now(),
-            position: direction === 'up' ? 'aboveBar' : 'belowBar',
-            color: direction === 'up' ? '#2dd674' : '#ff5765',
-            shape: direction === 'up' ? 'arrowUp' : 'arrowDown',
-            text: direction === 'up' ? 'Up' : 'Down',
-        });
-
-        setTimeout(() => {
-            const latestData = seriesRef.current.data();
-            const latestCandle = latestData[latestData.length - 1];
-            const previousCandle = latestData[latestData.length - 2];
-
-            if (latestCandle && previousCandle) {
-                const isWin = direction === 'up' ? latestCandle.close > previousCandle.close : latestCandle.close < previousCandle.close;
-
-                setResultMarker({
-                    time: latestCandle.time,
-                    position: isWin ? 'aboveBar' : 'belowBar',
-                    color: isWin ? '#2dd674' : '#ff5765',
-                    shape: isWin ? 'circle' : 'circle',
-                    text: isWin ? 'Win' : 'Lost',
-                });
-
-                setTradeResult(isWin ? 'Win' : 'Lost');
+        try {
+            const response = await storeOrderAPI(investAmount, time, actionType, symbol, currentTime, currentOHLC);
+            if (response.data && response.data.order) {
+                setOngoingOrders((prevOrders) => [...prevOrders, response.data.order]);
             }
-
+            toast.success(response.data.message.success);
+        } catch (error) {
+            toast.error("Server did not respond");
+            console.error("Error placing order:", error);
+        } finally {
             setIsProcessing(false);
-        }, duration * 60 * 1000);
-    };
-
-    useEffect(() => {
-        if (resultMarker && seriesRef.current) {
-            seriesRef.current.setMarkers([resultMarker]);
         }
-    }, [resultMarker]);
+    };
 
     return (
         <>

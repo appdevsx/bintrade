@@ -145,11 +145,7 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
                 </button>
                 <div className="w-full flex flex-col gap-2">
                     <button className={`w-full py-3 bg-[#2dd674] rounded-md text-black font-bold flex items-center justify-center gap-2 ${action === "Up" ? "bg-[#31a361]" : "bg-[#2dd674]"}`} 
-                    onClick={() => {
-                        onTradeClick("up");
-                        startTrading("up");
-                        handleUp();
-                    }} 
+                    onClick={onTradeClick}
                     disabled={isProcessing}>
                         Up
                         <span className="text-xl">↑</span>
