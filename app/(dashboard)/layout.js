@@ -7,11 +7,6 @@ import { AccountProvider } from "@/context/accountProvider/accountProvider";
 
 const inter = DM_Sans({ subsets: ["latin"] });
 
-export const metadata = {
-    title: "BinTrade | Online Trading Platform",
-    description: "Online Trading Platform",
-};
-
 export default function DashboardLayout({ children }) {
     return (
         <html lang="en">

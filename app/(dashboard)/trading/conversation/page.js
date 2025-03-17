@@ -1,12 +1,12 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import ConversationSection from "@/components/section/conversation/conversation";
 import { getConversationDataAPI } from "@/services/apiClient/apiClient";
 import toast from "react-hot-toast";
 import { LoaderCircle } from 'lucide-react';
 
-export default function ConversationPage() {
+function ConversationContent() {
     const searchParams = useSearchParams();
     const id = searchParams.get("Id");
     const [conversationData, setConversationData] = useState();
@@ -40,5 +40,13 @@ export default function ConversationPage() {
                 <ConversationSection data={conversationData} imagePath={imagePath} />
             )}
         </>
+    );
+}
+
+export default function ConversationPage() {
+    return (
+        <Suspense>
+            <ConversationContent />
+        </Suspense>
     );
 }

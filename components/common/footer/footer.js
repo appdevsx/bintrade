@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import Button from "../button/button";
 import { ArrowRightToLine, LoaderCircle } from 'lucide-react';
+import { newsletterAPI } from "@/services/apiClient/apiClient";
 
 import logo from '@/public/images/logo/logo.png';
 
@@ -102,45 +103,26 @@ const appNAME = process.env.NEXT_PUBLIC_APP_NAME;
 export default function Footer() {
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
-    const product = `${appNAME}`;
-    const full_name = null;
-    const site = "other";
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        if (!email) {
-            toast.error('Required data is missing. Cannot submit form.' , {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
-            return;
-        }
-
+    const handleSubmit = async (event) => {
+        event.preventDefault();
         setLoading(true);
 
         try {
-            const response = await fetch(`${apiURL}/newsletter/store`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, product, full_name, site }),
-            });
+            const response = await newsletterAPI(email);
 
-            if (response.ok) {
-                toast.success('Subscribed successfully!' , {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
-                setEmail('');
+            if (response.data.type === "success") {
+                toast.success(response.data.message.success[0]);
             } else {
-                toast.error('Ohh, You already subscribe to this newsletter.' , {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
+                toast.error(response.data.message.error[0]);
             }
         } catch (error) {
-            toast.error('An error occurred. Please try again.' , {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
+            toast.error("Server did not respond");
         } finally {
             setLoading(false);
         }
     };
-    // const handleSubmit = (event) => {
-    //     event.preventDefault();
-    //     toast.success('Email sent successful!', {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
-    // };
+
     return (
         <footer className="footer-section section--bg pt-20">
             <Toaster reverseOrder={false} theme="dark" />

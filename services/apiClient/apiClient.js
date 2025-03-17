@@ -44,6 +44,29 @@ apiClient.interceptors.response.use(
     },
 );
 
+// Basic Settings API (get)
+export const basicSettingsAPI = (language) => {
+    return apiClient.get(`/settings/basic-settings?lang=${language}`);
+};
+
+// Contact API (post)
+export const contactAPI = (name, email, message) => {
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("email", email);
+    formData.append("message", message);
+
+    return apiClient.post("/frontend/contact/send-message", formData);
+};
+
+// Newsletter API (post)
+export const newsletterAPI = (email) => {
+    const formData = new FormData();
+    formData.append("email", email);
+
+    return apiClient.post("/frontend/newsletter/subscribe", formData);
+};
+
 // Login API (post)
 export const loginAPI = (credentials, password) => {
     return apiClient.post('/login', { credentials, password },);
@@ -755,11 +778,6 @@ export const generateProductKeyAPI = (formData) => {
 // Google Recaptcha VerificationAPI API (post)
 export const recaptchaVerificationAPI = (token) => {
     return apiClient.post("/security/google/verify-recaptcha", { token: token });
-};
-
-// Newsletter Subscribe API (post)
-export const newsletterSubscribeAPI = (formData) => {
-    return apiClientBase.post("/newsletter/store", formData);
 };
 
 // Fetch featured products API (get)

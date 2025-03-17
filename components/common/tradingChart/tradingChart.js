@@ -180,36 +180,45 @@ const RealtimeChart = () => {
         };
     }, [symbol, interval, limit, ongoingOrders, tradingSettings, intervals]);
 
-    // const placeOrder = async (investAmount, time, actionType, symbol, currentTime, currentOHLC) => {
-    //     setIsProcessing(true);
-    //     try {
-    //         const response = await storeOrderAPI(investAmount, time, actionType, symbol, currentTime, currentOHLC);
-    //         console.log(response);
-    //         if (response.data && response.data.order) {
-    //             setOngoingOrders((prevOrders) => [...prevOrders, response.data.order]);
-    //         }
-    //         toast.success(response.data.message.success[0]);
-    //     } catch (error) {
-    //         toast.error(response.data.message.error[0]);
-    //         console.error("Error placing order:", error);
-    //     } finally {
-    //         setIsProcessing(false);
-    //     }
-    // };
-
     const handleTradeClick = async () => {
         const symbol = "ETHBTC";
         const actionType = "HIGH";
         const currentTime = Math.floor(Date.now() / 1000);
         const currentOHLC = "[1741148452000,\"0.02486000\",\"0.02486000\",\"0.02486000\",\"0.02486000\",\"0.00000000\",1741148452999,\"0.00000000\",0,\"0.00000000\",\"0.00000000\",\"0\"]";
         setIsProcessing(true);
-
+    
         try {
             const response = await storeOrderAPI(investAmount, time, actionType, symbol, currentTime, currentOHLC);
-            if (response.data && response.data.order) {
+    
+            if (response.data?.order) {
                 setOngoingOrders((prevOrders) => [...prevOrders, response.data.order]);
+    
+                const ohlcData = JSON.parse(response.data.order.start_ohlc_data);
+    
+                const newCandle = {
+                    time: ohlcData[0] / 1000,
+                    open: parseFloat(ohlcData[1]),
+                    high: parseFloat(ohlcData[2]),
+                    low: parseFloat(ohlcData[3]),
+                    close: parseFloat(ohlcData[4]),
+                };
+    
+                candleSeries.update(newCandle);
+    
+                const isHigh = response.data.order.p_type === "HIGH";
+                const marker = {
+                    time: newCandle.time,
+                    position: isHigh ? "aboveBar" : "belowBar",
+                    color: isHigh ? "#26a69a" : "#ef5350",
+                    shape: isHigh ? "arrowUp" : "arrowDown",
+                    text: isHigh ? "HIGH Order ↑" : "DOWN Order ↓",
+                };
+    
+                candleSeries.setMarkers([marker]);
             }
-            toast.success(response.data.message.success);
+    
+            const successMessage = response.data?.message?.success?.[0] || "Order placed successfully!";
+            toast.success(successMessage);
         } catch (error) {
             toast.error("Server did not respond");
             console.error("Error placing order:", error);
@@ -217,6 +226,7 @@ const RealtimeChart = () => {
             setIsProcessing(false);
         }
     };
+       
 
     return (
         <>

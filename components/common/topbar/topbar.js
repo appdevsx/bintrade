@@ -24,9 +24,15 @@ const currencyOptions = getCurrencyOptions();
 function TopbarContent() {
     const { accountBalance } = useAccount();
     const [userAccountBalance, setUserAccountBalance] = useState(null);
+    const [selectedBalance, setSelectedBalance] = useState(null);
+    const [selectedAccountType, setSelectedAccountType] = useState("LIVE");
+    const [demoBalance, setDemoBalance] = useState(null);
+    const [liveBalance, setLiveBalance] = useState(null);
     const searchParams = useSearchParams();
     const withdrawToken = searchParams.get("withdrawToken");
     const [currencySymbol, setCurrencySymbol] = useState("");
+    const [demoAccountType, setDemoAccountType] = useState("");
+    const [liveAccountType, setLiveAccountType] = useState("");
     const [currencyCode, setCurrencyCode] = useState(null);
     const { symbol, setSymbol, interval, setInterval } = useAccount();
     const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -149,11 +155,16 @@ function TopbarContent() {
         const switcherValue = accountType === "Demo Account" ? "DEMO" : "LIVE";
         try {
             const response = await switchAccountAPI(switcherValue);
-
-            console.log(response);
     
             if (response.data?.type === 'success') {
                 setSelectedAccount(accountType);
+                if (accountType === "Demo Account") {
+                    setSelectedBalance(demoBalance);
+                    setSelectedAccountType("DEMO");
+                } else {
+                    setSelectedBalance(liveBalance);
+                    setSelectedAccountType("LIVE");
+                }
                 toast.success(response.data.message.success[0]);
             } else {
                 toast.error(response.data.message.error[0]);
@@ -164,6 +175,7 @@ function TopbarContent() {
     
         toggleSidebar();
     };
+    
 
     const handleProfileInformationClick = () => {
         setProfileFieldsSidebarOpen(true);
@@ -745,17 +757,57 @@ function TopbarContent() {
         fetchCharge();
     }, [selectedCurrency, exchangeId, exchangeData]);
 
+    // useEffect(() => {
+    //     const fetchWalletInfo = async () => {
+    //         try {
+    //             setLoading(true);
+    //             const response = await getInfoAPI();
+    //             if (response.data.type === "success" && response.data.data.user_wallets) {
+    //                 const wallet = response.data.data.user_wallets;
+    //                 const demoWallet = wallet.find(wallet => wallet.type.toUpperCase() === "DEMO");
+    //                 const liveWallet = wallet.find(wallet => wallet.type.toUpperCase() === "LIVE");
+    //                 setUserAccountBalance(parseFloat(wallet.balance).toFixed(2));
+    //                 setDemoBalance(parseFloat(demoWallet.balance).toFixed(2));
+    //                 setLiveBalance(parseFloat(liveWallet.balance).toFixed(2));
+    //                 setCurrencySymbol(wallet.currency.symbol);
+    //                 setAccountType(wallet.type.toLowerCase());
+    //                 setCurrencyCode(response.data.data.user_wallet.currency.code);
+    //             } else {
+    //                 toast.error(response.data.message.error[0]);
+    //             }
+    //         } catch (error) {
+    //             toast.error("Server did not respond");
+    //         } finally {
+    //             setLoading(false);
+    //         }
+    //     };
+
+    //     fetchWalletInfo();
+    // }, []);
+
     useEffect(() => {
         const fetchWalletInfo = async () => {
             try {
                 setLoading(true);
                 const response = await getInfoAPI();
-                if (response.data.type === "success" && response.data.data.user_wallet) {
-                    const wallet = response.data.data.user_wallet;
-                    setUserAccountBalance(parseFloat(wallet.balance).toFixed(2));
-                    setCurrencySymbol(wallet.currency.symbol);
-                    setAccountType(wallet.type.toLowerCase());
-                    setCurrencyCode(response.data.data.user_wallet.currency.code);
+                if (response.data.type === "success" && response.data.data.user_wallets) {
+                    const wallets = response.data.data.user_wallets;
+                    const demoWallet = wallets.find(wallet => wallet.type.toUpperCase() === "DEMO");
+                    const liveWallet = wallets.find(wallet => wallet.type.toUpperCase() === "LIVE");
+                    setDemoBalance(parseFloat(demoWallet.balance).toFixed(2));
+                    setLiveBalance(parseFloat(liveWallet.balance).toFixed(2));
+                    setDemoAccountType(demoWallet.type);
+                    setLiveAccountType(liveWallet.type);
+                    if (liveWallet || demoWallet) {
+                        setCurrencySymbol((liveWallet || demoWallet).currency.symbol);
+                    }
+                    if (liveWallet) {
+                        setSelectedBalance(parseFloat(liveWallet.balance).toFixed(2));
+                        setSelectedAccountType("LIVE");
+                    } else if (demoWallet) {
+                        setSelectedBalance(parseFloat(demoWallet.balance).toFixed(2));
+                        setSelectedAccountType("DEMO");
+                    }
                 } else {
                     toast.error(response.data.message.error[0]);
                 }
@@ -765,9 +817,10 @@ function TopbarContent() {
                 setLoading(false);
             }
         };
-
+    
         fetchWalletInfo();
     }, []);
+    
 
     return (
         <>
@@ -910,8 +963,8 @@ function TopbarContent() {
                             </div>
                         ) : (
                             <>
-                                <div className="text-white font-semibold text-[18px] leading-[20px]">{currencySymbol} {userAccountBalance}</div>
-                                <div className="text-[12px] text-emerald-400">{accountType} Account</div>
+                                <div className="text-white font-semibold text-[18px] leading-[20px]">{currencySymbol} {selectedBalance}</div>
+                                <div className="text-[12px] text-emerald-400">{selectedAccountType} Account</div>
                                 <div className="absolute bottom-[4px] right-[-20px]">
                                     <ChevronDown className="w-4" />
                                 </div>
@@ -945,8 +998,8 @@ function TopbarContent() {
                         }`}
                         onClick={() => selectAccount("Demo Account")}
                     >
-                        <div className="text-white font-semibold text-[18px] leading-[20px]">{currencySymbol} {userAccountBalance}</div>
-                        <div className="text-[12px] text-emerald-400">Demo Account</div>
+                        <div className="text-white font-semibold text-[18px] leading-[20px]">{currencySymbol} {demoBalance}</div>
+                        <div className="text-[12px] text-emerald-400">{demoAccountType} Account</div>
                     </button>
                     <button
                         className={`w-full text-left py-3 px-7 rounded-md ${
@@ -956,8 +1009,8 @@ function TopbarContent() {
                         }`}
                         onClick={() => selectAccount("Live Account")}
                     >
-                        <div className="text-white font-semibold text-[18px] leading-[20px]">{currencySymbol} {userAccountBalance}</div>
-                        <div className="text-[12px] text-emerald-400">Live Account</div>
+                        <div className="text-white font-semibold text-[18px] leading-[20px]">{currencySymbol} {liveBalance}</div>
+                        <div className="text-[12px] text-emerald-400">{liveAccountType} Account</div>
                     </button>
                 </div>
             </div>

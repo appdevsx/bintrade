@@ -1,9 +1,11 @@
 "use client";
 import { useState, useEffect } from 'react';
+import { Toaster, toast } from "react-hot-toast";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
-import { CircleArrowRight, Menu, X } from 'lucide-react';
+import { CircleArrowRight, Menu, X, LoaderCircle } from 'lucide-react';
+import { basicSettingsAPI } from "@/services/apiClient/apiClient";
 import styles from "./header.module.css";
 
 import logo from '@/public/images/logo/logo.png';
@@ -39,6 +41,12 @@ const header = {
 export default function Header() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [languages, setLanguages] = useState([]);
+    const [selectedLanguage, setSelectedLanguage] = useState([]);
+    // const [selectedLanguage, setSelectedLanguage] = useState(() => {
+    //     return localStorage.getItem("selectedLanguage") || "en";
+    // });
+    const [loading, setLoading] = useState(true);
     const pathname = usePathname();
 
     useEffect(() => {
@@ -51,6 +59,29 @@ export default function Header() {
     }, []);
 
     const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
+
+    useEffect(() => {
+        setLoading(true);
+        const fetchLanguages = async () => {
+            try {
+                const response = await basicSettingsAPI();
+                setLanguages(response.data?.data?.languages || []);
+            } catch (error) {
+                toast.error("Server did not respond");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchLanguages();
+    }, []);
+
+    const handleLanguageChange = (event) => {
+        const newLang = event.target.value;
+        setSelectedLanguage(newLang);
+        localStorage.setItem("selectedLanguage", newLang);
+        onLanguageChange(newLang);
+    };
 
     return (
         <header className="header-section section--bg sticky border-b border-slate-800 py-3 lg:py-0 top-0 z-10">
@@ -77,6 +108,26 @@ export default function Header() {
                         })}
                     </ul>
                     <div className="header-action-wrapper flex items-center space-x-3">
+                        <div>
+                            {loading ? (
+                                <div className="animate-pulse">
+                                    <div className="h-6 w-20 bg-gray-700 rounded-md"></div>
+                                    <div className="h-4 w-24 bg-gray-800 mt-1 rounded-md"></div>
+                                </div>
+                            ) : (
+                                <select className="section--bg border-slate-800 text-slate-300 text-sm rounded-md" value={selectedLanguage} onChange={handleLanguageChange} disabled={loading}>
+                                    {languages.length > 0 ? (
+                                        languages.map((lang) => (
+                                            <option key={lang.id} value={lang.code}>
+                                                {lang.name}
+                                            </option>
+                                        ))
+                                    ) : (
+                                        <option value="" disabled>No languages available</option>
+                                    )}
+                                </select>
+                            )}
+                        </div>
                         <div className="header-action">
                             {isLoggedIn ? (
                                 <Link className={styles.headerAction} href="/trading">{header.button} <CircleArrowRight /></Link>

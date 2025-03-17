@@ -1,7 +1,9 @@
 'use client'
+import { useState } from "react";
 import { Toaster, toast } from "react-hot-toast";
 import styles from "./contact.module.css";
-import { ArrowRightToLine } from 'lucide-react';
+import { ArrowRightToLine, LoaderCircle } from 'lucide-react';
+import { contactAPI } from "@/services/apiClient/apiClient";
 
 const contactAddressContentHeader = {
     subTitle: 'Contact',
@@ -32,10 +34,31 @@ const contactForm = {
 }
 
 export default function Contact() {
-    const handleSubmit = (event) => {
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [message, setMessage] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async (event) => {
         event.preventDefault();
-        toast.success('Your message has been sent!', {duration: 4000, style: {background: '#081e32', color: '#ffffff'},});
+        setLoading(true);
+
+        try {
+            const response = await contactAPI(name, email, message);
+
+            if (response.data.type === "success") {
+                toast.success(response.data.message.success[0]);
+            } else {
+                toast.error(response.data.message.error[0]);
+            }
+        } catch (error) {
+            toast.error("Server did not respond");
+        } finally {
+            setLoading(false);
+        }
     };
+
+
     return (
 		<section className="contact-section relative z-1 py-20">
             <Toaster reverseOrder={false} theme="dark" />
@@ -70,18 +93,26 @@ export default function Contact() {
                             <form className="contact-form-inner grid grid-cols-12 gap-5" onSubmit={handleSubmit}>
                                 <div className="form-group col-span-6">
                                     <label className="text-sm mb-2 block">{contactForm.nameLabel}*</label>
-                                    <input type="text" placeholder="Type name here..." className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg" required></input>
+                                    <input type="text" value={name} onChange={(event) => setName(event.target.value)} placeholder="Type name here..." className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg" required></input>
                                 </div>
                                 <div className="form-group col-span-6">
                                     <label className="text-sm mb-2 block">{contactForm.emailLabel}*</label>
-                                    <input type="text" placeholder="Type email here..." className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg" required></input>
+                                    <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Type email here..." className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg" required></input>
                                 </div>
                                 <div className="form-group col-span-12">
                                     <label className="text-sm mb-2 block">{contactForm.messageLabel}*</label>
-                                    <textarea placeholder="Type message here..." className="w-full h-32 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg" required></textarea>
+                                    <textarea value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Type message here..." className="w-full h-32 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg" required></textarea>
                                 </div>
                                 <div className="form-group col-span-12">
-                                    <button type="submit" className="baseBtn">{contactForm.button} <ArrowRightToLine /></button>
+                                    <button type="submit" className={`baseBtn ${loading ? "cursor-not-allowed" : ""}`} disabled={loading}>
+                                        {loading ? (
+                                            <LoaderCircle className="inline-block w-5 h-6 animate-spin text-white" />
+                                        ) : (
+                                            <>
+                                                {contactForm.button} <ArrowRightToLine />
+                                            </>
+                                        )}
+                                    </button>
                                 </div>
                             </form>
                         </div>
