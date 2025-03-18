@@ -1,7 +1,11 @@
+'use client'
+import { useState, useEffect } from 'react';
+import { Toaster, toast } from "react-hot-toast";
 import styles from "./blog.module.css";
 import Link from "next/link";
 import { CircleArrowRight } from 'lucide-react';
 import Image from "next/image";
+import { getBlogsAPI } from "@/services/apiClient/apiClient";
 
 import blogOne from '@/public/images/blog/blog-1.webp';
 import blogTwo from '@/public/images/blog/blog-2.webp';
@@ -40,6 +44,25 @@ const blogItems = [
 ]
 
 export default function Blog() {
+	const [blogs, setBlogs] = useState(null);
+	const [loading, setLoading] = useState(false);
+
+	useEffect(() => {
+		setLoading(true);
+		const fetchBlogs = async () => {
+			try {
+				const response = await getBlogsAPI();
+				setBlogs(response.data?.data?.journals?.data || []);
+			} catch (error) {
+				toast.error("Server did not respond");
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		fetchBlogs();
+	}, []);
+
     return (
 		<section className="blog-section py-20">
             <div className="custom-container">
@@ -51,7 +74,7 @@ export default function Blog() {
 					</div>
 				</div>
 				<div className="blog-item-wrapper mb-60-none">
-					{blogItems.map(( blogItem, index ) => {
+					{blogs.map(( blogItem, index ) => {
 						return (
 							<div className={styles.blogItem} key={index}>
 								<div className={styles.blogThumb}>

@@ -49,6 +49,26 @@ export const basicSettingsAPI = (language) => {
     return apiClient.get(`/settings/basic-settings?lang=${language}`);
 };
 
+// Get Usefull links API (get)
+export const getUsefullLinksAPI = (language) => {
+    return apiClient.get(`/frontend/useful-links?lang=${language}`);
+};
+
+// Get Usefull Details API (get)
+export const getUsefullDetailsAPI = () => {
+    return apiClient.get("/frontend/useful-links/details/privacy-policy");
+};
+
+// Get Usefull Details API (get)
+export const getUsefullDetailsTwoAPI = () => {
+    return apiClient.get("/frontend/useful-links/details/refund-policy");
+};
+
+// Fetch Blogs API (get)
+export const getBlogsAPI = (language) => {
+    return apiClient.get(`/frontend/section/blogs?lang=${language}`);
+};
+
 // Contact API (post)
 export const contactAPI = (name, email, message) => {
     const formData = new FormData();
@@ -793,16 +813,6 @@ export const getEnvatoCategoriesAPI = () => {
 // Fetch Products API (get)
 export const getProductsAPI = (pageSize, currentPage, searchQuery, queryParams) => {
     return apiClient.get(`/products/envato?page_size=${pageSize}&page=${currentPage}&term=${searchQuery}${queryParams}`);
-};
-
-// Fetch Blog Categories API (get)
-export const getBlogCategoriesAPI = (language) => {
-    return apiClient.get(`/blogs/categories?local=${language}`);
-};
-
-// Fetch Blogs API (get)
-export const getBlogsAPI = (language, currentPage, selectedCategory, searchQuery) => {
-    return apiClient.get(`/blogs?local=${language}&page=${currentPage}&category=${selectedCategory}&search=${searchQuery}`);
 };
 
 // Fetch Blog Details API (get)

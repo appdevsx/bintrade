@@ -1,11 +1,11 @@
 'use client'
-import { useState } from "react";
+import { useState, useEffect } from 'react';
 import { Toaster, toast } from "react-hot-toast";
 import Link from "next/link";
 import Image from "next/image";
 import Button from "../button/button";
 import { ArrowRightToLine, LoaderCircle } from 'lucide-react';
-import { newsletterAPI } from "@/services/apiClient/apiClient";
+import { newsletterAPI, getUsefullLinksAPI } from "@/services/apiClient/apiClient";
 
 import logo from '@/public/images/logo/logo.png';
 
@@ -97,11 +97,9 @@ const footerSocials = [
     }
 ]
 
-const apiURL = process.env.NEXT_PUBLIC_API_URL;
-const appNAME = process.env.NEXT_PUBLIC_APP_NAME;
-
 export default function Footer() {
     const [email, setEmail] = useState('');
+    const [links, setLinks] = useState([]);
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (event) => {
@@ -122,6 +120,22 @@ export default function Footer() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        setLoading(true);
+        const fetchUsefullLinks = async () => {
+            try {
+                const response = await getUsefullLinksAPI();
+                setLinks(response.data?.data?.useful_links || []);
+            } catch (error) {
+                toast.error("Server did not respond");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUsefullLinks();
+    }, []);
 
     return (
         <footer className="footer-section section--bg pt-20">
@@ -173,10 +187,10 @@ export default function Footer() {
                             <div className="footer-widget">
                                 <h4 className="widget-title text-lg font-bold mb-2.5 text-white">{footerWidget.titleThree}</h4>
                                 <ul className="footer-list space-y-2">
-                                    {footerThirdLists.map(( footerThirdList, index ) => {
+                                    {links.map(( footerThirdList, index ) => {
                                         return (
                                             <li className="font-medium text-sm text-slate-300 hover:text-white" key={index}>
-                                                <Link href={footerThirdList.href}>{footerThirdList.name}</Link>
+                                                <Link href={footerThirdList.slug}>{footerThirdList.url}</Link>
                                             </li>
                                         );
                                     })}
