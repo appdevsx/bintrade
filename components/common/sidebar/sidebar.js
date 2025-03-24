@@ -264,6 +264,11 @@ export default function Sidebar() {
         { ticketId: "67890", subject: "Account not accessible", status: "Closed" },
     ];
 
+    const handleNavigateToConversation = (ticketId) => {
+        closeAllSidebars(true);
+        router.push(`/trading/conversation?Id=${ticketId}`);
+      };
+
     useEffect(() => {
         sessionStorage.setItem("currentPage", currentPage);
         const fetchTicketsData = async () => {
@@ -551,35 +556,53 @@ export default function Sidebar() {
                         <X className="text-white w-5 h-5" />
                     </button>
                 </div>
-                <div className="p-4 space-y-4">
-                    {tickets.map((ticket, index) => (
-                        <div
-                            key={index}
-                            className="w-full py-3 px-4 bg-[#0d1f30] text-white rounded-md flex justify-between items-center"
-                        >
-                            <div>
-                                <p className="text-sm font-semibold">Ticket ID: {ticket.token}</p>
-                                <p className="text-sm">Subject: {ticket.subject}</p>
-                                <p className="text-sm">
-                                    Status:{" "}
-                                    <span
-                                        className={`text-[12px] font-bold ${
-                                            ticket.stringStatus?.value === "Pending" ? "text-[#2dd674]" : "text-[#ff5765]"
-                                        }`}
-                                    >
-                                        {ticket.stringStatus?.value}
-                                    </span>
-                                </p>
-                            </div>
-                            <Link href={{pathname: `/trading/conversation`, query: { Id:ticket.id },}}>
-                                <MessageSquare className="w-5 h-5 text-gray-400" />
-                            </Link>
+                <div className="p-4">
+                    {loading ? (
+                        <ul className="space-y-4">
+                            {[...Array(5)].map((_, index) => (
+                                <li key={index} className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md animate-pulse">
+                                    <span className="block h-4 w-1/4 bg-gray-700 rounded"></span>
+                                    <span className="block h-4 w-1/3 bg-gray-700 rounded mt-2"></span>
+                                    <span className="block h-4 w-1/2 bg-gray-700 rounded mt-2"></span>
+                                    <span className="block h-4 w-1/4 bg-gray-700 rounded mt-2"></span>
+                                    <span className="block h-4 w-1/3 bg-gray-700 rounded mt-2"></span>
+                                    <span className="block h-4 w-1/2 bg-gray-700 rounded mt-2"></span>
+                                    <span className="block h-4 w-1/4 bg-gray-700 rounded mt-2"></span>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <div className="space-y-4">
+                            {tickets.map((ticket, index) => (
+                                <div
+                                    key={index}
+                                    className="w-full py-3 px-4 bg-[#0d1f30] text-white rounded-md flex justify-between items-center"
+                                >
+                                    <div>
+                                        <p className="text-sm font-semibold">Ticket ID: {ticket.token}</p>
+                                        <p className="text-sm">Subject: {ticket.subject}</p>
+                                        <p className="text-sm">
+                                            Status:{" "}
+                                            <span
+                                                className={`text-[12px] font-bold ${
+                                                    ticket.stringStatus?.value === "Pending" ? "text-[#2dd674]" : "text-[#ff5765]"
+                                                }`}
+                                            >
+                                                {ticket.stringStatus?.value}
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <button onClick={() => handleNavigateToConversation(ticket.id)}>
+                                        <MessageSquare className="w-5 h-5 text-gray-400" />
+                                    </button>
+                                </div>
+                            ))}
+                            <button className="baseBtn flex justify-center w-full" onClick={handleCreateTicketsClick}>
+                                <PlusCircle />
+                                Create New Ticket
+                            </button>
                         </div>
-                    ))}
-                    <button className="baseBtn flex justify-center w-full" onClick={handleCreateTicketsClick}>
-                        <PlusCircle />
-                        Create New Ticket
-                    </button>
+                    )}
                 </div>
             </div>
             <div className={`fixed bottom-0 left-0 h-full bg-[#051524] border-r-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[5] shadow-lg p-4 transform ${isCreateTicketsSidebarOpen ? "translate-x-0" : "translate-x-[-100%]"} transition-transform duration-300 ease-in-out`}>

@@ -6,10 +6,7 @@ import styles from "./asidebar.module.css";
 
 const initialHistory = [];
 
-export default function Asidebar({ onTradeClick, isProcessing, duration, setDuration }) {
-    // State for Amount and Duration
-    const [amount, setAmount] = useState(1);
-    // const [duration, setDuration] = useState(1);
+export default function Asidebar({ onTradeClick, isProcessing, duration, setDuration, amount, setAmount }) {
     const [action, setAction] = useState("");
     const [remainingTime, setRemainingTime] = useState(null);
     const [tradeTimer, setTradeTimer] = useState(null);
@@ -166,10 +163,6 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
                         Time Remaining: {Math.floor(remainingTime / 60)}:{remainingTime % 60 < 10 ? `0${remainingTime % 60}` : remainingTime % 60}
                     </div>
                 )}
-                {/* <div className="w-full text-center text-sm mt-4 text-gray-400">
-                    Profit: <span className="text-emerald-400">+Ð0.85</span>
-                    <span className="text-gray-500 ml-1">ⓘ</span>
-                </div> */}
                 {tradeOutcome && (
                     <div className="w-full text-center text-sm mt-4">
                         Result:{" "}

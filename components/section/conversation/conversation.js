@@ -103,8 +103,8 @@ export default function ConversationSection({ data, imagePath }) {
 
 
     return (
-        <div className="chat_container h-[calc(100vh-100px)] bg-[#051524] border border-slate-800 rounded-md w-full sm:w-[900px] mx-auto overflow-y-auto z-[5] shadow-lg p-4 transition-transform duration-300 ease-in-out">
-            <div className="p-4 space-y-4 flex flex-col justify-end overflow-y-auto h-[calc(100%-80px)]">
+        <div className="chat_container bg-[#051524] border border-slate-800 rounded-md w-full sm:w-[900px] mx-auto overflow-y-auto z-[5] shadow-lg p-4 transition-transform duration-300 ease-in-out">
+            <div className="p-4 min-h-[calc(100vh-200px)] max-h-[calc(100vh-200px)] space-y-4  overflow-y-auto">
                 {messages.map((msg, index) => (
                     <div
                         key={index}

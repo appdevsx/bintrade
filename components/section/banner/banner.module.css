@@ -5,6 +5,7 @@
     min-height: calc(70vh - 73.5px);
     padding: 100px 0;
     z-index: 2;
+    overflow: hidden;
 }
 .bannerBg{
     object-fit: cover;

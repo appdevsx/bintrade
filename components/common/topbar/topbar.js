@@ -928,7 +928,7 @@ function TopbarContent() {
                                                 setIsTradeListOpen(false);
                                             }}
                                         >
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2" value={trade.value}>
                                                 <div className="text-white text-sm">{trade.label}</div>
                                             </div>
                                         </div>
@@ -942,16 +942,35 @@ function TopbarContent() {
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    <select className="bg-[#0d1f30] shadow-lg rounded-md border-0 text-sm" value={symbol} onChange={(e) => setSymbol(e.target.value)}>
-                        <option value="BTCUSDT">BTC/USDT</option>
-                        <option value="ETHUSDT">ETH/USDT</option>
-                        <option value="BNBUSDT">BNB/USDT</option>
+                    <select
+                        className="bg-[#0d1f30] shadow-lg rounded-md border-0 text-sm text-white"
+                        value={symbol}
+                        onChange={(e) => setSymbol(e.target.value)}
+                        >
+                        {filteredTrades.length > 0 ? (
+                            filteredTrades.map((trade, index) => (
+                            <option key={index} value={trade.symbol}>
+                                {trade.name}
+                            </option>
+                            ))
+                        ) : (
+                            <option disabled>No results found</option>
+                        )}
                     </select>
-                    <select className="bg-[#0d1f30] shadow-lg rounded-md border-0 text-sm" value={interval} onChange={(e) => setInterval(e.target.value)}>
-                        <option value="1m">1m</option>
-                        <option value="5m">5m</option>
-                        <option value="15m">15m</option>
-                        <option value="1h">1h</option>
+                    <select
+                        className="bg-[#0d1f30] shadow-lg rounded-md border-0 text-sm text-white"
+                        value={interval}
+                        onChange={(e) => setInterval(e.target.value)}
+                        >
+                        {intervalOptions.length > 0 ? (
+                            intervalOptions.map((trade, index) => (
+                            <option key={index} value={trade.value}>
+                                {trade.label}
+                            </option>
+                            ))
+                        ) : (
+                            <option disabled>No results found</option>
+                        )}
                     </select>
                 </div>
                 <div className="flex items-center gap-3">

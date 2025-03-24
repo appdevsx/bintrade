@@ -5,14 +5,9 @@ import Link from "next/link";
 import Image from "next/image";
 import Button from "../button/button";
 import { ArrowRightToLine, LoaderCircle } from 'lucide-react';
-import { newsletterAPI, getUsefullLinksAPI } from "@/services/apiClient/apiClient";
+import { newsletterAPI, getUsefullLinksAPI, getFooterAPI } from "@/services/apiClient/apiClient";
 
 import logo from '@/public/images/logo/logo.png';
-
-const footer = {
-    image: logo,
-    copyright: '© Copyright 2025. Template by AppDevs®'
-}
 
 const footerWidget = {
     titleOne: 'Pages',
@@ -100,6 +95,7 @@ const footerSocials = [
 export default function Footer() {
     const [email, setEmail] = useState('');
     const [links, setLinks] = useState([]);
+    const [footer, setFooter] = useState([]);
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (event) => {
@@ -137,6 +133,22 @@ export default function Footer() {
         fetchUsefullLinks();
     }, []);
 
+    useEffect(() => {
+        setLoading(true);
+        const fetchFooter = async () => {
+            try {
+                const response = await getFooterAPI();
+                setFooter(response.data?.data?.section);
+            } catch (error) {
+                toast.error("Server did not respond");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchFooter();
+    }, []);
+
     return (
         <footer className="footer-section section--bg pt-20">
             <Toaster reverseOrder={false} theme="dark" />
@@ -147,7 +159,7 @@ export default function Footer() {
                             <div className="footer-widget">
                                 <div className="foote-logo">
                                     <Link href="/" className="site-logo relative overflow-hidden">
-                                        <Image src={footer.image} 
+                                        <Image src={logo} 
                                             className="object-cover"
                                             width={140}
                                             alt="logo"
@@ -186,15 +198,22 @@ export default function Footer() {
                             </div>
                             <div className="footer-widget">
                                 <h4 className="widget-title text-lg font-bold mb-2.5 text-white">{footerWidget.titleThree}</h4>
-                                <ul className="footer-list space-y-2">
-                                    {links.map(( footerThirdList, index ) => {
-                                        return (
-                                            <li className="font-medium text-sm text-slate-300 hover:text-white" key={index}>
-                                                <Link href={footerThirdList.slug}>{footerThirdList.url}</Link>
-                                            </li>
-                                        );
-                                    })}
-                                </ul>
+                                {loading ? (
+                                    <div className="animate-pulse">
+                                        <div className="h-6 w-20 bg-gray-700 rounded-md"></div>
+                                        <div className="h-4 w-24 bg-gray-800 mt-1 rounded-md"></div>
+                                    </div>
+                                ) : (
+                                    <ul className="footer-list space-y-2">
+                                        {links.map(( footerThirdList, index ) => {
+                                            return (
+                                                <li className="font-medium text-sm text-slate-300 hover:text-white" key={index}>
+                                                    <Link href={footerThirdList.slug}>{footerThirdList.url}</Link>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                )}
                             </div>
                             <div className="footer-widget">
                                 <h4 className="widget-title text-lg font-bold mb-2.5 text-white">{footerWidget.titleFour}</h4>
@@ -209,8 +228,8 @@ export default function Footer() {
                                 </ul>
                             </div>
                             <div className="footer-widget">
-                                <h4 className="widget-title text-lg font-bold mb-2.5 text-white">{footerSubscribe.title}</h4>
-                                <p className="text-sm text-slate-300">{footerSubscribe.description}</p>
+                                <h4 className="widget-title text-lg font-bold mb-2.5 text-white">{footer.newsletter_title}</h4>
+                                <p className="text-sm text-slate-300">{footer.newsletter_desc}</p>
                                 <form className="flex space-x-2 mt-4" onSubmit={handleSubmit}>
                                     <input type="email" name="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Type email here..." className="w-full h-10 text-xs font-medium rounded-md shadow-sm border-slate-800 text-slate-300 bg-slate-900" required></input>
                                     <Button type="submit" size="xs" disabled={loading}>
@@ -230,17 +249,17 @@ export default function Footer() {
                 <div className="custom-container">
                     <div className="footer-bottom-wrapper block text-center sm:flex items-center justify-between border-t-2 border-slate-800 pt-10 pb-10 mt-14">
                         <div className="copyright-wrapper">
-                            <p className="font-medium text-sm text-slate-300">{footer.copyright}</p>
+                            <p className="font-medium text-sm text-slate-300">{footer.copyright_text}</p>
                         </div>
                         <div className="footer-social-wrapper">
                             <ul className="footer-social-list flex items-center mt-2 sm:mt-0 justify-center sm:justify-between space-x-7">
-                                {footerSocials.map(( footerSocial, index ) => {
-                                    return (
-                                        <li className="font-medium text-sm text-slate-300" key={index}>
-                                            <Link href={footerSocial.href} target="_blank">{footerSocial.name}</Link>
-                                        </li>
-                                    );
-                                })}
+                                {footer?.social_links?.map((footerSocial, index) => (
+                                    <li className="font-medium text-sm text-slate-300" key={index}>
+                                        <Link href={footerSocial.link} target="_blank">
+                                            {footerSocial.name}
+                                        </Link>
+                                    </li>
+                                ))}
                             </ul>
                         </div>
                     </div>

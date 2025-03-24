@@ -5,8 +5,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { CircleArrowRight, Menu, X, LoaderCircle } from 'lucide-react';
-import { basicSettingsAPI } from "@/services/apiClient/apiClient";
+import { basicSettingsAPI, getLanguageAPI } from "@/services/apiClient/apiClient";
 import styles from "./header.module.css";
+import { useLanguage } from "@/context/languageProvider/languageProvider";
 
 import logo from '@/public/images/logo/logo.png';
 
@@ -41,12 +42,16 @@ const header = {
 export default function Header() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    // const [language, setLanguage] = useState("es");
+    const { language, setLanguage } = useLanguage();
+    const [translation, setTranslation] = useState([]);
     const [languages, setLanguages] = useState([]);
-    const [selectedLanguage, setSelectedLanguage] = useState([]);
+    const [selectedLanguage, setSelectedLanguage] = useState(language);
     // const [selectedLanguage, setSelectedLanguage] = useState(() => {
     //     return localStorage.getItem("selectedLanguage") || "en";
     // });
     const [loading, setLoading] = useState(true);
+    const [langLoading, setLangLoading] = useState(true);
     const pathname = usePathname();
 
     useEffect(() => {
@@ -76,11 +81,31 @@ export default function Header() {
         fetchLanguages();
     }, []);
 
-    const handleLanguageChange = (event) => {
-        const newLang = event.target.value;
-        setSelectedLanguage(newLang);
-        localStorage.setItem("selectedLanguage", newLang);
-        onLanguageChange(newLang);
+    useEffect(() => {
+		const userLang = navigator.language.split("-")[0];
+		setLanguage(userLang);
+	}, []);
+
+    useEffect(() => {
+        setLangLoading(true);
+        const getLanguages = async () => {
+            try {
+                const response = await getLanguageAPI(language);
+                setTranslation(response.data?.data?.languages?.[0]?.translate_key_values || {});
+            } catch (error) {
+                toast.error("Server did not respond");
+            } finally {
+                setLangLoading(false);
+            }
+        };
+
+        getLanguages();
+    }, [language]);
+
+    const handleLanguageChange = (e) => {
+        const newLanguage = e.target.value;
+        setSelectedLanguage(newLanguage);
+        setLanguage(newLanguage);
     };
 
     return (
@@ -88,21 +113,22 @@ export default function Header() {
             <div className="custom-container-hero">
                 <div className="header-wrapper flex justify-between items-center">
                     <Link href="/" className="site-logo relative overflow-hidden">
-                        <Image src={header.image} 
+                        <Image src={header.image}
                             className="object-cover w-[100px] lg:w-[140px]" 
-                            width={140} 
+                            width={140}
                             alt="logo"
-                            priority={true} 
-                            quality={50}  
-                            decoding="async" 
+                            priority={true}
+                            quality={50}
+                            decoding="async"
                         />
                     </Link>
                     <ul className={`header-nav ${isMobileMenuOpen ? 'open' : ''} block lg:flex items-center lg:space-x-10`}>
                         {navLink.map(( link ) => {
                             const isActive = pathname == link.href;
+                            const translatedName = translation[link.name] || link.name;
                             return (
                                 <Link href={link.href} key={link.name} className={isActive ? styles.linkActive : styles.link}>
-                                    {link.name}
+                                    {translatedName}
                                 </Link>
                             );
                         })}

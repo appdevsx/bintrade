@@ -1,4 +1,5 @@
 import { DM_Sans } from "next/font/google";
+import { Alias } from "@/components/common/alias/alias";
 
 const inter = DM_Sans({ subsets: ["latin"] });
 

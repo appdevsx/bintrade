@@ -44,6 +44,71 @@ apiClient.interceptors.response.use(
     },
 );
 
+// Get Alias API (get)
+export const getAliasAPI = (language) => {
+    return apiClient.get(`/frontend/section/get-alias?lang=${language}`);
+};
+
+// Get Language API (get)
+export const getLanguageAPI = (language) => {
+    return apiClient.get(`/settings/languages?lang=${language}`);
+};
+
+// Get Banner API (get)
+export const getBannerAPI = (language) => {
+    return apiClient.get(`/frontend/section/banner-section?lang=${language}`);
+};
+
+// Get Feature API (get)
+export const getFeatureAPI = (language) => {
+    return apiClient.get(`/frontend/section/feature-section?lang=${language}`);
+};
+
+// Get Brand API (get)
+export const getBrandAPI = (language) => {
+    return apiClient.get(`/frontend/section/brand-section?lang=${language}`);
+};
+
+// Get Step API (get)
+export const getStepAPI = (language) => {
+    return apiClient.get(`/frontend/section/step-section?lang=${language}`);
+};
+
+// Get Choose API (get)
+export const getChooseAPI = (language) => {
+    return apiClient.get(`/frontend/section/why-choose-us-section?lang=${language}`);
+};
+
+// Get Download App API (get)
+export const getDownloadAppAPI = (language) => {
+    return apiClient.get(`/frontend/section/download-app-section?lang=${language}`);
+};
+
+// Get About API (get)
+export const getAboutAPI = (language) => {
+    return apiClient.get(`/frontend/section/about-us-section?lang=${language}`);
+};
+
+// Get Testimonial API (get)
+export const getTestimonialAPI = (language) => {
+    return apiClient.get(`/frontend/section/client-feedback-section?lang=${language}`);
+};
+
+// Get Service API (get)
+export const getServiceAPI = (language) => {
+    return apiClient.get(`/frontend/section/services-section?lang=${language}`);
+};
+
+// Get Contact API (get)
+export const getContactAPI = (language) => {
+    return apiClient.get(`/frontend/section/contact-us-section?lang=${language}`);
+};
+
+// Get Footer API (get)
+export const getFooterAPI = (language) => {
+    return apiClient.get(`/frontend/section/footer-section?lang=${language}`);
+};
+
 // Basic Settings API (get)
 export const basicSettingsAPI = (language) => {
     return apiClient.get(`/settings/basic-settings?lang=${language}`);
@@ -67,6 +132,11 @@ export const getUsefullDetailsTwoAPI = () => {
 // Fetch Blogs API (get)
 export const getBlogsAPI = (language) => {
     return apiClient.get(`/frontend/section/blogs?lang=${language}`);
+};
+
+// Fetch Blog Details API (get)
+export const getBlogDetailsAPI = (slug, language) => {
+    return apiClient.get(`/frontend/section/blogs/details/${slug}?lang=${language}`);
 };
 
 // Contact API (post)
@@ -442,7 +512,7 @@ export const storeOrderAPI = (investAmount, time, actionType, symbol, currentTim
     });
 };
 
-// Submit Order API (post)
+// Order Result API (post)
 export const submitOrderAPI = (orderID) => {
     const token = getToken();
     if (!token) {
@@ -813,11 +883,6 @@ export const getEnvatoCategoriesAPI = () => {
 // Fetch Products API (get)
 export const getProductsAPI = (pageSize, currentPage, searchQuery, queryParams) => {
     return apiClient.get(`/products/envato?page_size=${pageSize}&page=${currentPage}&term=${searchQuery}${queryParams}`);
-};
-
-// Fetch Blog Details API (get)
-export const getBlogDetailsAPI = (slug, language) => {
-    return apiClient.get(`/blogs/details/${slug}?lang=${language}`);
 };
 
 // Fetch Gateway Info API (get)
