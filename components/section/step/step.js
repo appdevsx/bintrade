@@ -5,45 +5,19 @@ import { getStepAPI } from "@/services/apiClient/apiClient";
 import styles from "./step.module.css";
 import { CircleArrowRight } from 'lucide-react';
 import Image from "next/image";
-
-import stepOne from '@/public/images/step/step-1.webp';
-import stepTwo from '@/public/images/step/step-2.webp';
-
-const stepItems = [
-    {
-        subTitleNumber: '1',
-        subTitleInfo: 'Make Trading',
-        title: 'If trading was never an option for you before',
-    },
-    {
-        subTitleNumber: '2',
-        subTitleInfo: 'Make Deposite',
-        title: 'If trading was never an option for you before',
-        image: stepOne,
-    },
-    {
-        subTitleNumber: '3',
-        subTitleInfo: 'Make Payout',
-        title: 'If trading was never an option for you before',
-        image: stepTwo,
-    },
-    {
-        subTitleNumber: '4',
-        subTitleInfo: 'Make Practice',
-        title: 'If trading was never an option for you before',
-    }
-]
+import { useLanguage } from "@/context/languageProvider/languageProvider";
 
 export default function Step() {
     const [step, setStep] = useState([]);
     const [imagePaths, setImagePaths] = useState({});
     const [loading, setLoading] = useState(false);
+    const { language } = useLanguage();
 
     useEffect(() => {
         setLoading(true);
         const fetchStep = async () => {
             try {
-                const response = await getStepAPI();
+                const response = await getStepAPI(language);
                 setStep(response.data?.data?.section);
                 setImagePaths(response.data?.data?.image_paths);
             } catch (error) {
@@ -54,7 +28,7 @@ export default function Step() {
         };
 
         fetchStep();
-    }, []);
+    }, [language]);
 
     return (
         <section className="step-section py-20">

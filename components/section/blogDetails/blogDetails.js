@@ -4,6 +4,7 @@ import { Toaster, toast } from "react-hot-toast";
 import Link from "next/link";
 import Image from "next/image";
 import { getBlogDetailsAPI } from "@/services/apiClient/apiClient";
+import { useLanguage } from "@/context/languageProvider/languageProvider";
 
 const blogSocials = [
     {
@@ -22,7 +23,7 @@ const blogSocials = [
 
 export default function BlogDetails({ slug }) {
     const [blogDetails, setBlogDetails] = useState([]);
-    const [language, setLanguage] = useState("en");
+    const { language } = useLanguage();
     const [imagePaths, setImagePaths] = useState({});
 	const [loading, setLoading] = useState(false);
 

@@ -6,10 +6,7 @@ import Link from "next/link";
 import { CircleArrowRight } from 'lucide-react';
 import Image from "next/image";
 import { getBlogsAPI } from "@/services/apiClient/apiClient";
-
-import blogOne from '@/public/images/blog/blog-1.webp';
-import blogTwo from '@/public/images/blog/blog-2.webp';
-import blogThree from '@/public/images/blog/blog-3.webp';
+import { useLanguage } from "@/context/languageProvider/languageProvider";
 
 const sectionHeader = {
     sectionSubTitle: 'Posts',
@@ -19,40 +16,17 @@ const sectionHeader = {
     sectionDescription: 'In the rest of this article, we discuss how to set up your payments strategy to optimize every transaction.',
 }
 
-const blogItems = [
-    {
-        image: blogOne,
-        date: '15th July, 2024',
-        title: '2023 review: Milestones we’re proud of 🌟',
-        description: 'It’s been 9 years since we entered the market, and we’ve achieved so much with BinTrade. We’re focused on improving our platform to make a positive impact on traders and the world around. Here’s how 2023 went.',
-		button: 'Read more',
-    },
-    {
-        image: blogTwo,
-        date: '15th July, 2024',
-        title: '2023 review: Milestones we’re proud of 🌟',
-        description: 'It’s been 9 years since we entered the market, and we’ve achieved so much with BinTrade. We’re focused on improving our platform to make a positive impact on traders and the world around. Here’s how 2023 went.',
-		button: 'Read more',
-    },
-    {
-        image: blogThree,
-        date: '15th July, 2024',
-        title: '2023 review: Milestones we’re proud of 🌟',
-        description: 'It’s been 9 years since we entered the market, and we’ve achieved so much with BinTrade. We’re focused on improving our platform to make a positive impact on traders and the world around. Here’s how 2023 went.',
-		button: 'Read more',
-    }
-]
-
 export default function Blog() {
 	const [blogs, setBlogs] = useState([]);
 	const [imagePaths, setImagePaths] = useState({});
 	const [loading, setLoading] = useState(false);
+	const { language } = useLanguage();
 
 	useEffect(() => {
 		setLoading(true);
 		const fetchBlogs = async () => {
 			try {
-				const response = await getBlogsAPI();
+				const response = await getBlogsAPI(language);
 				setBlogs(response.data?.data?.journals?.data || []);
 				setImagePaths(response.data?.data?.image_paths);
 			} catch (error) {
@@ -63,7 +37,7 @@ export default function Blog() {
 		};
 
 		fetchBlogs();
-	}, []);
+	}, [language]);
 
     return (
 		<section className="blog-section py-20">

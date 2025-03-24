@@ -3,47 +3,20 @@ import { useState, useEffect } from 'react';
 import { Toaster, toast } from "react-hot-toast";
 import { getServiceAPI } from "@/services/apiClient/apiClient";
 import styles from "./service.module.css";
-import { AlignStartVertical } from 'lucide-react';
-import { CalendarClock } from 'lucide-react';
-import { AlignHorizontalDistributeCenter } from 'lucide-react';
 import Image from "next/image";
-
-const sectionHeader = {
-    sectionSubTitle: 'Service',
-    sectionTitleLeft: 'The',
-    sectionTitleMain: 'Services',
-    sectionTitleRight: 'we publish is specifically designed to meet your needs.',
-    sectionDescription: 'In the rest of this article, we discuss how to set up your payments strategy to optimize every transaction.',
-}
-
-const serviceItems = [
-    {
-        title: 'Demo Account',
-        icon: <AlignStartVertical />,
-        description: 'We employ state-of-the-art encryption and security protocols to ensure your financial data is protected at all times. You can use mobile to pay with simple steps.',
-    },
-    {
-        title: 'Fixed time traders',
-        icon: <CalendarClock />,
-        description: 'We employ state-of-the-art encryption and security protocols to ensure your financial data is protected at all times. You can use mobile to pay with simple steps.',
-    },
-    {
-        title: 'Stock trading',
-        icon: <AlignHorizontalDistributeCenter />,
-        description: 'We employ state-of-the-art encryption and security protocols to ensure your financial data is protected at all times. You can use mobile to pay with simple steps.',
-    }
-]
+import { useLanguage } from "@/context/languageProvider/languageProvider";
 
 export default function Service() {
     const [service, setService] = useState([]);
     const [imagePaths, setImagePaths] = useState({});
     const [loading, setLoading] = useState(false);
+    const { language } = useLanguage();
 
     useEffect(() => {
         setLoading(true);
         const fetchService = async () => {
             try {
-                const response = await getServiceAPI();
+                const response = await getServiceAPI(language);
                 setService(response.data?.data?.section);
                 setImagePaths(response.data?.data?.image_paths);
             } catch (error) {
@@ -54,7 +27,7 @@ export default function Service() {
         };
 
         fetchService();
-    }, []);
+    }, [language]);
 
     return (
 		<section className="service-section py-20">

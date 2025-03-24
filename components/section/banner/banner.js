@@ -12,13 +12,7 @@ export default function Banner() {
 	const [banner, setBanner] = useState([]);
 	const [imagePaths, setImagePaths] = useState({});
 	const [loading, setLoading] = useState(false);
-	// const [language, setLanguage] = useState([]);
 	const { language } = useLanguage();
-
-	// useEffect(() => {
-	// 	const userLang = navigator.language.split("-")[0];
-	// 	setLanguage(userLang);
-	// }, []);
 
   	useEffect(() => {
 		setLoading(true);
@@ -46,14 +40,13 @@ export default function Banner() {
 		}
 	};
 
-	const isRTL = ["ar", "he", "fa", "ur"].includes(language);
-
 	const imageUrl = banner?.image
 		? `${imagePaths?.base_url}/${imagePaths?.path_location}/${banner.image}`
 		: `${imagePaths?.base_url}/${imagePaths?.default_image}`;
 
 	return (
-		<section className={styles.bannerSection} dir={isRTL ? "rtl" : "ltr"}>
+		<section className={styles.bannerSection}>
+			{language === "ar" && <div className="absolute inset-0 bg-black/50 z-[-1]"></div>}
 			{loading ? (
 				<div className="h-full w-full absolute top-0 left-0 flex items-center justify-center bg-gray-700 animate-pulse">
 					<LoaderCircle className="inline-block w-10 h-auto animate-spin text-[#cbd5e1] relative left-[200px]" />

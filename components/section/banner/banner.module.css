@@ -12,7 +12,11 @@
     z-index: -5;
 }
 .subTitle{
-    @apply text-white block text-base md:text-lg mb-4 relative pl-8 font-medium
+    @apply text-white block text-base md:text-lg mb-4 relative pl-8 font-medium;
+}
+:global(.rtl) .subTitle {
+    padding-left: 0;
+    @apply pr-8;
 }
 .subTitle::before{
     position: absolute;
@@ -24,11 +28,21 @@
     height: 2px;
     background-color: #2e7eff;
 }
+:global(.rtl) .subTitle::before {
+    left: auto;
+    right: 0;
+}
 .description{
     color: #ffffff;
     font-size: 17px;
     padding-left: 20px;
     border-left: 2px solid #2e7eff;
+}
+:global(.rtl) .description {
+    padding-left: 0;
+    border-left: none;
+    padding-right: 20px;
+    border-right: 2px solid #2e7eff;
 }
 @media only screen and (max-width: 767px){
     .description{

@@ -6,45 +6,19 @@ import styles from "./downloadApp.module.css";
 import Image from "next/image";
 import Link from "next/link";
 import { CircleArrowRight } from 'lucide-react';
-import { Apple } from 'lucide-react';
-import { Airplay } from 'lucide-react';
-
-import app from '@/public/images/app/app.webp';
-
-const sectionHeader = {
-    sectionSubTitle: 'App',
-    sectionTitleLeft: 'Download and Register From Mobile',
-    sectionTitleMain: 'App',
-    sectionDescription: 'In the rest of this article, we discuss how to set up your payments strategy to optimize every transaction.',
-}
-
-const appItems = [
-    {
-        icon: <Airplay />,
-        title: 'Download on Play Store',
-        description: 'Work with the pro, talented people at the most affordable price to get the most out of your time and cost using mobile apps.',
-        button: 'On play store',
-        image: app,
-    },
-    {
-        icon: <Apple />,
-        title: 'Download on App Store',
-        description: 'Work with the pro, talented people at the most affordable price to get the most out of your time and cost using mobile apps.',
-        button: 'On App store',
-        image: app,
-    }
-]
+import { useLanguage } from "@/context/languageProvider/languageProvider";
 
 export default function DownloadApp() {
     const [downloadApp, setDownloadApp] = useState([]);
     const [imagePaths, setImagePaths] = useState({});
     const [loading, setLoading] = useState(false);
+    const { language } = useLanguage();
 
     useEffect(() => {
         setLoading(true);
         const fetchDownloadApp = async () => {
             try {
-                const response = await getDownloadAppAPI();
+                const response = await getDownloadAppAPI(language);
                 setDownloadApp(response.data?.data?.section);
                 setImagePaths(response.data?.data?.image_paths);
             } catch (error) {
@@ -55,7 +29,7 @@ export default function DownloadApp() {
         };
 
         fetchDownloadApp();
-    }, []);
+    }, [language]);
 
     return (
         <section className="app-section py-20">

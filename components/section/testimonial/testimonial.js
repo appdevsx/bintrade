@@ -8,71 +8,19 @@ import 'swiper/css/free-mode';
 import { FreeMode, Autoplay } from 'swiper/modules';
 import Image from "next/image";
 import styles from "./testimonial.module.css";
-
-import userOne from '@/public/images/user/user-1.webp';
-import userTwo from '@/public/images/user/user-2.webp';
-import userThree from '@/public/images/user/user-3.webp';
-import userFour from '@/public/images/user/user-4.webp';
-import userFive from '@/public/images/user/user-1.webp';
-import userSix from '@/public/images/user/user-2.webp';
-
-const sectionHeader = {
-    sectionSubTitle: 'Testimonial',
-    sectionTitleLeft: 'People’s',
-    sectionTitleMain: 'Say',
-    sectionTitleRight: 'About Our Pannel',
-    sectionDescription: 'In the rest of this article, we discuss how to set up your payments strategy to optimize every transaction.',
-}
-
-const testimonialItems = [
-    {
-        description: "“ Investing in startups or early-stage companies can offer significant potential returns, but it also comes with higher risk due to the volatility of young businesses. “",
-        userImage: userOne,
-        userTitle: "Crystal Logan",
-        userSubTitle: "22y, Naperville",
-    },
-    {
-        description: "“ Investing in startups or early-stage companies can offer significant potential returns, but it also comes with higher risk due to the volatility of young businesses. “",
-        userImage: userTwo,
-        userTitle: "Crystal Logan",
-        userSubTitle: "22y, Naperville",
-    },
-    {
-        description: "“ Investing in startups or early-stage companies can offer significant potential returns, but it also comes with higher risk due to the volatility of young businesses. “",
-        userImage: userThree,
-        userTitle: "Crystal Logan",
-        userSubTitle: "22y, Naperville",
-    },
-    {
-        description: "“ Investing in startups or early-stage companies can offer significant potential returns, but it also comes with higher risk due to the volatility of young businesses. “",
-        userImage: userFour,
-        userTitle: "Crystal Logan",
-        userSubTitle: "22y, Naperville",
-    },
-    {
-        description: "“ Investing in startups or early-stage companies can offer significant potential returns, but it also comes with higher risk due to the volatility of young businesses. “",
-        userImage: userFive,
-        userTitle: "Crystal Logan",
-        userSubTitle: "22y, Naperville",
-    },
-    {
-        description: "“ Investing in startups or early-stage companies can offer significant potential returns, but it also comes with higher risk due to the volatility of young businesses. “",
-        userImage: userSix,
-        userTitle: "Crystal Logan",
-        userSubTitle: "22y, Naperville",
-    },
-]
+import { useLanguage } from "@/context/languageProvider/languageProvider";
 
 export default function Testimonial() {
     const [testimonial, setTestimonial] = useState([]);
     const [imagePaths, setImagePaths] = useState({});
     const [loading, setLoading] = useState(false);
+    const { language } = useLanguage();
 
     useEffect(() => {
         setLoading(true);
         const fetchTestimonial = async () => {
             try {
-                const response = await getTestimonialAPI();
+                const response = await getTestimonialAPI(language);
                 setTestimonial(response.data?.data?.section);
                 setImagePaths(response.data?.data?.image_paths);
             } catch (error) {
@@ -83,7 +31,7 @@ export default function Testimonial() {
         };
 
         fetchTestimonial();
-    }, []);
+    }, [language]);
 
     return (
         <section className="testimonial-section py-20">

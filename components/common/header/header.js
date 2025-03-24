@@ -122,7 +122,7 @@ export default function Header() {
                             decoding="async"
                         />
                     </Link>
-                    <ul className={`header-nav ${isMobileMenuOpen ? 'open' : ''} block lg:flex items-center lg:space-x-10`}>
+                    <ul className={`header-nav ${isMobileMenuOpen ? 'open' : ''} block lg:flex items-center ${language === 'ar' ? 'lg:space-x-reverse lg:space-x-10' : 'lg:space-x-10'}`}>
                         {navLink.map(( link ) => {
                             const isActive = pathname == link.href;
                             const translatedName = translation[link.name] || link.name;
@@ -133,7 +133,7 @@ export default function Header() {
                             );
                         })}
                     </ul>
-                    <div className="header-action-wrapper flex items-center space-x-3">
+                    <div className={`header-action-wrapper flex items-center ${language === 'ar' ? 'lg:space-x-reverse lg:space-x-3' : 'lg:space-x-3'}`}>
                         <div>
                             {loading ? (
                                 <div className="animate-pulse">

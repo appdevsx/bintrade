@@ -7,69 +7,19 @@ import 'swiper/css';
 import 'swiper/css/free-mode';
 import { FreeMode, Autoplay } from 'swiper/modules';
 import Image from "next/image";
-
-import brandOne from '@/public/images/brand/brand-1.svg';
-import brandTwo from '@/public/images/brand/brand-2.svg';
-import brandThree from '@/public/images/brand/brand-3.svg';
-import brandFour from '@/public/images/brand/brand-4.svg';
-import brandFive from '@/public/images/brand/brand-1.svg';
-import brandSix from '@/public/images/brand/brand-2.svg';
-
-const brandHeader = {
-    titleLeft: 'Over 1500 companies trust',
-    titleMain: 'Fintech',
-    titleRight: 'for bussines.',
-}
-
-const brandItems = [
-    {
-        image: brandOne,
-    },
-    {
-        image: brandTwo,
-    },
-    {
-        image: brandThree,
-    },
-    {
-        image: brandFour,
-    },
-    {
-        image: brandFive,
-    },
-    {
-        image: brandSix,
-    },
-    {
-        image: brandOne,
-    },
-    {
-        image: brandTwo,
-    },
-    {
-        image: brandThree,
-    },
-    {
-        image: brandFour,
-    },
-    {
-        image: brandFive,
-    },
-    {
-        image: brandSix,
-    }
-]
+import { useLanguage } from "@/context/languageProvider/languageProvider";
 
 export default function Brand() {
     const [brand, setBrand] = useState([]);
     const [imagePaths, setImagePaths] = useState({});
     const [loading, setLoading] = useState(false);
+    const { language } = useLanguage();
 
     useEffect(() => {
         setLoading(true);
         const fetchBrand = async () => {
             try {
-                const response = await getBrandAPI();
+                const response = await getBrandAPI(language);
                 setBrand(response.data?.data?.section);
                 setImagePaths(response.data?.data?.image_paths);
             } catch (error) {
@@ -80,7 +30,7 @@ export default function Brand() {
         };
 
         fetchBrand();
-    }, []);
+    }, [language]);
 
     return (
         <section className="brand-section gradient--bg py-20">

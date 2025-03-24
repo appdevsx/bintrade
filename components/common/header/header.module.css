@@ -2,6 +2,10 @@
     font-size: 14px;
     @apply py-6 font-semibold text-white relative z-10 transition-all pl-3
 }
+:global(.rtl) .link {
+    padding-left: 0;
+    @apply pr-3;
+}
 @media only screen and (max-width: 1023px){
     .link{
         @apply block py-3
@@ -9,6 +13,10 @@
 }
 .linkActive{
     @apply py-6 font-semibold text--base relative z-10 transition-all pl-3
+}
+:global(.rtl) .linkActive {
+    padding-left: 0;
+    @apply pr-3;
 }
 @media only screen and (max-width: 1023px){
     .linkActive{
@@ -28,6 +36,10 @@
     transition: all 0.5s;
     z-index: -1;
 }
+:global(.rtl) .link::before {
+    left: auto;
+    right: 0;
+}
 .linkActive::before{
     position: absolute;
     content: "";
@@ -41,6 +53,10 @@
     transition: all 0.5s;
     z-index: -1;
 }
+:global(.rtl) .linkActive::before {
+    left: auto;
+    right: 0;
+}
 .linkActive::after{
     position: absolute;
     content: "";
@@ -53,6 +69,10 @@
     border-radius: 30px;
     transition: all 0.5s;
     z-index: -1;
+}
+:global(.rtl) .linkActive::after {
+    left: auto;
+    right: 0;
 }
 .text--base{
 	color: #2e71e5;

@@ -4,17 +4,19 @@ import { Toaster, toast } from "react-hot-toast";
 import { getAboutAPI } from "@/services/apiClient/apiClient";
 import styles from "./about.module.css";
 import Image from "next/image";
+import { useLanguage } from "@/context/languageProvider/languageProvider";
 
 export default function About() {
 	const [about, setAbout] = useState({});
 	const [imagePaths, setImagePaths] = useState({});
 	const [loading, setLoading] = useState(false);
+	const { language } = useLanguage();
 
 	useEffect(() => {
 		setLoading(true);
 		const fetchAbout = async () => {
 			try {
-				const response = await getAboutAPI();
+				const response = await getAboutAPI(language);
 				setAbout(response.data?.data?.section);
 				setImagePaths(response.data?.data?.image_paths);
 			} catch (error) {
@@ -25,7 +27,7 @@ export default function About() {
 		};
 
 		fetchAbout();
-	}, []);
+	}, [language]);
 
 	const imageUrl = about?.image 
 	  ? `${imagePaths?.base_url}/${imagePaths?.path_location}/${about.image}`

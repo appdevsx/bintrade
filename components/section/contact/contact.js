@@ -4,6 +4,7 @@ import { Toaster, toast } from "react-hot-toast";
 import styles from "./contact.module.css";
 import { ArrowRightToLine, LoaderCircle } from 'lucide-react';
 import { contactAPI, getContactAPI } from "@/services/apiClient/apiClient";
+import { useLanguage } from "@/context/languageProvider/languageProvider";
 
 const contactForm = {
     title: 'Tell us about yourself',
@@ -20,6 +21,7 @@ export default function Contact() {
     const [message, setMessage] = useState("");
     const [contact, setContact] = useState([]);
     const [loading, setLoading] = useState(false);
+    const { language } = useLanguage();
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -44,7 +46,7 @@ export default function Contact() {
         setLoading(true);
         const fetchContact = async () => {
             try {
-                const response = await getContactAPI();
+                const response = await getContactAPI(language);
                 setContact(response.data?.data?.section);
             } catch (error) {
                 toast.error("Server did not respond");
@@ -54,7 +56,7 @@ export default function Contact() {
         };
 
         fetchContact();
-    }, []);
+    }, [language]);
 
     return (
 		<section className="contact-section relative z-1 py-20">

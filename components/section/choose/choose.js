@@ -4,43 +4,19 @@ import { Toaster, toast } from "react-hot-toast";
 import { getChooseAPI } from "@/services/apiClient/apiClient";
 import styles from "./choose.module.css";
 import Image from "next/image";
-
-import choose from '@/public/images/choose/choose.webp';
-import chooseElementOne from '@/public/images/choose/choose-element-1.webp';
-import chooseElementTwo from '@/public/images/choose/choose-element-2.webp';
-
-const sectionHeader = {
-    sectionSubTitle: 'Why choose BinTrade',
-    sectionTitleLeft: 'Finances Through Secure',
-    sectionTitleMain: 'Trading',
-    sectionTitleRight: 'Practices',
-}
-
-const chooseItems = [
-    {
-        image: chooseElementOne,
-        title: '190+ Forex pairs, including majors, minors, exotics, crypto and spot metals',
-    },
-    {
-        image: chooseElementTwo,
-        title: '50+ technical indicators, integrated trade signals and innovative risk mitigation tools',
-    }
-]
-
-const chooseWrapper = {
-    image: choose,
-}
+import { useLanguage } from "@/context/languageProvider/languageProvider";
 
 export default function Choose() {
     const [choose, setChoose] = useState([]);
     const [imagePaths, setImagePaths] = useState({});
     const [loading, setLoading] = useState(false);
+    const { language } = useLanguage();
 
     useEffect(() => {
         setLoading(true);
         const fetchChoose = async () => {
             try {
-                const response = await getChooseAPI();
+                const response = await getChooseAPI(language);
                 setChoose(response.data?.data?.section);
                 setImagePaths(response.data?.data?.image_paths);
             } catch (error) {
@@ -51,7 +27,7 @@ export default function Choose() {
         };
 
         fetchChoose();
-    }, []);
+    }, [language]);
 
     const imageUrl = choose?.image 
 	  ? `${imagePaths?.base_url}/${imagePaths?.path_location}/${choose.image}`

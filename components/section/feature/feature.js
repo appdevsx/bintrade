@@ -4,38 +4,19 @@ import { Toaster, toast } from "react-hot-toast";
 import { getFeatureAPI } from "@/services/apiClient/apiClient";
 import styles from "./feature.module.css";
 import Image from "next/image";
-import { WalletCards } from 'lucide-react';
-import { LockKeyhole } from 'lucide-react';
-import { MessageSquareDot } from 'lucide-react';
-
-const featureItems = [
-    {
-        icon: <WalletCards />,
-        title: 'Demo Account',
-        description: 'We employ state-of-the-art encryption and security protocols to ensure your financial data is protected at all times.',
-    },
-    {
-        icon: <LockKeyhole />,
-        title: 'Ready-to-go Strategies',
-        description: 'You can use mobile device to pay with simple steps in value. Compellingly pay with simple steps in value',
-    },
-    {
-        icon: <MessageSquareDot />,
-        title: 'Online Payment',
-        description: 'You can use mobile device to pay with simple steps in value. Compellingly pay with simple steps in value',
-    }
-]
+import { useLanguage } from "@/context/languageProvider/languageProvider";
 
 export default function Feature() {
     const [feature, setFeature] = useState([]);
     const [imagePaths, setImagePaths] = useState({});
 	const [loading, setLoading] = useState(false);
+    const { language } = useLanguage();
 
 	useEffect(() => {
 		setLoading(true);
 		const fetchFeature = async () => {
 			try {
-				const response = await getFeatureAPI();
+				const response = await getFeatureAPI(language);
 				setFeature(response.data?.data?.section);
                 setImagePaths(response.data?.data?.image_paths);
 			} catch (error) {
@@ -46,7 +27,7 @@ export default function Feature() {
 		};
 
 		fetchFeature();
-	}, []);
+	}, [language]);
 
     return (
         <section className="feature-section py-20">
