@@ -6,6 +6,7 @@ import Image from "next/image";
 import Button from "../button/button";
 import { ArrowRightToLine, LoaderCircle } from 'lucide-react';
 import { newsletterAPI, getUsefullLinksAPI, getFooterAPI } from "@/services/apiClient/apiClient";
+import { useLanguage } from "@/context/languageProvider/languageProvider";
 
 import logo from '@/public/images/logo/logo.png';
 
@@ -97,6 +98,7 @@ export default function Footer() {
     const [links, setLinks] = useState([]);
     const [footer, setFooter] = useState([]);
     const [loading, setLoading] = useState(false);
+    const { language } = useLanguage();
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -230,13 +232,13 @@ export default function Footer() {
                             <div className="footer-widget">
                                 <h4 className="widget-title text-lg font-bold mb-2.5 text-white">{footer.newsletter_title}</h4>
                                 <p className="text-sm text-slate-300">{footer.newsletter_desc}</p>
-                                <form className="flex space-x-2 mt-4" onSubmit={handleSubmit}>
+                                <form className={`flex ${language === 'ar' ? 'lg:space-x-reverse lg:space-x-2' : 'lg:space-x-2'} mt-4`} onSubmit={handleSubmit}>
                                     <input type="email" name="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Type email here..." className="w-full h-10 text-xs font-medium rounded-md shadow-sm border-slate-800 text-slate-300 bg-slate-900" required></input>
                                     <Button type="submit" size="xs" disabled={loading}>
                                         {loading ? (
                                         <LoaderCircle className="animate-spin text-4xl" />
                                             ) : (
-                                            <ArrowRightToLine />
+                                            <ArrowRightToLine className={`${language === 'ar' ? 'transform rotate-[180deg]' : 'transform rotate-[0]'}`} />
                                         )}
                                     </Button>
                                 </form>

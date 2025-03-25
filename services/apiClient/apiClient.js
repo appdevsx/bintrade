@@ -99,6 +99,16 @@ export const getServiceAPI = (language) => {
     return apiClient.get(`/frontend/section/services-section?lang=${language}`);
 };
 
+// Get Announcement API (get)
+export const getAnnouncementAPI = (language) => {
+    return apiClient.get(`/frontend/section/announcement-section?lang=${language}`);
+};
+
+// Get Faq API (get)
+export const getFaqAPI = (language) => {
+    return apiClient.get(`/frontend/section/faq-section?lang=${language}`);
+};
+
 // Get Contact API (get)
 export const getContactAPI = (language) => {
     return apiClient.get(`/frontend/section/contact-us-section?lang=${language}`);

@@ -86,7 +86,7 @@ export default function DownloadApp() {
                                                 <Link className="customBtn" href="/login">Download App <CircleArrowRight /></Link>
                                             </div>
                                         </div>
-                                        <div className="app-thumb relative lg:absolute bottom-[-30px] lg:bottom-0 lg:right-10">
+                                        <div className={`app-thumb relative lg:absolute bottom-[-30px] lg:bottom-0 ${language === 'ar' ? 'lg:left-10' : 'lg:right-10'}`}>
                                             {imageUrl && (
                                                 <Image src={imageUrl} 
                                                     className="object-cover"

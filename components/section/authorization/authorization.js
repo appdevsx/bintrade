@@ -7,6 +7,7 @@ import Image from "next/image";
 import { Toaster, toast } from "react-hot-toast";
 import { ArrowRightToLine, ArrowBigLeftDash, LoaderCircle } from 'lucide-react';
 import { authorizationCodeAPI, resendAuthorizationCodeAPI } from "@/services/apiClient/apiClient";
+import { useLanguage } from "@/context/languageProvider/languageProvider";
 
 import logo from '@/public/images/logo/favicon.png';
 
@@ -30,6 +31,7 @@ export default function Authorization() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const token = searchParams.get("token");
+    const { language } = useLanguage();
 
     useEffect(() => {
         const storedCountdown = localStorage.getItem("countdown");
@@ -110,8 +112,8 @@ export default function Authorization() {
 		<section className="account-section relative overflow-hidden">
             <Toaster reverseOrder={false} theme="dark" />
             <div className={styles.accountElement}></div>
-            <div className="back-to-home-btn absolute top-5 left-5">
-                <Link href="/" className="custom--btn--bg inline-flex items-center gap-2 text-white font-semibold rounded-md transition-all hover:bg-blue-700 px-6 py-2 text-sm custom--shadow"><ArrowBigLeftDash /> {accountWrapper.backButton}</Link>
+            <div className={`back-to-home-btn absolute top-5 ${language === 'ar' ? 'right-5' : 'left-5'}`}>
+                <Link href="/" className="custom--btn--bg inline-flex items-center gap-2 text-white font-semibold rounded-md transition-all hover:bg-blue-700 px-6 py-2 text-sm custom--shadow"><ArrowBigLeftDash className={`${language === 'ar' ? 'transform rotate-[180deg]' : 'transform rotate-[0]'}`} /> {accountWrapper.backButton}</Link>
             </div>
             <div className="account-section-inner min-h-screen flex justify-center items-center py-20 px-3.5">
                 <div className={styles.accountWrapper}>
@@ -137,7 +139,7 @@ export default function Authorization() {
                             </div>
                             <div className="form-group mb-2">
                                 {canResend ? (
-                                    <span className="text-sm block text-end">
+                                    <span className={`text-sm block ${language === 'ar' ? 'text-start' : 'text-end'}`}>
                                         Didn&apos;t get the code?{" "}
                                         <button
                                             type="button"
@@ -153,7 +155,7 @@ export default function Authorization() {
                                         </button>
                                     </span>
                                 ) : (
-                                    <span className="text-small__font block text-end">
+                                    <span className={`text-small__font block ${language === 'ar' ? 'text-start' : 'text-end'}`}>
                                     You can resend the code after{" "}
                                     <span className="font-semibold text-red-400">
                                         {countdown}s
@@ -167,7 +169,7 @@ export default function Authorization() {
                                 ) : (
                                     <>
                                         {accountWrapper.accountButton} 
-                                        <ArrowRightToLine />
+                                        <ArrowRightToLine className={`${language === 'ar' ? 'transform rotate-[180deg]' : 'transform rotate-[0]'}`} />
                                     </>
                                 )}
                             </button>

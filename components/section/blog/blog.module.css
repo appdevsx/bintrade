@@ -24,10 +24,18 @@
     width: calc(100% - 70%);
     margin-left: 80px;
 }
+:global(.rtl) .blogContent {
+    margin-left: 0;
+    margin-right: 80px;
+}
 @media only screen and (max-width: 1023px){
     .blogContent{
         width: calc(100% - 60%);
         margin-left: 50px;
+    }
+    :global(.rtl) .blogContent {
+        margin-left: 0;
+        margin-right: 50px;
     }
 }
 @media only screen and (max-width: 767px){
@@ -36,21 +44,35 @@
         margin-left: 0;
         margin-top: 20px;
     }
+    :global(.rtl) .blogContent {
+        margin-right: 0;
+    }
 }
 .blogItem:nth-child(even) .blogContent{
     margin-left: 0;
     margin-right: 80px;
     text-align: right;
 }
+:global(.rtl) .blogItem:nth-child(even) .blogContent {
+    margin-right: 0;
+    margin-left: 80px;
+}
 @media only screen and (max-width: 1023px){
     .blogItem:nth-child(even) .blogContent{
         margin-right: 50px;
+    }
+    :global(.rtl) .blogItem:nth-child(even) .blogContent {
+        margin-right: 0;
+        margin-left: 50px;
     }
 }
 @media only screen and (max-width: 767px){
     .blogItem:nth-child(even) .blogContent{
         margin-right: 0;
         text-align: left;
+    }
+    :global(.rtl) .blogItem:nth-child(even) .blogContent {
+        margin-right: 0;
     }
 }
 .customBtn{
@@ -65,4 +87,7 @@
 }
 .blogItem:nth-child(even) .customBtn{
     justify-content: flex-end;
+}
+:global(.rtl) .blogItem:nth-child(even) .customBtn {
+    justify-content: flex-start;
 }

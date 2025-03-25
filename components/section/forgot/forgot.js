@@ -7,6 +7,7 @@ import Image from "next/image";
 import { Toaster, toast } from "react-hot-toast";
 import { ArrowRightToLine, ArrowBigLeftDash, LoaderCircle } from 'lucide-react';
 import { sendOtpVerificationAPI } from "@/services/apiClient/apiClient";
+import { useLanguage } from "@/context/languageProvider/languageProvider";
 
 import logo from '@/public/images/logo/favicon.png';
 
@@ -25,6 +26,7 @@ export default function Forgot() {
     const router = useRouter();
     const [credentials, setCredentials] = useState("");
     const [loading, setLoading] = useState(false);
+    const { language } = useLanguage();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -54,8 +56,8 @@ export default function Forgot() {
 		<section className="account-section relative overflow-hidden">
             <Toaster reverseOrder={false} theme="dark" />
             <div className={styles.accountElement}></div>
-            <div className="back-to-home-btn absolute top-5 left-5">
-                <Link href="/" className="custom--btn--bg inline-flex items-center gap-2 text-white font-semibold rounded-md transition-all hover:bg-blue-700 px-6 py-2 text-sm custom--shadow"><ArrowBigLeftDash /> {accountWrapper.backButton}</Link>
+            <div className={`back-to-home-btn absolute top-5 ${language === 'ar' ? 'right-5' : 'left-5'}`}>
+                <Link href="/" className="custom--btn--bg inline-flex items-center gap-2 text-white font-semibold rounded-md transition-all hover:bg-blue-700 px-6 py-2 text-sm custom--shadow"><ArrowBigLeftDash className={`${language === 'ar' ? 'transform rotate-[180deg]' : 'transform rotate-[0]'}`} /> {accountWrapper.backButton}</Link>
             </div>
             <div className="account-section-inner min-h-screen flex justify-center items-center py-20 px-3.5">
                 <div className={styles.accountWrapper}>
@@ -85,7 +87,7 @@ export default function Forgot() {
                                 ) : (
                                     <>
                                         {accountWrapper.accountButton} 
-                                        <ArrowRightToLine />
+                                        <ArrowRightToLine className={`${language === 'ar' ? 'transform rotate-[180deg]' : 'transform rotate-[0]'}`} />
                                     </>
                                 )}
                             </button>

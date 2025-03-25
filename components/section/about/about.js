@@ -60,7 +60,7 @@ export default function About() {
 									{imageUrl && (
 										<Image 
 											src={imageUrl}
-											className="object-cover rounded-xl md:ml-auto"
+											className={`object-cover rounded-xl ${language === 'ar' ? 'md:mr-auto' : 'md:ml-auto'}`}
 											alt="about"
 											width={400}
 											height={445}

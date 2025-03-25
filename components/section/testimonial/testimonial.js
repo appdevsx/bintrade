@@ -115,7 +115,7 @@ export default function Testimonial() {
                                                         />
                                                     )}
                                                 </div>
-                                                <div className="testimonial-user-content w-[calc(100%-40px)] pl-2">
+                                                <div className={`testimonial-user-content w-[calc(100%-40px)] ${language === 'ar' ? 'pr-2' : 'pl-2'}`}>
                                                     <h6 className="title">{testimonialItem.name}</h6>
                                                     <span className="sub-title text-sm">{testimonialItem.designation}</span>
                                                 </div>
@@ -148,7 +148,7 @@ export default function Testimonial() {
                                 768: { slidesPerView: 3, spaceBetween: 20 },
                                 1024: { slidesPerView: 4, spaceBetween: 25 },
                             }}
-                            className="mySwiper testimonial-slider swiper-container swiper-container-free-mode text-left mt-2"
+                            className={`mySwiper testimonial-slider swiper-container swiper-container-free-mode ${language === 'ar' ? 'text-right' : 'text-left'} mt-2`}
                         >
                             {testimonial?.items?.map(( testimonialItem, index ) => {
                                 const imageUrl = testimonialItem?.image 
@@ -169,12 +169,12 @@ export default function Testimonial() {
                                                             height={100}
                                                             alt="user"
                                                             priority={true}
-                                                            quality={50}  
+                                                            quality={50}
                                                             decoding="async"
                                                         />
                                                     )}
                                                 </div>
-                                                <div className="testimonial-user-content w-[calc(100%-40px)] pl-2">
+                                                <div className={`testimonial-user-content w-[calc(100%-40px)] ${language === 'ar' ? 'pr-2' : 'pl-2'}`}>
                                                     <h6 className="title">{testimonialItem.name}</h6>
                                                     <span className="sub-title text-sm">{testimonialItem.designation}</span>
                                                 </div>

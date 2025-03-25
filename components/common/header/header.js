@@ -156,10 +156,10 @@ export default function Header() {
                         </div>
                         <div className="header-action">
                             {isLoggedIn ? (
-                                <Link className={styles.headerAction} href="/trading">{header.button} <CircleArrowRight /></Link>
+                                <Link className={styles.headerAction} href="/trading">{header.button} <CircleArrowRight className={`${language === 'ar' ? 'transform rotate-[180deg]' : 'transform rotate-[0]'}`} /></Link>
                             ) : (
                                 <>
-                                    <Link className={styles.headerAction} href="/login">{header.button} <CircleArrowRight /></Link>
+                                    <Link className={styles.headerAction} href="/login">{header.button} <CircleArrowRight className={`${language === 'ar' ? 'transform rotate-[180deg]' : 'transform rotate-[0]'}`} /></Link>
                                 </>
                             )}
                         </div>

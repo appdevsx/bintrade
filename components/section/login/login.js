@@ -8,6 +8,7 @@ import { Toaster, toast } from "react-hot-toast";
 import { ArrowRightToLine, ArrowBigLeftDash, LoaderCircle } from 'lucide-react';
 import { loginAPI } from "@/services/apiClient/apiClient";
 import useAuthRedirect from "@/utility/useAuthRedirect/useAuthRedirect";
+import { useLanguage } from "@/context/languageProvider/languageProvider";
 
 import logo from '@/public/images/logo/favicon.png';
 
@@ -29,6 +30,7 @@ export default function Login() {
     const [credentials, setCredentials] = useState("");
     const [password, setPassword] = useState("");
     const [rememberMe, setRememberMe] = useState(false);
+    const { language } = useLanguage();
 
     const submitLogin = async (e) => {
         e.preventDefault();
@@ -84,8 +86,8 @@ export default function Login() {
 		<section className="account-section relative overflow-hidden">
             <Toaster reverseOrder={false} theme="dark" />
             <div className={styles.accountElement}></div>
-            <div className="back-to-home-btn absolute top-5 left-5">
-                <Link href="/" className="custom--btn--bg inline-flex items-center gap-2 text-white font-semibold rounded-md transition-all hover:bg-blue-700 px-6 py-2 text-sm custom--shadow"><ArrowBigLeftDash /> {accountWrapper.backButton}</Link>
+            <div className={`back-to-home-btn absolute top-5 ${language === 'ar' ? 'right-5' : 'left-5'}`}>
+                <Link href="/" className="custom--btn--bg inline-flex items-center gap-2 text-white font-semibold rounded-md transition-all hover:bg-blue-700 px-6 py-2 text-sm custom--shadow"><ArrowBigLeftDash className={`${language === 'ar' ? 'transform rotate-[180deg]' : 'transform rotate-[0]'}`} /> {accountWrapper.backButton}</Link>
             </div>
             <div className="account-section-inner min-h-screen flex justify-center items-center py-20 px-3.5">
                 <div className={styles.accountWrapper}>
@@ -121,7 +123,7 @@ export default function Login() {
                                         checked={rememberMe}
                                         onChange={(e) => setRememberMe(e.target.checked)}
                                     />
-                                    <span className="ml-2 text-sm">Remember Me</span>
+                                    <span className={`${language === 'ar' ? 'mr-2' : 'ml-2'} text-sm`}>Remember Me</span>
                                 </label>
                                 <Link href="/password/forgot" className="text-sm hover:text-white">
                                     Forgot Password?
@@ -132,8 +134,8 @@ export default function Login() {
                                     <LoaderCircle className="inline-block w-5 h-6 animate-spin text-white" />
                                 ) : (
                                     <>
-                                        {accountWrapper.accountButton} 
-                                        <ArrowRightToLine />
+                                        {accountWrapper.accountButton}
+                                        <ArrowRightToLine className={`${language === 'ar' ? 'transform rotate-[180deg]' : 'transform rotate-[0]'}`} />
                                     </>
                                 )}
                             </button>

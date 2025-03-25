@@ -69,12 +69,12 @@ export default function Step() {
                                     <div className={`col-span-12 ${colSpanClass} step-item-inner`} key={index}>
                                         <div className={styles.stepItem}>
                                             <div className={`step-content ${contentClass}`}>
-                                                <span className="sub-title text-white flex items-center mb-3"><span className="number w-7 h-7 border-2 border--base rounded-full flex justify-center items-center text-center text-lg text--base mr-2 font-bold">{index + 1}</span> {stepItem.title} <CircleArrowRight className="ml-1 w-4" /></span>
+                                                <span className="sub-title text-white flex items-center mb-3"><span className={`number w-7 h-7 border-2 border--base rounded-full flex justify-center items-center text-center text-lg text--base ${language === 'ar' ? 'ml-2' : 'mr-2'} font-bold`}>{index + 1}</span> {stepItem.title} <CircleArrowRight className={`${language === 'ar' ? 'mr-1 transform rotate-[180deg]' : 'ml-1'} w-4`} /></span>
                                                 <h3 className="title text-xl font-bold mb-3">{stepItem.heading}</h3>
                                                 <p>{stepItem.desc}</p>
                                             </div>
                                             {showImage && imageUrl && (
-                                                <div className="step-thumb relative md:absolute bottom-0 right-0">
+                                                <div className={`step-thumb relative md:absolute bottom-0 ${language === 'ar' ? 'left-0' : 'right-0'}`}>
                                                     <Image
                                                         src={imageUrl}
                                                         className="object-cover"

@@ -5,19 +5,12 @@ import styles from "./blog.module.css";
 import Link from "next/link";
 import { CircleArrowRight } from 'lucide-react';
 import Image from "next/image";
-import { getBlogsAPI } from "@/services/apiClient/apiClient";
+import { getBlogsAPI, getAnnouncementAPI } from "@/services/apiClient/apiClient";
 import { useLanguage } from "@/context/languageProvider/languageProvider";
-
-const sectionHeader = {
-    sectionSubTitle: 'Posts',
-    sectionTitleLeft: 'The',
-    sectionTitleMain: 'Posts',
-    sectionTitleRight: 'we publish is specifically designed to meet your needs.',
-    sectionDescription: 'In the rest of this article, we discuss how to set up your payments strategy to optimize every transaction.',
-}
 
 export default function Blog() {
 	const [blogs, setBlogs] = useState([]);
+	const [announcements, setAnnouncements] = useState([]);
 	const [imagePaths, setImagePaths] = useState({});
 	const [loading, setLoading] = useState(false);
 	const { language } = useLanguage();
@@ -37,6 +30,22 @@ export default function Blog() {
 		};
 
 		fetchBlogs();
+	}, [language]);
+
+	useEffect(() => {
+		setLoading(true);
+		const fetchAnnouncements = async () => {
+			try {
+				const response = await getAnnouncementAPI(language);
+				setAnnouncements(response.data?.data?.section || []);
+			} catch (error) {
+				toast.error("Server did not respond");
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		fetchAnnouncements();
 	}, [language]);
 
     return (
@@ -69,9 +78,9 @@ export default function Blog() {
                     <>
 						<div className="section-header-wrapper grid grid-cols-1 md:grid-cols-6 mb-10">
 							<div className="section-header text-center col-span-4 col-start-2">
-								<span className="section-sub-title font-semibold border border-slate-800 text-sm rounded-full py-0.5 px-4 inline-block mb-3.5">{sectionHeader.sectionSubTitle}</span>
-								<h2 className="section-title text-2xl sm:text-3xl md:text-4xl font-medium capitalize">{sectionHeader.sectionTitleLeft} <span className="font-extrabold text--base">{sectionHeader.sectionTitleMain}</span> {sectionHeader.sectionTitleRight}</h2>
-								<p className="mt-3.5 text-base">{sectionHeader.sectionDescription}</p>
+								<span className="section-sub-title font-semibold border border-slate-800 text-sm rounded-full py-0.5 px-4 inline-block mb-3.5">{announcements.heading}</span>
+								<h2 className="section-title text-2xl sm:text-3xl md:text-4xl font-medium capitalize">{announcements.sub_heading}</h2>
+								<p className="mt-3.5 text-base">{announcements.desc}</p>
 							</div>
 						</div>
 						<div className="blog-item-wrapper mb-60-none">
@@ -96,7 +105,7 @@ export default function Blog() {
 											<h3 className="title text-lg sm:text-xl font-bold mb-4">{blogItem.data.language.en.title}</h3>
 											<p dangerouslySetInnerHTML={{ __html: blogItem.data.language.en.description }} />
 											<div className="blog-btn mt-6">
-												<Link className={styles.customBtn} href={`/blog/${blogItem.slug}`}>Read more <CircleArrowRight /></Link>
+												<Link className={styles.customBtn} href={`/blog/${blogItem.slug}`}>Read more <CircleArrowRight className={`${language === 'ar' ? 'transform rotate-[180deg]' : 'transform rotate-[0]'}`} /></Link>
 											</div>
 										</div>
 									</div>

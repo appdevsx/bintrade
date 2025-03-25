@@ -133,7 +133,7 @@ export default function Contact() {
                                                     <LoaderCircle className="inline-block w-5 h-6 animate-spin text-white" />
                                                 ) : (
                                                     <>
-                                                        {contactForm.button} <ArrowRightToLine />
+                                                        {contactForm.button} <ArrowRightToLine className={`${language === 'ar' ? 'transform rotate-[180deg]' : 'transform rotate-[0]'}`} />
                                                     </>
                                                 )}
                                             </button>

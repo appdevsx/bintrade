@@ -75,14 +75,14 @@ export default function Banner() {
                     <>
 						<div className="banner-content-wrapper grid grid-cols-1 md:grid-cols-2">
 							<div className="banner-content md:mr-10">
-								<span className={styles.subTitle}>{decodeText(banner?.heading)}</span>
+								<span className={styles.subTitle}>{banner.heading}</span>
 								<h1 className="title text-white text-[32px] sm:text-[36px] md:text-[40px] lg:text-[46px] xl:text-[55px] font-bold mb-4">
-									{decodeText(banner?.sub_heading)}
+									{banner.sub_heading}
 								</h1>
-								<p className={styles.description}>{decodeText(banner?.desc)}</p>
+								<p className={styles.description}>{banner.desc}</p>
 								<div className="banner-btn mt-8">
-									<Link className="baseBtn" href={banner?.btn_url || "#"}>
-										{decodeText(banner?.btn_text)} <CircleArrowRight />
+									<Link className="baseBtn" href={banner.btn_url || "#"}>
+										{banner.btn_text} <CircleArrowRight className={`${language === 'ar' ? 'transform rotate-[180deg]' : 'transform rotate-[0]'}`} />
 									</Link>
 								</div>
 							</div>

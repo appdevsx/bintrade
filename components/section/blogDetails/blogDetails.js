@@ -95,9 +95,9 @@ export default function BlogDetails({ slug }) {
                                     <div className="w-full md:w-8/12 mx-auto">
                                         <p dangerouslySetInnerHTML={{ __html: blogDetails?.short_desc}} />
                                         <div className="blog-share flex items-center border-t-2 border-slate-800 pt-6 mt-6">
-                                            <span className="text-white text-lg font-bold mr-4">Share : </span>
+                                            <span className={`text-white text-lg font-bold ${language === 'ar' ? 'ml-4' : 'mr-4'}`}>Share : </span>
                                             <div className="blog-social-wrapper">
-                                                <ul className="blog-social-list flex items-center justify-between space-x-7">
+                                                <ul className={`blog-social-list flex items-center justify-between ${language === 'ar' ? 'space-x-reverse space-x-7' : 'space-x-7'}`}>
                                                     {blogSocials.map(( blogSocial, index ) => {
                                                         return (
                                                             <li className="font-medium text-sm text-slate-300" key={index}>
