@@ -6,7 +6,7 @@ import styles from "./asidebar.module.css";
 
 const initialHistory = [];
 
-export default function Asidebar({ onTradeClick, isProcessing, duration, setDuration, amount, setAmount }) {
+export default function Asidebar({ onTradeClick, isProcessing, duration, setDuration, amount, setAmount, ongoingOrders }) {
     const [action, setAction] = useState("");
     const [remainingTime, setRemainingTime] = useState(null);
     const [tradeTimer, setTradeTimer] = useState(null);
@@ -16,7 +16,7 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isAsidebarOpen, setIsAsidebarOpen] = useState(false);
 
-    const { accountBalance, updateAccountAmount } = useAccount();
+    const { selectedBalance, updateAccountAmount } = useAccount();
 
     // Handlers for Amount
     const incrementAmount = () => setAmount((prev) => prev + 1);
@@ -31,17 +31,37 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
     const handleDown = () => setAction("Down");
 
     const handleDurationChange = (event) => {
-        setDuration(Number(event.target.value)); // Update duration dynamically
+        const input = event.target.value;
+        const [minutes, seconds] = input.split(":").map((val) => parseInt(val) || 0);
+        const totalSeconds = minutes * 60 + seconds;
+        setDuration(totalSeconds);
+    };
+
+    const formatTime = (seconds) => {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes < 10 ? '0' : ''}${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+    };
+
+    const handleAmountChange = (event) => {
+        const value = parseInt(event.target.value);
+        if (!isNaN(value) && value >= 0) {
+            setAmount(value);  // Set amount if it's a valid number
+        }
     };
 
     // Start Trading Function
     const startTrading = (tradeAction) => {
         if (isProcessing) return;
 
-        updateAccountAmount(accountBalance - amount);
+        // Clear previous results if any
+        setTradeOutcome(null);
+        setProfitOrLoss(null);
+
+        updateAccountAmount(selectedBalance - amount);
 
         setAction(tradeAction);
-        setRemainingTime(duration * 60); // Convert minutes to seconds
+        setRemainingTime(duration);
 
         // Clear existing timer if any
         if (tradeTimer) clearInterval(tradeTimer);
@@ -51,12 +71,17 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
             setRemainingTime((prev) => {
                 if (prev <= 1) {
                     clearInterval(timer);
+
                     const isWin = Math.random() > 0.5;
                     const result = isWin ? amount : -amount;
                     setTradeOutcome(isWin ? "Win" : "Loss");
                     setProfitOrLoss(result);
-                    if (isWin) updateAccountAmount(accountBalance + amount * 2);
-                    setAction("");
+
+                    if (isWin) updateAccountAmount(selectedBalance + amount * 2);
+
+                    setAction(""); // Reset action after the result is shown
+
+                    // Add the trade outcome to history
                     setHistory((prevHistory) => [
                         ...prevHistory,
                         {
@@ -101,15 +126,15 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
             <div className={`asidebar transition-all duration-300 ${isAsidebarOpen ? 'translate-x-0' : 'translate-x-full'} lg:translate-x-0 fixed lg:relative bg-[#011120] h-screen lg:bg-transparent py-5 px-2 flex flex-col justify-start items-center z-[9] lg:z-[2] gap-4`}>
                 <div className="w-full flex flex-col items-center">
                     <label htmlFor="amount" className="block text-sm font-medium mb-1">
-                        Amount, Ð
+                        Amount
                     </label>
                     <div className="w-full section--bg rounded-md px-2 py-2">
                         <input
                             id="amount"
                             type="text"
                             value={amount}
+                            onChange={handleAmountChange}
                             className="w-full text-center bg-transparent border border-[#1e293b] rounded-md text-gray-400 outline-none"
-                            readOnly
                         />
                         <div className="flex justify-center gap-1 mt-1">
                             <button className="text-gray-400 text-lg font-bold bg-[#0d1f30] rounded-md py-[1px] px-7" onClick={decrementAmount}>−</button>
@@ -125,7 +150,7 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
                         <input
                             id="duration"
                             type="text"
-                            value={`${duration} min`}
+                            value={formatTime(duration)}
                             onChange={handleDurationChange}
                             className="w-full text-center bg-transparent border border-[#1e293b] rounded-md text-gray-400 outline-none"
                             readOnly
@@ -142,15 +167,19 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
                 </button>
                 <div className="w-full flex flex-col gap-2">
                     <button className={`w-full py-3 bg-[#2dd674] rounded-md text-black font-bold flex items-center justify-center gap-2 ${action === "Up" ? "bg-[#31a361]" : "bg-[#2dd674]"}`} 
-                    onClick={onTradeClick}
+                    onClick={() => {
+                        setTradeOutcome(null); // Clear any previous result
+                        startTrading("Up");
+                        handleUp();
+                    }} 
                     disabled={isProcessing}>
                         Up
                         <span className="text-xl">↑</span>
                     </button>
                     <button className={`w-full py-3 bg-[#ff5765] rounded-md text-black font-bold flex items-center justify-center gap-2 ${action === "Down" ? "bg-[#c34d56]" : "bg-[#ff5765]"}`} 
                     onClick={() => {
-                        onTradeClick("down");
-                        startTrading("down");
+                        setTradeOutcome(null); // Clear any previous result
+                        startTrading("Down");
                         handleDown();
                     }} 
                     disabled={isProcessing}>
@@ -180,7 +209,7 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
                         {action || "None"}
                     </span> 
                 </div>
-                <div className={`fixed bottom-0 right-0 h-full bg-[#051524] w-full sm:w-[400px] overflow-y-auto z-[3] shadow-lg p-4 transform ${isSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+                <div className={`fixed top-0 right-0 h-full bg-[#051524] w-full sm:w-[400px] overflow-y-auto z-[3] shadow-lg p-4 transform ${isSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
                     <div className="flex justify-between items-center p-4">
                         <h2 className="text-white text-lg font-semibold">Trade History</h2>
                         <button onClick={toggleSidebar}>
@@ -188,24 +217,17 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
                         </button>
                     </div>
                     <ul className="grid grid-cols-1 gap-3 p-4">
-                        {history.length === 0 ? (
-                            <li>No trades yet.</li>
+                        {ongoingOrders.length === 0 ? (
+                            <li className="text-white">No trades yet.</li>
                         ) : (
-                            history.map((trade, index) => (
-                                <li key={index} className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md">
-                                    <div>Action: {trade.action}</div>
-                                    {tradeOutcome && (
-                                        <div className="">
-                                            Result:{" "}
-                                            {tradeOutcome === "Win" ? (
-                                                <span className="text-[#2dd674] font-bold">Win! +Ð{profitOrLoss}</span>
-                                            ) : (
-                                                <span className="text-[#ff5765] font-bold">Loss! -Ð{Math.abs(profitOrLoss)}</span>
-                                            )}
-                                        </div>
-                                    )}
-                                    <div>Local Time: {trade.time}</div>
-                                </li>
+                            ongoingOrders.map((order, index) => (
+                            <li key={index} className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md">
+                                <div>Symbol: {order.symbol}</div>
+                                <div>Action: {order.p_type}</div>
+                                <div>Amount: {order.amount}</div>
+                                <div>Status: <span className="text-[12px] px-2 py-1 bg-white text-black rounded-sm font-semibold">{order.status}</span></div>
+                                <div>Started At: {new Date(order.started_at * 1000).toLocaleString()}</div>
+                            </li>
                             ))
                         )}
                     </ul>

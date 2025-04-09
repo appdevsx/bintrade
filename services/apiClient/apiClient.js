@@ -507,6 +507,11 @@ export const storeOrderAPI = (investAmount, time, actionType, symbol, currentTim
         throw new Error("No token found. Please log in.");
     }
 
+    const mode = localStorage.getItem("selectedAccountType");
+    if (!mode || (mode !== "DEMO" && mode !== "LIVE")) {
+        throw new Error("Invalid or missing selected account type.");
+    }
+
     const formData = new FormData();
     formData.append("investAmount", parseFloat(investAmount));
     formData.append("time", time);
@@ -515,7 +520,7 @@ export const storeOrderAPI = (investAmount, time, actionType, symbol, currentTim
     formData.append("currentTime", currentTime);
     formData.append("currentOHLC", currentOHLC);
 
-    return apiClient.post("/user/binary/trading/order/store/DEMO", formData, {
+    return apiClient.post(`/user/binary/trading/order/store/${mode}`, formData, {
         headers: {
             Authorization: `Bearer ${token}`,
         },
@@ -523,16 +528,21 @@ export const storeOrderAPI = (investAmount, time, actionType, symbol, currentTim
 };
 
 // Order Result API (post)
-export const submitOrderAPI = (orderID) => {
+export const orderResultAPI = (orderID) => {
     const token = getToken();
     if (!token) {
         throw new Error("No token found. Please log in.");
     }
 
+    const mode = localStorage.getItem("selectedAccountType");
+    if (!mode || (mode !== "DEMO" && mode !== "LIVE")) {
+        throw new Error("Invalid or missing selected account type.");
+    }
+
     const formData = new FormData();
     formData.append("order_id", orderID);
 
-    return apiClient.post("/user/binary/trading/order/result", formData, {
+    return apiClient.post(`/user/binary/trading/order/result/${mode}`, formData, {
         headers: {
             Authorization: `Bearer ${token}`,
         },

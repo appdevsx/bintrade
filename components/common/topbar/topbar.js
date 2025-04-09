@@ -22,10 +22,10 @@ const countryOptions = getCountryOptions();
 const currencyOptions = getCurrencyOptions();
 
 function TopbarContent() {
-    const { accountBalance } = useAccount();
+    const { accountBalance, selectedAccountType, setSelectedAccountType, selectedBalance, setSelectedBalance } = useAccount();
     const [userAccountBalance, setUserAccountBalance] = useState(null);
-    const [selectedBalance, setSelectedBalance] = useState(null);
-    const [selectedAccountType, setSelectedAccountType] = useState("LIVE");
+    // const [selectedBalance, setSelectedBalance] = useState(null);
+    // const [selectedAccountType, setSelectedAccountType] = useState("LIVE");
     const [demoBalance, setDemoBalance] = useState(null);
     const [liveBalance, setLiveBalance] = useState(null);
     const searchParams = useSearchParams();
@@ -158,13 +158,16 @@ function TopbarContent() {
     
             if (response.data?.type === 'success') {
                 setSelectedAccount(accountType);
-                if (accountType === "Demo Account") {
-                    setSelectedBalance(demoBalance);
-                    setSelectedAccountType("DEMO");
-                } else {
-                    setSelectedBalance(liveBalance);
-                    setSelectedAccountType("LIVE");
-                }
+                const selectedType = accountType === "Demo Account" ? "DEMO" : "LIVE";
+                const selectedBal = accountType === "Demo Account" ? demoBalance : liveBalance;
+    
+                setSelectedBalance(selectedBal);
+                setSelectedAccountType(selectedType);
+    
+                localStorage.setItem("selectedAccount", accountType);
+                localStorage.setItem("selectedBalance", selectedBal);
+                localStorage.setItem("selectedAccountType", selectedType);
+    
                 toast.success(response.data.message.success[0]);
             } else {
                 toast.error(response.data.message.error[0]);
@@ -176,7 +179,23 @@ function TopbarContent() {
         toggleSidebar();
     };
     
-
+    useEffect(() => {
+        const storedAccount = localStorage.getItem("selectedAccount");
+        const storedBalance = localStorage.getItem("selectedBalance");
+        const storedAccountType = localStorage.getItem("selectedAccountType");
+        const storedCurrency = localStorage.getItem("currencySymbol");
+    
+        if (storedAccount && storedBalance && storedAccountType) {
+            setSelectedAccount(storedAccount);
+            setSelectedBalance(parseFloat(storedBalance));
+            setSelectedAccountType(storedAccountType);
+        }
+    
+        if (storedCurrency) {
+            setCurrencySymbol(storedCurrency);
+        }
+    }, []);    
+    
     const handleProfileInformationClick = () => {
         setProfileFieldsSidebarOpen(true);
     };
@@ -790,23 +809,41 @@ function TopbarContent() {
             try {
                 setLoading(true);
                 const response = await getInfoAPI();
+    
                 if (response.data.type === "success" && response.data.data.user_wallets) {
                     const wallets = response.data.data.user_wallets;
+    
                     const demoWallet = wallets.find(wallet => wallet.type.toUpperCase() === "DEMO");
                     const liveWallet = wallets.find(wallet => wallet.type.toUpperCase() === "LIVE");
-                    setDemoBalance(parseFloat(demoWallet.balance).toFixed(2));
-                    setLiveBalance(parseFloat(liveWallet.balance).toFixed(2));
-                    setDemoAccountType(demoWallet.type);
-                    setLiveAccountType(liveWallet.type);
+    
+                    const demoBal = parseFloat(demoWallet?.balance || 0).toFixed(2);
+                    const liveBal = parseFloat(liveWallet?.balance || 0).toFixed(2);
+    
+                    setDemoBalance(demoBal);
+                    setLiveBalance(liveBal);
+    
+                    setDemoAccountType(demoWallet?.type);
+                    setLiveAccountType(liveWallet?.type);
+    
                     if (liveWallet || demoWallet) {
-                        setCurrencySymbol((liveWallet || demoWallet).currency.symbol);
+                        const currency = (liveWallet || demoWallet).currency?.symbol;
+                        setCurrencySymbol(currency);
+                        localStorage.setItem("currencySymbol", currency);
                     }
-                    if (liveWallet) {
-                        setSelectedBalance(parseFloat(liveWallet.balance).toFixed(2));
-                        setSelectedAccountType("LIVE");
-                    } else if (demoWallet) {
-                        setSelectedBalance(parseFloat(demoWallet.balance).toFixed(2));
-                        setSelectedAccountType("DEMO");
+    
+                    const storedAccount = localStorage.getItem("selectedAccount");
+                    const selectedFromStorage = storedAccount === "Demo Account" ? demoWallet : liveWallet;
+    
+                    if (selectedFromStorage) {
+                        const selectedType = selectedFromStorage.type.toUpperCase();
+                        const selectedBal = parseFloat(selectedFromStorage.balance).toFixed(2);
+    
+                        setSelectedBalance(selectedBal);
+                        setSelectedAccountType(selectedType);
+    
+                        localStorage.setItem("selectedAccount", selectedType === "DEMO" ? "Demo Account" : "Live Account");
+                        localStorage.setItem("selectedBalance", selectedBal);
+                        localStorage.setItem("selectedAccountType", selectedType);
                     }
                 } else {
                     toast.error(response.data.message.error[0]);
@@ -819,14 +856,14 @@ function TopbarContent() {
         };
     
         fetchWalletInfo();
-    }, []);
+    }, []);    
     
 
     return (
         <>
             <Toaster reverseOrder={false} theme="dark" />
-            <div className="topbar relative lg:flex items-center justify-between section--bg lg:bg-transparent py-3 px-4 z-[3]">
-                <div className="flex items-center gap-3">
+            <div className="topbar relative sm:flex space-y-2 lg:space-y-0 items-center justify-between section--bg lg:bg-transparent py-3 px-4 z-[3]">
+                {/* <div className="flex items-center gap-3">
                     <div className="relative">
                         <div className="hidden lg:flex items-center gap-3">
                             <div className="relative w-11 h-11 flex justify-center items-center bg-[#0d1f30] rounded-md cursor-pointer" onClick={() => setIsTradeListOpen(!isTradeListOpen)}>
@@ -940,40 +977,68 @@ function TopbarContent() {
                             </div>
                         )}
                     </div>
+                </div> */}
+                <div className="flex justify-center gap-2">
+                    {loading ? (
+                        <div className="animate-pulse">
+                            <div className="h-6 w-20 bg-gray-700 rounded-md"></div>
+                            <div className="h-4 w-24 bg-gray-800 mt-1 rounded-md"></div>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-3">
+                            <div className="relative w-9 h-9 flex justify-center items-center bg-[#0d1f30] rounded-md" onClick={() => setIsIntervalListOpen(!isIntervalListOpen)}>
+                                <div className={`transition-transform duration-300 ${isIntervalListOpen ? "rotate-45" : "rotate-0"}`}>
+                                    <Plus className="w-5 text-white" />
+                                </div>
+                            </div>
+                            <select
+                                className="bg-[#0d1f30] shadow-lg rounded-md border-0 text-sm text-white"
+                                value={symbol}
+                                onChange={(e) => setSymbol(e.target.value)}
+                                >
+                                {filteredTrades.length > 0 ? (
+                                    filteredTrades.map((trade, index) => (
+                                    <option key={index} value={trade.symbol}>
+                                        {trade.name}
+                                    </option>
+                                    ))
+                                ) : (
+                                    <option disabled>No results found</option>
+                                )}
+                            </select>
+                        </div>
+                    )}
+                    {loading ? (
+                        <div className="animate-pulse">
+                            <div className="h-6 w-20 bg-gray-700 rounded-md"></div>
+                            <div className="h-4 w-24 bg-gray-800 mt-1 rounded-md"></div>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-3">
+                            <div className="relative w-9 h-9 flex justify-center items-center bg-[#0d1f30] rounded-md" onClick={() => setIsIntervalListOpen(!isIntervalListOpen)}>
+                                <div className={`transition-transform duration-300 ${isIntervalListOpen ? "rotate-45" : "rotate-0"}`}>
+                                    <Clock12 className="w-5 text-white" />
+                                </div>
+                            </div>
+                            <select
+                                className="bg-[#0d1f30] shadow-lg rounded-md border-0 text-sm text-white"
+                                value={interval}
+                                onChange={(e) => setInterval(e.target.value)}
+                                >
+                                {intervalOptions.length > 0 ? (
+                                    intervalOptions.map((trade, index) => (
+                                    <option key={index} value={trade.value}>
+                                        {trade.label}
+                                    </option>
+                                    ))
+                                ) : (
+                                    <option disabled>No results found</option>
+                                )}
+                            </select>
+                        </div>
+                    )}
                 </div>
-                <div className="flex gap-2">
-                    <select
-                        className="bg-[#0d1f30] shadow-lg rounded-md border-0 text-sm text-white"
-                        value={symbol}
-                        onChange={(e) => setSymbol(e.target.value)}
-                        >
-                        {filteredTrades.length > 0 ? (
-                            filteredTrades.map((trade, index) => (
-                            <option key={index} value={trade.symbol}>
-                                {trade.name}
-                            </option>
-                            ))
-                        ) : (
-                            <option disabled>No results found</option>
-                        )}
-                    </select>
-                    <select
-                        className="bg-[#0d1f30] shadow-lg rounded-md border-0 text-sm text-white"
-                        value={interval}
-                        onChange={(e) => setInterval(e.target.value)}
-                        >
-                        {intervalOptions.length > 0 ? (
-                            intervalOptions.map((trade, index) => (
-                            <option key={index} value={trade.value}>
-                                {trade.label}
-                            </option>
-                            ))
-                        ) : (
-                            <option disabled>No results found</option>
-                        )}
-                    </select>
-                </div>
-                <div className="flex items-center gap-3">
+                <div className="flex justify-center items-center gap-3">
                     <div className="relative top-1 mr-6 cursor-pointer" onClick={toggleSidebar}>
                         {loading ? (
                             <div className="animate-pulse">
@@ -982,7 +1047,7 @@ function TopbarContent() {
                             </div>
                         ) : (
                             <>
-                                <div className="text-white font-semibold text-[18px] leading-[20px]">{currencySymbol} {selectedBalance}</div>
+                                <div className="text-white font-semibold text-[14px] lg:text-[18px] leading-[20px]">{currencySymbol} {selectedBalance}</div>
                                 <div className="text-[12px] text-emerald-400">{selectedAccountType} Account</div>
                                 <div className="absolute bottom-[4px] right-[-20px]">
                                     <ChevronDown className="w-4" />
