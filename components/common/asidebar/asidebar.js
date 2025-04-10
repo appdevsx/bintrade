@@ -12,21 +12,18 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
     const [tradeTimer, setTradeTimer] = useState(null);
     const [profitOrLoss, setProfitOrLoss] = useState(null);
     const [tradeOutcome, setTradeOutcome] = useState(null);
-    const [history, setHistory] = useState(initialHistory);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isAsidebarOpen, setIsAsidebarOpen] = useState(false);
+    const [history, setHistory] = useState(initialHistory);
 
     const { selectedBalance, updateAccountAmount } = useAccount();
 
-    // Handlers for Amount
     const incrementAmount = () => setAmount((prev) => prev + 1);
     const decrementAmount = () => setAmount((prev) => (prev > 1 ? prev - 1 : prev));
 
-    // Handlers for Duration
     const incrementDuration = () => setDuration((prev) => prev + 1);
     const decrementDuration = () => setDuration((prev) => (prev > 1 ? prev - 1 : prev));
 
-    // Handlers for Up and Down actions
     const handleUp = () => setAction("Up");
     const handleDown = () => setAction("Down");
 
@@ -46,15 +43,13 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
     const handleAmountChange = (event) => {
         const value = parseInt(event.target.value);
         if (!isNaN(value) && value >= 0) {
-            setAmount(value);  // Set amount if it's a valid number
+            setAmount(value);
         }
     };
 
-    // Start Trading Function
     const startTrading = (tradeAction) => {
         if (isProcessing) return;
 
-        // Clear previous results if any
         setTradeOutcome(null);
         setProfitOrLoss(null);
 
@@ -63,10 +58,8 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
         setAction(tradeAction);
         setRemainingTime(duration);
 
-        // Clear existing timer if any
         if (tradeTimer) clearInterval(tradeTimer);
 
-        // Start a new timer
         const timer = setInterval(() => {
             setRemainingTime((prev) => {
                 if (prev <= 1) {
@@ -79,9 +72,8 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
 
                     if (isWin) updateAccountAmount(selectedBalance + amount * 2);
 
-                    setAction(""); // Reset action after the result is shown
+                    setAction("");
 
-                    // Add the trade outcome to history
                     setHistory((prevHistory) => [
                         ...prevHistory,
                         {
@@ -99,11 +91,9 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
 
         setTradeTimer(timer);
 
-        // Trigger onTradeClick for external trade handling
         onTradeClick(tradeAction);
     };
 
-    // Clear timer on component unmount
     useEffect(() => {
         return () => {
             if (tradeTimer) clearInterval(tradeTimer);
@@ -168,21 +158,21 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
                 <div className="w-full flex flex-col gap-2">
                     <button className={`w-full py-3 bg-[#2dd674] rounded-md text-black font-bold flex items-center justify-center gap-2 ${action === "Up" ? "bg-[#31a361]" : "bg-[#2dd674]"}`} 
                     onClick={() => {
-                        setTradeOutcome(null); // Clear any previous result
+                        setTradeOutcome(null);
                         startTrading("Up");
                         handleUp();
                     }} 
-                    disabled={isProcessing}>
+                    disabled={isProcessing || remainingTime !== null}>
                         Up
                         <span className="text-xl">↑</span>
                     </button>
                     <button className={`w-full py-3 bg-[#ff5765] rounded-md text-black font-bold flex items-center justify-center gap-2 ${action === "Down" ? "bg-[#c34d56]" : "bg-[#ff5765]"}`} 
                     onClick={() => {
-                        setTradeOutcome(null); // Clear any previous result
+                        setTradeOutcome(null);
                         startTrading("Down");
                         handleDown();
                     }} 
-                    disabled={isProcessing}>
+                    disabled={isProcessing || remainingTime !== null}>
                         Down
                         <span className="text-xl">↓</span>
                     </button>

@@ -22,10 +22,7 @@ const countryOptions = getCountryOptions();
 const currencyOptions = getCurrencyOptions();
 
 function TopbarContent() {
-    const { accountBalance, selectedAccountType, setSelectedAccountType, selectedBalance, setSelectedBalance } = useAccount();
-    const [userAccountBalance, setUserAccountBalance] = useState(null);
-    // const [selectedBalance, setSelectedBalance] = useState(null);
-    // const [selectedAccountType, setSelectedAccountType] = useState("LIVE");
+    const { selectedAccountType, setSelectedAccountType, selectedBalance, setSelectedBalance } = useAccount();
     const [demoBalance, setDemoBalance] = useState(null);
     const [liveBalance, setLiveBalance] = useState(null);
     const searchParams = useSearchParams();
@@ -36,7 +33,6 @@ function TopbarContent() {
     const [currencyCode, setCurrencyCode] = useState(null);
     const { symbol, setSymbol, interval, setInterval } = useAccount();
     const [isSidebarOpen, setSidebarOpen] = useState(false);
-    const [accountType, setAccountType] = useState(null);
     const [selectedAccount, setSelectedAccount] = useState("LIVE");
     const [isProfileSidebarOpen, setProfileSidebarOpen] = useState(false);
     const [isPaymentSidebarOpen, setPaymentSidebarOpen] = useState(false);
@@ -65,9 +61,7 @@ function TopbarContent() {
     const [maxLimit, setMaxLimit] = useState(0);
     const [percentCharge, setPercentCharge] = useState(0);
     const [fixedCharge, setFixedCharge] = useState(0);
-    const [baseCurrency, setBaseCurrency] = useState("");
     const [selectedCurrencyCode, setSelectedCurrencyCode] = useState("");
-    const [gatewayType, setGatewayType] = useState("");
     const [selectedGatewayType, setSelectedGatewayType] = useState(null);
     const [fullName, setFullName] = useState("");
     const [transactionId, setTransactionId] = useState("");
@@ -123,13 +117,9 @@ function TopbarContent() {
     const toggleProfileSidebar = () => setProfileSidebarOpen((prev) => !prev);
     const toggleBottomSidebar = () => setBottomSidebarOpen((prev) => !prev);
     const togglePaymentSidebar = () => setPaymentSidebarOpen((prev) => !prev);
-    const [isTradeListOpen, setIsTradeListOpen] = useState(false);
     const [selectedTrade, setSelectedTrade] = useState(null);
     const [tradeCurrencies, setTradeCurrencies] = useState([]);
     const [isIntervalListOpen, setIsIntervalListOpen] = useState(false);
-    const [selectedInterval, setSelectedInterval] = useState({
-        label: "1m",
-    });
 
     const filteredTrades = tradeCurrencies.filter((trade) =>
         trade.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -776,34 +766,6 @@ function TopbarContent() {
         fetchCharge();
     }, [selectedCurrency, exchangeId, exchangeData]);
 
-    // useEffect(() => {
-    //     const fetchWalletInfo = async () => {
-    //         try {
-    //             setLoading(true);
-    //             const response = await getInfoAPI();
-    //             if (response.data.type === "success" && response.data.data.user_wallets) {
-    //                 const wallet = response.data.data.user_wallets;
-    //                 const demoWallet = wallet.find(wallet => wallet.type.toUpperCase() === "DEMO");
-    //                 const liveWallet = wallet.find(wallet => wallet.type.toUpperCase() === "LIVE");
-    //                 setUserAccountBalance(parseFloat(wallet.balance).toFixed(2));
-    //                 setDemoBalance(parseFloat(demoWallet.balance).toFixed(2));
-    //                 setLiveBalance(parseFloat(liveWallet.balance).toFixed(2));
-    //                 setCurrencySymbol(wallet.currency.symbol);
-    //                 setAccountType(wallet.type.toLowerCase());
-    //                 setCurrencyCode(response.data.data.user_wallet.currency.code);
-    //             } else {
-    //                 toast.error(response.data.message.error[0]);
-    //             }
-    //         } catch (error) {
-    //             toast.error("Server did not respond");
-    //         } finally {
-    //             setLoading(false);
-    //         }
-    //     };
-
-    //     fetchWalletInfo();
-    // }, []);
-
     useEffect(() => {
         const fetchWalletInfo = async () => {
             try {
@@ -856,8 +818,7 @@ function TopbarContent() {
         };
     
         fetchWalletInfo();
-    }, []);    
-    
+    }, []);
 
     return (
         <>

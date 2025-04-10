@@ -174,10 +174,6 @@ export default function Sidebar() {
         setCreateTicketsSidebarOpen(true);
     };
 
-    const handleChatClick = () => {
-        setChatSidebarOpen(true);
-    };
-
     const handleLinkClick = (e, sidebarLink, index) => {
         if (!sidebarLink.href) {
             e.preventDefault();
@@ -252,17 +248,6 @@ export default function Sidebar() {
         setShowContent(false);
         setTimeout(() => setModalOpen(false), 300);
     };
-
-    const transactionLogs = [
-        { type: "Deposit", amount: "$100" },
-        { type: "Withdraw", amount: "$50" },
-        { type: "Exchange", details: "BTC to ETH" },
-    ];
-
-    const supportTickets = [
-        { ticketId: "12345", subject: "Issue with payment", status: "Open" },
-        { ticketId: "67890", subject: "Account not accessible", status: "Closed" },
-    ];
 
     const handleNavigateToConversation = (ticketId) => {
         closeAllSidebars(true);
