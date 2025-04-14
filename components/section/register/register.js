@@ -42,7 +42,7 @@ export default function Register() {
         formData.append("lastname", lastName);
         formData.append("email", email);
         formData.append("password", password);
-        formData.append("agree", agree ? "true" : "false");
+        formData.append("agree", agree ? "on" : "off");
 
         try {
             const response = await registerAPI(formData);
