@@ -31,18 +31,18 @@ const getToken = () => {
 };
 
 // Interceptor for handling 401 Unauthorized responses
-apiClient.interceptors.response.use(
-    (response) => response,
-    (error) => {
-        if (error.response?.status === 401) {
-            localStorage.removeItem("jwtToken");
-            sessionStorage.removeItem("jwtToken");
-            toast.error("Unauthenticated");
-            window.location.href = "/login";
-        }
-        return Promise.reject(error);
-    },
-);
+// apiClient.interceptors.response.use(
+//     (response) => response,
+//     (error) => {
+//         if (error.response?.status === 401) {
+//             localStorage.removeItem("jwtToken");
+//             sessionStorage.removeItem("jwtToken");
+//             toast.error("Unauthenticated");
+//             window.location.href = "/login";
+//         }
+//         return Promise.reject(error);
+//     },
+// );
 
 // Get Alias API (get)
 export const getAliasAPI = (language) => {
