@@ -141,7 +141,7 @@ export default function Header() {
                                     <div className="h-4 w-24 bg-gray-800 mt-1 rounded-md"></div>
                                 </div>
                             ) : (
-                                <select className="section--bg border-slate-800 text-slate-300 text-sm rounded-md" value={selectedLanguage} onChange={handleLanguageChange} disabled={loading}>
+                                <select className="section--bg border-slate-800 text-slate-300 text-xs md:text-sm rounded-md mr-2 lg:mr-0" value={selectedLanguage} onChange={handleLanguageChange} disabled={loading}>
                                     {languages.length > 0 ? (
                                         languages.map((lang) => (
                                             <option key={lang.id} value={lang.code}>
@@ -154,7 +154,7 @@ export default function Header() {
                                 </select>
                             )}
                         </div>
-                        <div className="header-action">
+                        <div className="header-action hidden md:block mr-2 lg:mr-0">
                             {isLoggedIn ? (
                                 <Link className={styles.headerAction} href="/trading">{header.button} <CircleArrowRight className={`${language === 'ar' ? 'transform rotate-[180deg]' : 'transform rotate-[0]'}`} /></Link>
                             ) : (

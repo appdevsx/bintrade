@@ -138,6 +138,7 @@ export default function Register() {
                                         checked={agree} 
                                         onChange={(e) => setAgree(e.target.checked)} 
                                         className={`${language === 'ar' ? 'ml-2' : 'mr-2'}`}
+                                        required
                                     />
                                     <span className="text-sm">I agree to the <Link href="/terms" className="text--base font-bold">Terms and Conditions</Link></span>
                                 </label>

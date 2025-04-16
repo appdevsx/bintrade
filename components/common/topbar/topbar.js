@@ -1175,7 +1175,7 @@ function TopbarContent() {
                                 <input
                                 type="text"
                                 className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
-                                placeholder={profileInfo.firstName}
+                                placeholder="First Name"
                                 value={firstName}
                                 onChange={(e) =>
                                     setFirstName(e.target.value)
@@ -1188,7 +1188,7 @@ function TopbarContent() {
                                 <input
                                 type="text"
                                 className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
-                                placeholder={profileInfo.lastName}
+                                placeholder="Last Name"
                                 value={lastName}
                                 onChange={(e) =>
                                     setLastName(e.target.value)
@@ -1201,7 +1201,7 @@ function TopbarContent() {
                                 <input
                                 type="text"
                                 className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
-                                placeholder={profileInfo.lastName}
+                                placeholder="Country"
                                 value={country}
                                 onChange={(e) =>
                                     setCountry(e.target.value)
@@ -1214,7 +1214,7 @@ function TopbarContent() {
                                 <input
                                 type="number"
                                 className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
-                                placeholder={profileInfo.lastName}
+                                placeholder="Mobile Code"
                                 value={mobileCode}
                                 onChange={(e) =>
                                     setMobileCode(e.target.value)
@@ -1289,7 +1289,7 @@ function TopbarContent() {
                                 <input
                                 type="number"
                                 className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
-                                placeholder={profileInfo.lastName}
+                                placeholder="Mobile"
                                 value={mobile}
                                 onChange={(e) =>
                                     setMobile(e.target.value)
@@ -1325,7 +1325,7 @@ function TopbarContent() {
                                 <input
                                 type="text"
                                 className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
-                                placeholder={profileInfo.lastName}
+                                placeholder="Address"
                                 value={address}
                                 onChange={(e) =>
                                     setAddress(e.target.value)
@@ -1338,7 +1338,7 @@ function TopbarContent() {
                                 <input
                                 type="text"
                                 className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
-                                placeholder={profileInfo.lastName}
+                                placeholder="State/Region"
                                 value={state}
                                 onChange={(e) =>
                                     setState(e.target.value)
@@ -1351,7 +1351,7 @@ function TopbarContent() {
                                 <input
                                 type="text"
                                 className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
-                                placeholder={profileInfo.lastName}
+                                placeholder="City"
                                 value={city}
                                 onChange={(e) =>
                                     setCity(e.target.value)
@@ -1364,7 +1364,7 @@ function TopbarContent() {
                                 <input
                                 type="number"
                                 className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
-                                placeholder={profileInfo.lastName}
+                                placeholder="ZIP/Postal Code"
                                 value={postalCode}
                                 onChange={(e) =>
                                     setPostalCode(e.target.value)
@@ -1660,7 +1660,7 @@ function TopbarContent() {
                                 {paymentGateways.flatMap((gateway) =>
                                     gateway.currencies.map((currency) => (
                                         <option key={currency.alias} value={currency.alias}>
-                                            {gateway.name} ({gateway.type})
+                                            {currency.name} ({gateway.type})
                                         </option>
                                     ))
                                 )}

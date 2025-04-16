@@ -56,7 +56,7 @@ export default function Feature() {
                                 <p className="mt-3.5 text-base">{feature.desc}</p>
                             </div>
                         </div>
-                        <div className="feature-item-wrapper grid grid-cols-3 gap-5">
+                        <div className="feature-item-wrapper grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                             {feature?.items?.map(( featureItem, index ) => {
                                 const imageUrl = featureItem?.image 
                                     ? `${imagePaths?.base_url}/${imagePaths?.path_location}/${featureItem.image}`

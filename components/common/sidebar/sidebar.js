@@ -82,7 +82,7 @@ export default function Sidebar() {
     const [newMessage, setNewMessage] = useState("");
     const [selectedFile, setSelectedFile] = useState(null);
     const [filePreview, setFilePreview] = useState(null);
-    const [attachments, setAttachments] = useState([]);
+    const [attachment, setAttachment] = useState([]);
     const [isModalOpen, setModalOpen] = useState(false);
     const [showContent, setShowContent] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -106,7 +106,7 @@ export default function Sidebar() {
 
     const handleFileUpload = (e) => {
         const newFiles = Array.from(e.target.files);
-        setAttachments((prev) => [...prev, ...newFiles]);
+        setAttachment((prev) => [...prev, ...newFiles]);
       };
     
       const handleDragOver = (e) => {
@@ -116,11 +116,11 @@ export default function Sidebar() {
       const handleDrop = (e) => {
         e.preventDefault();
         const droppedFiles = Array.from(e.dataTransfer.files);
-        setAttachments((prev) => [...prev, ...droppedFiles]);
+        setAttachment((prev) => [...prev, ...droppedFiles]);
       };
     
       const removeFile = (index) => {
-        setAttachments((prev) => prev.filter((_, i) => i !== index));
+        setAttachment((prev) => prev.filter((_, i) => i !== index));
       };
     
     const handleSubmit = (e) => {
@@ -133,7 +133,7 @@ export default function Sidebar() {
           message: "",
           attachment: null,
         });
-        setAttachments([]);
+        setAttachment([]);
         handleCreateTicketsClick();
     };
 
@@ -285,8 +285,10 @@ export default function Sidebar() {
                 ticketForm.email,
                 ticketForm.subject,
                 ticketForm.message,
-                attachments
+                attachment
             );
+
+            console.log(response);
 
             response.data.message.success.forEach((msg) => {
                 toast.success(msg);
@@ -295,7 +297,7 @@ export default function Sidebar() {
             const newTicket = response.data.data;
             setTickets((prevTickets) => [newTicket, ...prevTickets]);
             setTicketForm({ name: "", email: "", subject: "", message: "" });
-            setAttachments([]);
+            setAttachment([]);
         } catch (error) {
             if (error.response && error.response.data && error.response.data.message && error.response.data.message.error) {
                 error.response.data.message.error.forEach((msg) => {
@@ -669,7 +671,7 @@ export default function Sidebar() {
                             </label>
                         </div>
                         <div className="space-y-2 mt-2">
-                            {attachments.map((file, index) => (
+                            {attachment.map((file, index) => (
                                 <div
                                     key={index}
                                     className="flex items-center justify-between bg-[#1a2c3d] px-3 py-2 rounded-md"

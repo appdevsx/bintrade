@@ -564,7 +564,7 @@ export const getSupportTicketsAPI = (page = 1) => {
 };
 
 // Store Support Ticket API (post)
-export const storeSupportTicketAPI = (fullName, email, subject, desc, attachments) => {
+export const storeSupportTicketAPI = (fullName, email, subject, desc, attachment) => {
     const token = getToken();
     if (!token) {
         throw new Error("No token found. Please log in.");
@@ -577,8 +577,8 @@ export const storeSupportTicketAPI = (fullName, email, subject, desc, attachment
     formData.append("desc", desc);
 
     // Append multiple files correctly
-    attachments.forEach((file) => {
-        formData.append("attachments[]", file);
+    attachment.forEach((file) => {
+        formData.append("attachment", file);
     });
 
     return apiClient.post("/user/support/ticket/store", formData, {
