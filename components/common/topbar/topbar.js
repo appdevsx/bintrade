@@ -89,6 +89,8 @@ function TopbarContent() {
     const [frontFile, setFrontFile] = useState(null);
     const [backFile, setBackFile] = useState(null);
     const [inputFields, setInputFields] = useState([]);
+    const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
     const [showPassword, setShowPassword] = useState({
         currentPassword: false,
         newPassword: false,
@@ -348,6 +350,8 @@ function TopbarContent() {
                 setState(userInfo.state || "");
                 setPostalCode(userInfo.postal_code || "");
                 setAddress(userInfo.address || "");
+                setUsername(userInfo.username || "");
+                setEmail(userInfo.email || "");
 
                 setUserData(response?.data);
 
@@ -577,14 +581,15 @@ function TopbarContent() {
 
         try {
             if (selectedGatewayType === "AUTOMATIC") {
-                const response = await automaticDepositAPI(selectedCurrency, amount, currencyCode);
+                const response = await automaticDepositAPI(selectedCurrency, amount, selectedCurrencyCode);
+                console.log(response);
                 if (response.data.message?.error) {
                     toast.error(response.data.message.error[0]);
                 } else {
                     toast.success(response.data.message.success);
                 }
             } else if (selectedGatewayType === "MANUAL") {  
-                const manualResponse = await manualDepositAPI(selectedCurrency, amount, currencyCode, fullName, transactionId, screenshot);
+                const manualResponse = await manualDepositAPI(selectedCurrency, amount, selectedCurrencyCode, fullName, transactionId, screenshot);
                 console.log(manualResponse);
                 if (manualResponse.data.type === "success") {
                     toast.success(manualResponse.data.message.success);
@@ -1075,8 +1080,8 @@ function TopbarContent() {
                             </div>
                         </div>
                         <div className="pl-3 text-white">
-                            <div className="text-sm">{profileInfo.name}</div>
-                            <div className="text-[12px]">{profileInfo.email}</div>
+                            <div className="text-sm">{username}</div>
+                            <div className="text-[12px]">{email}</div>
                         </div>
                     </div>
                     <button

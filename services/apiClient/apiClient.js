@@ -286,7 +286,7 @@ export const getDepositAPI = () => {
 };
 
 // Submit Automatic Deposit Fields API (post)
-export const automaticDepositAPI = (selectedCurrency, amount, currencyCode) => {
+export const automaticDepositAPI = (selectedCurrency, amount, selectedCurrencyCode) => {
     const token = getToken();
     if (!token) {
         throw new Error("No token found. Please log in.");
@@ -295,7 +295,7 @@ export const automaticDepositAPI = (selectedCurrency, amount, currencyCode) => {
     const formData = new FormData();
     formData.append("currency", selectedCurrency);
     formData.append("amount", parseFloat(amount));
-    formData.append("wallet_currency", currencyCode);
+    formData.append("wallet_currency", selectedCurrencyCode);
 
     return apiClient.post("/user/add-money/automatic/submit", formData, {
         headers: {
@@ -305,7 +305,7 @@ export const automaticDepositAPI = (selectedCurrency, amount, currencyCode) => {
 };
 
 // Submit Manual Deposit Fields API (post)
-export const manualDepositAPI = (selectedCurrency, amount, currencyCode, fullName, transactionId, screenshot) => {
+export const manualDepositAPI = (selectedCurrency, amount, selectedCurrencyCode, fullName, transactionId, screenshot) => {
     const token = getToken();
     if (!token) {
         throw new Error("No token found. Please log in.");
@@ -314,7 +314,7 @@ export const manualDepositAPI = (selectedCurrency, amount, currencyCode, fullNam
     const formData = new FormData();
     formData.append("currency", selectedCurrency);
     formData.append("amount", parseFloat(amount));
-    formData.append("wallet_currency", currencyCode);
+    formData.append("wallet_currency", selectedCurrencyCode);
     formData.append("full_name", fullName);
     formData.append("transaction_id", transactionId);
     formData.append("screenshoot", screenshot);

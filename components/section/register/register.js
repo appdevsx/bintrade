@@ -5,7 +5,7 @@ import styles from "./register.module.css";
 import Link from "next/link";
 import Image from "next/image";
 import { Toaster, toast } from "react-hot-toast";
-import { ArrowRightToLine, ArrowBigLeftDash, LoaderCircle } from 'lucide-react';
+import { ArrowRightToLine, ArrowBigLeftDash, LoaderCircle, Eye, EyeOff } from 'lucide-react';
 import { registerAPI } from "@/services/apiClient/apiClient";
 import useAuthRedirect from "@/utility/useAuthRedirect/useAuthRedirect";
 import { useLanguage } from "@/context/languageProvider/languageProvider";
@@ -30,6 +30,7 @@ export default function Register() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [agree, setAgree] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const { language } = useLanguage();
 
@@ -90,6 +91,10 @@ export default function Register() {
         }
     };
 
+    const togglePasswordVisibility = () => {
+        setShowPassword((prevState) => !prevState);
+    };
+
     return (
 		<section className="account-section relative overflow-hidden">
             <Toaster reverseOrder={false} theme="dark" />
@@ -127,9 +132,20 @@ export default function Register() {
                                 <label className="text-[13px] font-medium block mb-1">Email<span>*</span></label>
                                 <input type="email" placeholder="Type email here..." value={email} onChange={(e) => setEmail(e.target.value)} className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg" required></input>
                             </div>
-                            <div className="form-group mb-4">
+                            <div className="form-group relative mb-4">
                                 <label className="text-[13px] font-medium block mb-1">Password<span>*</span></label>
-                                <input type="password" placeholder="Type password here..." value={password} onChange={(e) => setPassword(e.target.value)} className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg" required></input>
+                                <input type={showPassword ? "text" : "password" } placeholder="Type password here..." value={password} onChange={(e) => setPassword(e.target.value)} className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg" required></input>
+                                <button
+                                    type="button"
+                                    onClick={togglePasswordVisibility}
+                                    className="absolute top-[42px] right-3 transition-all text-slate-300"
+                                >
+                                    {showPassword ? (
+                                        <EyeOff className="w-5 h-auto" />
+                                    ) : (
+                                        <Eye className="w-5 h-auto" />
+                                    )}
+                                </button>
                             </div>
                             <div className="form-group mb-4">
                                 <label className="inline-flex items-center cursor-pointer">
