@@ -375,18 +375,17 @@ export const getWithdrawInstructionsAPI = (withdrawToken) => {
 };
 
 // Submit Withdraw API (post)
-export const submitWithdrawAPI = (transaction, withdrawToken) => {
+export const submitWithdrawAPI = (formData, withdrawToken) => {
     const token = getToken();
+
     if (!token) {
         throw new Error("No token found. Please log in.");
     }
 
-    const formData = new FormData();
-    formData.append("transaction_id", transaction);
-
     return apiClient.post(`/user/withdraw/submit/${withdrawToken}`, formData, {
         headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
         },
     });
 };

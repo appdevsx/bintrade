@@ -468,6 +468,7 @@ function TopbarContent() {
             .then(response => {
                 const data = response.data.data;
                 setFields(data.input_fields);
+                setInstructions(data.instructions);
             })
             .catch(error => {
                 toast.error(error.response?.data?.message?.error);
@@ -680,17 +681,36 @@ function TopbarContent() {
     const handleWithdrawSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+    
+        const form = e.target;
+        const formData = new FormData();
+    
+        inputFields.forEach((field) => {
+            const input = form.elements[field.name];
+            if (field.type === 'file') {
+                const file = input?.files?.[0];
+                if (file) {
+                    formData.append(field.name, file);
+                }
+            } else {
+                formData.append(field.name, input?.value || '');
+            }
+        });
+    
         try {
-            const response = await submitWithdrawAPI(transaction, withdrawToken);
+            const response = await submitWithdrawAPI(formData, withdrawToken);
+    
             if (response.data.type === "success") {
                 toast.success(response.data.message.success[0]);
-                setTransaction("");
                 onClose();
             } else {
                 toast.error(response.data.message.error[0]);
             }
         } catch (error) {
-            toast.error("Server did not respond");
+            const errorMessage =
+                error?.response?.data?.message?.error?.[0] ||
+                "Server did not respond";
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -1227,68 +1247,6 @@ function TopbarContent() {
                                 required
                                 />
                             </div>
-                            {/* <div className="text-white">
-                                <label className="text-sm mb-2 block">Country</label>
-                                <Select
-                                    options={countryOptions}
-                                    value={profileInfo.country}
-                                    onChange={handleCountryChange}
-                                    className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
-                                    isSearchable
-                                    getOptionLabel={(e) => (
-                                        <div className="flex items-center gap-2">
-                                        <Flag code={e.value} style={{ width: 20, height: 15 }} />{" "}
-                                        {e.label}
-                                        </div>
-                                    )}
-                                    styles={{
-                                        control: (base) => ({
-                                            ...base,
-                                            background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
-                                            borderColor: "none",
-                                            height: "45px",
-                                            borderRadius: "0.375rem",
-                                            color: "#ffffff",
-                                            fontSize: "14px",
-                                            borderColor: "#1e293b",
-                                            "&:hover": {
-                                                borderColor: "#1e293b",
-                                            },
-                                        }),
-                                        menu: (base) => ({
-                                            ...base,
-                                            borderRadius: "0.375rem",
-                                            paddingTop: "0",
-                                            background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
-                                        }),
-                                        singleValue: (provided) => ({
-                                            ...provided,
-                                            color: "white",
-                                        }),
-                                        option: (base, state) => ({
-                                            ...base,
-                                            background: state.isSelected ? "#0d1f30" : "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)", // Highlight selected option
-                                            color: state.isSelected ? "white" : "white", // Text color for options
-                                            padding: "10px",
-                                            cursor: "pointer",
-                                            borderRadius: "0.375rem",
-                                        }),
-                                        dropdownIndicator: (provided) => ({
-                                            ...provided,
-                                            color: "#cbd5e1",
-                                        }),
-                                        indicatorSeparator: (provided) => ({
-                                            ...provided,
-                                            background: "#1e293b",
-                                        }),
-                                        placeholder: (base) => ({
-                                            ...base,
-                                            color: "#cbd5e1",
-                                            fontSize: "14px",
-                                        }),
-                                    }}
-                                />
-                            </div> */}
                             <div className="text-white">
                                 <label className="text-sm mb-2 block">Mobile</label>
                                 <input
@@ -1301,29 +1259,6 @@ function TopbarContent() {
                                 }
                                 required
                                 />
-                                {/* <PhoneInput
-                                    country={profileInfo.country.value}
-                                    value={profileInfo.phone}
-                                    disableDropdown
-                                    onChange={handlePhoneChange}
-                                    inputStyle={{
-                                        width: "100%",
-                                        height: "44px",
-                                        background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
-                                        color: "#fff",
-                                        fontSize: "14px",
-                                        borderColor: "#1e293b",
-                                        borderRadius: "0.375rem",
-                                        paddingLeft: "10px"
-                                    }}
-                                    buttonStyle={{
-                                        display: "none",
-                                    }}
-                                    dropdownStyle={{
-                                        background: "linear-gradient(137.45deg, #081e32 7.42%, #011120 104.16%)",
-                                        color: "#fff",
-                                    }}
-                                /> */}
                             </div>
                             <div className="text-white">
                                 <label className="text-sm mb-2 block">Address</label>
@@ -1593,44 +1528,62 @@ function TopbarContent() {
                 </div>
                 <form onSubmit={handleSubmit}>
                     <div className="p-4">
-                        {fields.map((field, index) => (
-                            <div className="relative text-white mb-3" key={index}>
-                                <label className="text-sm mb-2 block">{field.label} {field.required && '*'}</label>
-                                {field.type === 'select' ? (
-                                    <select
-                                        value={idType}
-                                        onChange={(e) => setIdType(e.target.value)}
-                                        className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 bg-[#0d1f30]"
-                                        required={field.required}
-                                    >
-                                        {field.validation.options.map((option, i) => (
-                                            <option key={i} value={option.trim()}>{option.trim()}</option>
-                                        ))}
-                                    </select>
-                                ) : field.type === 'file' ? (
-                                    <input
-                                        type="file"
-                                        name={field.name}
-                                        accept={field.validation.mimes.join(',')}
-                                        onChange={handleChange}
-                                        className="w-full h-11 leading-[36px] text-sm font-medium rounded-md shadow-sm border border-slate-800 text-slate-300 gradient--bg"
-                                        required={field.required}
-                                    />
-                                ) : null}
+                        {instructions ? (
+                            <div className="bg-blue-900 text-blue-100 text-sm p-3 rounded whitespace-pre-line">
+                                <strong>Instructions:</strong><br />
+                                {instructions.split(',').map((line, index) => (
+                                    <div key={index}>{line.trim()}</div>
+                                ))}
                             </div>
-                        ))}
-                        <div className="mt-4">
-                            <button type="submit" className={`baseBtn flex justify-center w-full ${loading ? "cursor-not-allowed" : ""}`} disabled={loading}>
-                                {loading ? (
-                                    <LoaderCircle className="inline-block w-5 h-6 animate-spin text-white" />
-                                ) : (
-                                    <>
-                                        Submit 
-                                        <ArrowRightToLine />
-                                    </>
-                                )}
-                            </button>
-                        </div>
+                        ) : (
+                            <>
+                                {fields.map((field, index) => (
+                                    <div className="relative text-white mb-3" key={index}>
+                                        <label className="text-sm mb-2 block">
+                                            {field.label} {field.required && '*'}
+                                        </label>
+                                        {field.type === 'select' ? (
+                                            <select
+                                                value={idType}
+                                                onChange={(e) => setIdType(e.target.value)}
+                                                className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 bg-[#0d1f30]"
+                                                required={field.required}
+                                            >
+                                                <option value="">Select</option>
+                                                {field.validation.options.map((option, i) => (
+                                                    <option key={i} value={option.trim()}>{option.trim()}</option>
+                                                ))}
+                                            </select>
+                                        ) : field.type === 'file' ? (
+                                            <input
+                                                type="file"
+                                                name={field.name}
+                                                accept={field.validation.mimes.join(',')}
+                                                onChange={handleChange}
+                                                className="w-full h-11 leading-[36px] text-sm font-medium rounded-md shadow-sm border border-slate-800 text-slate-300 gradient--bg"
+                                                required={field.required}
+                                            />
+                                        ) : null}
+                                    </div>
+                                ))}
+                                <div className="mt-4">
+                                    <button
+                                        type="submit"
+                                        className={`baseBtn flex justify-center w-full ${loading ? "cursor-not-allowed" : ""}`}
+                                        disabled={loading}
+                                    >
+                                        {loading ? (
+                                            <LoaderCircle className="inline-block w-5 h-6 animate-spin text-white" />
+                                        ) : (
+                                            <>
+                                                Submit 
+                                                <ArrowRightToLine />
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </form>
             </div>
@@ -1818,8 +1771,8 @@ function TopbarContent() {
                                 {field.type === "file" ? (
                                     <input
                                         type="file"
-                                        accept={field.validation.mimes.join(",")}
                                         name={field.name}
+                                        accept={field.validation?.mimes?.map(mime => `image/${mime}`).join(",")}
                                         required={field.required}
                                         className="w-full h-11 leading-[36px] text-sm font-medium rounded-md shadow-sm border border-slate-800 text-slate-300 gradient--bg"
                                     />
@@ -1828,9 +1781,9 @@ function TopbarContent() {
                                         type="text"
                                         name={field.name}
                                         placeholder="Enter ID here..."
-                                        required={field.required}
-                                        maxLength={field.validation.max}
                                         minLength={field.validation.min}
+                                        maxLength={field.validation.max}
+                                        required={field.required}
                                         className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
                                     />
                                 )}
