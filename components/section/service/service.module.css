@@ -1,5 +1,5 @@
 .serviceItem{
-    background: linear-gradient(177deg, #2e71e5, rgba(34, 195, 121, 0));
+    background: linear-gradient(177deg, var(--primary-color), rgba(34, 195, 121, 0));
     border-radius: 8px;
     padding: 1px;
     overflow: hidden;
@@ -26,6 +26,6 @@
     background-color: #22c379;
 }
 .serviceIcon{
-    background-color: #2e71e5;
+    background-color: var(--primary-color);
     @apply w-12 h-12 flex justify-center items-center text-white rounded-lg text-4xl
 }

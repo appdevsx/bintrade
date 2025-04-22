@@ -64,7 +64,7 @@ export default function BlogDetails({ slug }) {
                                 <div className="w-full h-[100px] mx-auto bg-gray-700 rounded"></div>
                                 <div className="flex items-center">
                                     <div className="w-20 h-8 bg-gray-700 rounded mr-4"></div>
-                                    <div className="flex items-center justify-between space-x-7">
+                                    <div className="flex items-center justify-between gap-7">
                                         {[...Array(3)].map((_, index) => (
                                             <div className="w-[100px] h-8 bg-gray-700 rounded" key={index}></div>
                                         ))}
@@ -97,7 +97,7 @@ export default function BlogDetails({ slug }) {
                                         <div className="blog-share flex items-center border-t-2 border-slate-800 pt-6 mt-6">
                                             <span className={`text-white text-lg font-bold ${language === 'ar' ? 'ml-4' : 'mr-4'}`}>Share : </span>
                                             <div className="blog-social-wrapper">
-                                                <ul className={`blog-social-list flex items-center justify-between ${language === 'ar' ? 'space-x-reverse space-x-7' : 'space-x-7'}`}>
+                                                <ul className="blog-social-list flex items-center justify-between gap-7">
                                                     {blogSocials.map(( blogSocial, index ) => {
                                                         return (
                                                             <li className="font-medium text-sm text-slate-300" key={index}>

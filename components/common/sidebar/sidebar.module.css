@@ -29,5 +29,5 @@
     transition: all 0.5s;
 }
 .text--base{
-	color: #2e71e5;
+	color: var(--primary-color);
 }

@@ -232,7 +232,7 @@ export default function Footer() {
                             <div className="footer-widget">
                                 <h4 className="widget-title text-lg font-bold mb-2.5 text-white">{footer.newsletter_title}</h4>
                                 <p className="text-sm text-slate-300">{footer.newsletter_desc}</p>
-                                <form className={`flex ${language === 'ar' ? 'lg:space-x-reverse lg:space-x-2' : 'lg:space-x-2'} mt-4`} onSubmit={handleSubmit}>
+                                <form className="flex gap-2 mt-4" onSubmit={handleSubmit}>
                                     <input type="email" name="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Type email here..." className="w-full h-10 text-xs font-medium rounded-md shadow-sm border-slate-800 text-slate-300 bg-slate-900" required></input>
                                     <Button type="submit" size="xs" disabled={loading}>
                                         {loading ? (
@@ -254,7 +254,7 @@ export default function Footer() {
                             <p className="font-medium text-sm text-slate-300">{footer.copyright_text}</p>
                         </div>
                         <div className="footer-social-wrapper">
-                            <ul className="footer-social-list flex items-center mt-2 sm:mt-0 justify-center sm:justify-between space-x-7">
+                            <ul className="footer-social-list flex items-center mt-2 sm:mt-0 justify-center sm:justify-between gap-7">
                                 {footer?.social_links?.map((footerSocial, index) => (
                                     <li className="font-medium text-sm text-slate-300" key={index}>
                                         <Link href={footerSocial.link} target="_blank">

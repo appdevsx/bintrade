@@ -80,7 +80,7 @@
 	align-items: center;
 	gap: 0.5rem;
 	font-weight: 700;
-	color: #2e71e5;
+	color: var(--primary-color);
 }
 .customBtn svg{
 	width: 18px;

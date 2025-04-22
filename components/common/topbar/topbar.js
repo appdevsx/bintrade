@@ -13,7 +13,7 @@ import { useAccount } from "@/context/accountProvider/accountProvider";
 import { getCountryOptions } from "@/utils/getCountryOptions/getCountryOptions";
 import { getCurrencyOptions } from "@/utils/getCurrencyOptions/getCurrencyOptions";
 import QRCode from "react-qr-code";
-import { getUserDataAPI, userDataUpdateAPI, updatePasswordAPI, twoFactorVerifyAPI, getKycAPI, kycUpdateAPI, getDepositAPI, automaticDepositAPI, manualDepositAPI, getWithdrawAPI, withdrawRequestAPI, getWithdrawInstructionsAPI, submitWithdrawAPI, withdrawChargeAPI, switchAccountAPI, getExchangeAPI, submitExchangeAPI, exchangeChargeAPI, getInfoAPI } from "@/services/apiClient/apiClient";
+import { getUserDataAPI, userDataUpdateAPI, updatePasswordAPI, getTwoFactorInfo, updateSecurityAPI, getKycAPI, kycUpdateAPI, getDepositAPI, automaticDepositAPI, manualDepositAPI, getWithdrawAPI, withdrawRequestAPI, getWithdrawInstructionsAPI, submitWithdrawAPI, withdrawChargeAPI, switchAccountAPI, getExchangeAPI, submitExchangeAPI, exchangeChargeAPI, getInfoAPI } from "@/services/apiClient/apiClient";
 import styles from "./topbar.module.css";
 
 import crypto from '@/public/images/currency/crypto.svg';
@@ -90,6 +90,7 @@ function TopbarContent() {
     const [backFile, setBackFile] = useState(null);
     const [inputFields, setInputFields] = useState([]);
     const [username, setUsername] = useState("");
+    const [qrSVG, setQrSVG] = useState("");
     const [email, setEmail] = useState("");
     const [showPassword, setShowPassword] = useState({
         currentPassword: false,
@@ -356,7 +357,7 @@ function TopbarContent() {
                 setUserData(response?.data);
 
 
-                const baseUrl = response.data.data.image_paths.base_url.replace("public", "",);
+                const baseUrl = response.data.data.image_paths.base_url;
                 const imageUrl = userInfo.image
                     ? `${baseUrl}/${response.data.data.image_paths.path_location}/${userInfo.image}`
                     : `${baseUrl}/${response.data.data.image_paths.default_image}`;
@@ -440,12 +441,24 @@ function TopbarContent() {
         }
     };
 
+    useEffect(() => {
+        const fetchQR = async () => {
+            try {
+                const res = await getTwoFactorInfo();
+                setQrSVG(res.data.data.qr_code);
+            } catch (error) {
+                toast.error("Server did not respond");
+            }
+        };
+        fetchQR();
+    }, []);
+
     const submitTwoFactor = async (e) => {
         e.preventDefault();
         if (loading) return;
         setLoading(true);
         try {
-            const response = await twoFactorVerifyAPI(code);
+            const response = await updateSecurityAPI();
             response.data.message.success.forEach((msg) => {
                 toast.success(msg);
             });
@@ -1047,7 +1060,7 @@ function TopbarContent() {
                     <div className="relative w-11 h-11 flex justify-center items-center bg-[#0d1f30] rounded-full cursor-pointer" onClick={toggleProfileSidebar}>
                         <UserRound className="w-5" />
                         <div className="absolute bottom-0 right-[-5px] w-5 h-5 flex justify-center items-center bg-[#0d1f30] border-2 border-[#000000] rounded-full">
-                            <ArrowUpLeft className="text-[#2e71e5] w-4" />
+                            <ArrowUpLeft className="text--base w-4" />
                         </div>
                     </div>
                 </div>
@@ -1096,7 +1109,7 @@ function TopbarContent() {
                         <div className="relative w-11 h-11 flex justify-center items-center bg-[#0d1f30] rounded-full cursor-pointer" onClick={toggleProfileSidebar}>
                             <UserRound className="w-5" />
                             <div className="absolute bottom-0 right-[-5px] w-5 h-5 flex justify-center items-center bg-[#0d1f30] border-2 border-[#000000] rounded-full">
-                                <ArrowUpLeft className="text-[#2e71e5] w-4" />
+                                <ArrowUpLeft className="text--base w-4" />
                             </div>
                         </div>
                         <div className="pl-3 text-white">
@@ -1481,17 +1494,13 @@ function TopbarContent() {
                     <div className="p-4 bg-[#0d1f30] rounded-lg">
                         <h3 className="text-white text-lg font-semibold mb-4">Scan with Google Authenticator</h3>
                         <form onSubmit={submitTwoFactor}>
-                            <div className="relative text-white mb-4">
-                                <label className="text-sm mb-2 block">Address</label>
-                                <input
-                                    type="text"
-                                    value={code}
-                                    className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
-                                    readOnly
-                                />
-                            </div>
                             <div className="relative text-white">
-                                <QRCode className="w-[200px] h-[200px] mx-auto" value={code} />
+                                {qrSVG && (
+                                    <div
+                                        className="w-[200px] h-[200px] mx-auto"
+                                        dangerouslySetInnerHTML={{ __html: qrSVG }}
+                                    />
+                                )}
                                 <div className="mt-4 text-white text-center">Scan this code in your Google Authenticator app.</div>
                             </div>
                             <div className="mt-2">

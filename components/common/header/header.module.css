@@ -48,7 +48,7 @@
     left: 0;
     width: 5px;
     height: 5px;
-    background-color: #2e7eff;
+    background-color: var(--primary-color);
     border-radius: 30px;
     transition: all 0.5s;
     z-index: -1;
@@ -64,7 +64,7 @@
     left: 0;
     width: 5px;
     height: 5px;
-    background-color: #2e7eff;
+    background-color: var(--primary-color);
     animation: ripple 1.6s ease-out infinite;
     border-radius: 30px;
     transition: all 0.5s;
@@ -75,10 +75,10 @@
     right: 0;
 }
 .text--base{
-	color: #2e71e5;
+	color: var(--primary-color);
 }
 .bg--base{
-	background-color: #2e71e5;
+	background-color: var(--primary-color);
 }
 .headerAction{
     font-size: 14px;

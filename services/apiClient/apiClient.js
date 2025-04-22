@@ -31,18 +31,18 @@ const getToken = () => {
 };
 
 // Interceptor for handling 401 Unauthorized responses
-// apiClient.interceptors.response.use(
-//     (response) => response,
-//     (error) => {
-//         if (error.response?.status === 401) {
-//             localStorage.removeItem("jwtToken");
-//             sessionStorage.removeItem("jwtToken");
-//             toast.error("Unauthenticated");
-//             window.location.href = "/login";
-//         }
-//         return Promise.reject(error);
-//     },
-// );
+apiClient.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            localStorage.removeItem("jwtToken");
+            sessionStorage.removeItem("jwtToken");
+            toast.error("Unauthenticated");
+            window.location.href = "/login";
+        }
+        return Promise.reject(error);
+    },
+);
 
 // Get Alias API (get)
 export const getAliasAPI = (language) => {
@@ -725,6 +725,35 @@ export const twoFactorVerifyAPI = (code) => {
     if (token) {
         return apiClient.post("/authorize/google/2fa/verify", {
             code
+        }, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+    } else {
+        throw new Error("No token found. Please log in.");
+    }
+};
+
+// Google 2FA API (get)
+export const getTwoFactorInfo = () => {
+    const token = getToken();
+    if (token) {
+        return apiClient.get("/user/security/google/2fa/get-info", {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+    } else {
+        throw new Error('No token found. Please log in.');
+    }
+};
+
+// Google 2FA API (post)
+export const updateSecurityAPI = () => {
+    const token = getToken();
+    if (token) {
+        return apiClient.post("/user/security/google/2fa/status/update", {
         }, {
             headers: {
                 Authorization: `Bearer ${token}`

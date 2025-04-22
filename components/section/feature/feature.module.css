@@ -13,7 +13,7 @@
     z-index: -1;
     top: 0;
     right: -30px;
-    background: #2e7eff;
+    background: var(--primary-color);
     height: 100%;
     width: 16px;
     -webkit-transform: skew(6deg);

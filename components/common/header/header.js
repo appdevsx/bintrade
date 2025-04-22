@@ -9,8 +9,6 @@ import { basicSettingsAPI, getLanguageAPI } from "@/services/apiClient/apiClient
 import styles from "./header.module.css";
 import { useLanguage } from "@/context/languageProvider/languageProvider";
 
-import logo from '@/public/images/logo/logo.png';
-
 const navLink = [
     {
         name: 'Trading',
@@ -35,7 +33,6 @@ const navLink = [
 ]
 
 const header = {
-    image: logo,
     button: 'Explore',
 }
 
@@ -50,6 +47,7 @@ export default function Header() {
     // const [selectedLanguage, setSelectedLanguage] = useState(() => {
     //     return localStorage.getItem("selectedLanguage") || "en";
     // });
+    const [siteLogo, setSiteLogo] = useState(null);
     const [loading, setLoading] = useState(true);
     const [langLoading, setLangLoading] = useState(true);
     const pathname = usePathname();
@@ -71,6 +69,7 @@ export default function Header() {
             try {
                 const response = await basicSettingsAPI();
                 setLanguages(response.data?.data?.languages || []);
+                setSiteLogo(response.data?.data?.basic_settings?.logo);
             } catch (error) {
                 toast.error("Server did not respond");
             } finally {
@@ -81,10 +80,10 @@ export default function Header() {
         fetchLanguages();
     }, []);
 
-    useEffect(() => {
-		const userLang = navigator.language.split("-")[0];
-		setLanguage(userLang);
-	}, []);
+    // useEffect(() => {
+	// 	const userLang = navigator.language.split("-")[0];
+	// 	setLanguage(userLang);
+	// }, []);
 
     useEffect(() => {
         setLangLoading(true);
@@ -113,16 +112,21 @@ export default function Header() {
             <div className="custom-container-hero">
                 <div className="header-wrapper flex justify-between items-center">
                     <Link href="/" className="site-logo relative overflow-hidden">
-                        <Image src={header.image}
-                            className="object-cover w-[100px] lg:w-[140px]" 
-                            width={140}
-                            alt="logo"
-                            priority={true}
-                            quality={50}
-                            decoding="async"
-                        />
+                        {siteLogo ? (
+                            <Image src={siteLogo}
+                                className="object-cover w-[100px] lg:w-[140px]" 
+                                width={140}
+                                height={40}
+                                alt="logo"
+                                priority={true}
+                                quality={50}
+                                decoding="async"
+                            />
+                        ) : (
+                            <div className="h-10 w-[100px] bg-gray-800 animate-pulse rounded-md"></div>
+                        )}
                     </Link>
-                    <ul className={`header-nav ${isMobileMenuOpen ? 'open' : ''} block lg:flex items-center ${language === 'ar' ? 'lg:space-x-reverse lg:space-x-10' : 'lg:space-x-10'}`}>
+                    <ul className={`header-nav ${isMobileMenuOpen ? 'open' : ''} block lg:flex items-center gap-10`}>
                         {navLink.map(( link ) => {
                             const isActive = pathname == link.href;
                             const translatedName = translation[link.name] || link.name;
@@ -133,7 +137,7 @@ export default function Header() {
                             );
                         })}
                     </ul>
-                    <div className={`header-action-wrapper flex items-center ${language === 'ar' ? 'lg:space-x-reverse lg:space-x-3' : 'lg:space-x-3'}`}>
+                    <div className="header-action-wrapper flex items-center gap-3">
                         <div>
                             {loading ? (
                                 <div className="animate-pulse">
