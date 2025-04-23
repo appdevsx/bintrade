@@ -288,16 +288,19 @@ export default function Sidebar() {
                 attachment
             );
 
-            console.log(response);
-
             response.data.message.success.forEach((msg) => {
                 toast.success(msg);
             });
 
-            const newTicket = response.data.data;
-            setTickets((prevTickets) => [newTicket, ...prevTickets]);
+            const updatedTicketsResponse = await getSupportTicketsAPI(currentPage);
+            const { data } = updatedTicketsResponse.data.data.support_tickets;
+            setTickets(data);
+            setTotalPages(updatedTicketsResponse.data.data.support_tickets.last_page);
+    
             setTicketForm({ name: "", email: "", subject: "", message: "" });
             setAttachment([]);
+            setCreateTicketsSidebarOpen(false);
+            setTicketsSidebarOpen(true);
         } catch (error) {
             if (error.response && error.response.data && error.response.data.message && error.response.data.message.error) {
                 error.response.data.message.error.forEach((msg) => {

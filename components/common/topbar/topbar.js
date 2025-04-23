@@ -478,15 +478,44 @@ function TopbarContent() {
 
     useEffect(() => {
         getKycAPI()
-            .then(response => {
+            .then((response) => {
                 const data = response.data.data;
                 setFields(data.input_fields);
-                setInstructions(data.instructions);
+    
+                const rawInstructions = data.instructions || "";
+                const statusMap = {};
+    
+                rawInstructions.split(",").forEach((item) => {
+                    const parts = item.split(":");
+                    if (parts.length === 2) {
+                        const key = parts[0].trim();
+                        const value = parts[1].trim();
+                        statusMap[key] = value;
+                    }
+                });
+    
+                const currentStatus = String(data.status).trim();
+                const statusText = statusMap[currentStatus];
+    
+                setInstructions(statusText || "Unknown status");
             })
-            .catch(error => {
+            .catch((error) => {
                 toast.error(error.response?.data?.message?.error);
             });
     }, []);
+
+    const getStatusColor = (statusText) => {
+        switch (statusText?.toLowerCase()) {
+            case "approved":
+                return "text-green-500";
+            case "pending":
+                return "text-yellow-500";
+            case "rejected":
+                return "text-red-500";
+            default:
+                return "text-sky-400";
+        }
+    };
 
     const handleChange = (e) => {
         const { name, files } = e.target;
@@ -591,8 +620,6 @@ function TopbarContent() {
         e.preventDefault();
         setLoading(true);
 
-        console.log("Selected Gateway Type:", selectedGatewayType);
-
         try {
             if (selectedGatewayType === "AUTOMATIC") {
                 const response = await automaticDepositAPI(selectedCurrency, amount, selectedCurrencyCode);
@@ -601,10 +628,13 @@ function TopbarContent() {
                     toast.error(response.data.message.error[0]);
                 } else {
                     toast.success(response.data.message.success);
+                    const redirectUrl = response.data.data?.redirect_url;
+                    if (redirectUrl) {
+                        window.location.href = redirectUrl;
+                    }
                 }
             } else if (selectedGatewayType === "MANUAL") {  
                 const manualResponse = await manualDepositAPI(selectedCurrency, amount, selectedCurrencyCode, fullName, transactionId, screenshot);
-                console.log(manualResponse);
                 if (manualResponse.data.type === "success") {
                     toast.success(manualResponse.data.message.success);
                 } else {
@@ -614,7 +644,10 @@ function TopbarContent() {
                 toast.error("Unknown deposit type.");
             }
         } catch (error) {
-            toast.error("Server did not respond");
+            const errorMessage =
+                error?.response?.data?.message?.error?.[0] ||
+                "Server did not respond";
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -742,15 +775,16 @@ function TopbarContent() {
         handleWithdrawCharge();
     }, []);
 
+    const fetchExchangeData = async () => {
+        try {
+            const response = await getExchangeAPI();
+            setExchangeData(response.data.data);
+        } catch (error) {
+            toast.error("Failed to fetch exchange data.");
+        }
+    };
+    
     useEffect(() => {
-        const fetchExchangeData = async () => {
-            try {
-                const response = await getExchangeAPI();
-                setExchangeData(response.data.data);
-            } catch (error) {
-                toast.error("Failed to fetch exchange data.");
-            }
-        };
         fetchExchangeData();
     }, []);
 
@@ -771,8 +805,9 @@ function TopbarContent() {
             } else {
                 toast.error("Unexpected response from server.");
             }
-    
+            await fetchWalletInfo();
             setExchangeId("");
+            closeAllSidebars(true);
         } catch (error) {
             if (error.response?.data?.message?.error) {
                 error.response.data.message.error.forEach((msg) => {
@@ -804,59 +839,110 @@ function TopbarContent() {
         fetchCharge();
     }, [selectedCurrency, exchangeId, exchangeData]);
 
-    useEffect(() => {
-        const fetchWalletInfo = async () => {
-            try {
-                setLoading(true);
-                const response = await getInfoAPI();
+    // useEffect(() => {
+    //     const fetchWalletInfo = async () => {
+    //         try {
+    //             setLoading(true);
+    //             const response = await getInfoAPI();
     
-                if (response.data.type === "success" && response.data.data.user_wallets) {
-                    const wallets = response.data.data.user_wallets;
+    //             if (response.data.type === "success" && response.data.data.user_wallets) {
+    //                 const wallets = response.data.data.user_wallets;
     
-                    const demoWallet = wallets.find(wallet => wallet.type.toUpperCase() === "DEMO");
-                    const liveWallet = wallets.find(wallet => wallet.type.toUpperCase() === "LIVE");
+    //                 const demoWallet = wallets.find(wallet => wallet.type.toUpperCase() === "DEMO");
+    //                 const liveWallet = wallets.find(wallet => wallet.type.toUpperCase() === "LIVE");
     
-                    const demoBal = parseFloat(demoWallet?.balance || 0).toFixed(2);
-                    const liveBal = parseFloat(liveWallet?.balance || 0).toFixed(2);
+    //                 const demoBal = parseFloat(demoWallet?.balance || 0).toFixed(2);
+    //                 const liveBal = parseFloat(liveWallet?.balance || 0).toFixed(2);
     
-                    setDemoBalance(demoBal);
-                    setLiveBalance(liveBal);
+    //                 setDemoBalance(demoBal);
+    //                 setLiveBalance(liveBal);
     
-                    setDemoAccountType(demoWallet?.type);
-                    setLiveAccountType(liveWallet?.type);
+    //                 setDemoAccountType(demoWallet?.type);
+    //                 setLiveAccountType(liveWallet?.type);
     
-                    if (liveWallet || demoWallet) {
-                        const currency = (liveWallet || demoWallet).currency?.symbol;
-                        setCurrencySymbol(currency);
-                        localStorage.setItem("currencySymbol", currency);
-                    }
+    //                 if (liveWallet || demoWallet) {
+    //                     const currency = (liveWallet || demoWallet).currency?.symbol;
+    //                     setCurrencySymbol(currency);
+    //                     localStorage.setItem("currencySymbol", currency);
+    //                 }
     
-                    const storedAccount = localStorage.getItem("selectedAccount");
-                    const selectedFromStorage = storedAccount === "Demo Account" ? demoWallet : liveWallet;
+    //                 const storedAccount = localStorage.getItem("selectedAccount");
+    //                 const selectedFromStorage = storedAccount === "Demo Account" ? demoWallet : liveWallet;
     
-                    if (selectedFromStorage) {
-                        const selectedType = selectedFromStorage.type.toUpperCase();
-                        const selectedBal = parseFloat(selectedFromStorage.balance).toFixed(2);
+    //                 if (selectedFromStorage) {
+    //                     const selectedType = selectedFromStorage.type.toUpperCase();
+    //                     const selectedBal = parseFloat(selectedFromStorage.balance).toFixed(2);
     
-                        setSelectedBalance(selectedBal);
-                        setSelectedAccountType(selectedType);
+    //                     setSelectedBalance(selectedBal);
+    //                     setSelectedAccountType(selectedType);
     
-                        localStorage.setItem("selectedAccount", selectedType === "DEMO" ? "Demo Account" : "Live Account");
-                        localStorage.setItem("selectedBalance", selectedBal);
-                        localStorage.setItem("selectedAccountType", selectedType);
-                    }
-                } else {
-                    toast.error(response.data.message.error[0]);
+    //                     localStorage.setItem("selectedAccount", selectedType === "DEMO" ? "Demo Account" : "Live Account");
+    //                     localStorage.setItem("selectedBalance", selectedBal);
+    //                     localStorage.setItem("selectedAccountType", selectedType);
+    //                 }
+    //             } else {
+    //                 toast.error(response.data.message.error[0]);
+    //             }
+    //         } catch (error) {
+    //             toast.error("Server did not respond");
+    //         } finally {
+    //             setLoading(false);
+    //         }
+    //     };
+    
+    //     fetchWalletInfo();
+    // }, []);
+
+
+    const fetchWalletInfo = async () => {
+        try {
+            setLoading(true);
+            const response = await getInfoAPI();
+
+            if (response.data.type === "success" && response.data.data.user_wallets) {
+                const wallets = response.data.data.user_wallets;
+
+                const demoWallet = wallets.find(wallet => wallet.type.toUpperCase() === "DEMO");
+                const liveWallet = wallets.find(wallet => wallet.type.toUpperCase() === "LIVE");
+
+                const demoBal = parseFloat(demoWallet?.balance || 0).toFixed(2);
+                const liveBal = parseFloat(liveWallet?.balance || 0).toFixed(2);
+
+                setDemoBalance(demoBal);
+                setLiveBalance(liveBal);
+
+                setDemoAccountType(demoWallet?.type);
+                setLiveAccountType(liveWallet?.type);
+
+                if (liveWallet || demoWallet) {
+                    const currency = (liveWallet || demoWallet).currency?.symbol;
+                    setCurrencySymbol(currency);
+                    localStorage.setItem("currencySymbol", currency);
                 }
-            } catch (error) {
-                toast.error("Server did not respond");
-            } finally {
-                setLoading(false);
+
+                const storedAccount = localStorage.getItem("selectedAccount");
+                const selectedFromStorage = storedAccount === "Demo Account" ? demoWallet : liveWallet;
+
+                if (selectedFromStorage) {
+                    const selectedType = selectedFromStorage.type.toUpperCase();
+                    const selectedBal = parseFloat(selectedFromStorage.balance).toFixed(2);
+
+                    setSelectedBalance(selectedBal);
+                    setSelectedAccountType(selectedType);
+
+                    localStorage.setItem("selectedAccount", selectedType === "DEMO" ? "Demo Account" : "Live Account");
+                    localStorage.setItem("selectedBalance", selectedBal);
+                    localStorage.setItem("selectedAccountType", selectedType);
+                }
+            } else {
+                toast.error(response.data.message.error[0]);
             }
-        };
-    
-        fetchWalletInfo();
-    }, []);
+        } catch (error) {
+            toast.error("Server did not respond");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <>
@@ -1538,11 +1624,11 @@ function TopbarContent() {
                 <form onSubmit={handleSubmit}>
                     <div className="p-4">
                         {instructions ? (
-                            <div className="bg-blue-900 text-blue-100 text-sm p-3 rounded whitespace-pre-line">
-                                <strong>Instructions:</strong><br />
-                                {instructions.split(',').map((line, index) => (
-                                    <div key={index}>{line.trim()}</div>
-                                ))}
+                            <div className="p-4 bg-[#0d1f30] rounded-lg">
+                                <strong>Status:</strong>
+                                <span className={`${getStatusColor(instructions)} font-semibold pl-1`}>
+                                    {instructions}
+                                </span>
                             </div>
                         ) : (
                             <>
