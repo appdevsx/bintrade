@@ -4,10 +4,12 @@ import { createChart } from 'lightweight-charts';
 import Asidebar from "@/components/common/asidebar/asidebar";
 import { Toaster, toast } from "react-hot-toast";
 import { useAccount } from "@/context/accountProvider/accountProvider";
+import { useSettings } from "@/context/settingsProvider/settingsProvider";
 import { demoTradingInfoAPI, liveTradingInfoAPI, storeOrderAPI, orderResultAPI } from "@/services/apiClient/apiClient";
 import { LoaderCircle } from 'lucide-react';
 
 const RealtimeChart = () => {
+	const { tradeSettings } = useSettings();
     const chartContainerRef = useRef(null);
     const wsRef = useRef(null);
     const { symbol, interval, selectedAccountType } = useAccount();
@@ -20,9 +22,17 @@ const RealtimeChart = () => {
     const [tradingSettings, setTradingSettings] = useState(null);
     const [intervals, setIntervals] = useState([]);
     const [currencyImagePath, setCurrencyImagePath] = useState("");
-    const [amount, setAmount] = useState(1);
+    const [amount, setAmount] = useState(1.00);
     const [chartData, setChartData] = useState([]);
     const [loadingChart, setLoadingChart] = useState(false);
+
+	useEffect(() => {
+		if (tradeSettings) {
+			const formattedInvestment = parseFloat(tradeSettings?.investment || "1");
+			setAmount(Number(formattedInvestment.toFixed(2)));
+			setDuration(tradeSettings?.time_frame || "1");
+		}
+	}, [tradeSettings]);
 
     const fetchBinanceData = async (symbol, interval, limit) => {
         if (!symbol || !interval || !limit) {
@@ -159,11 +169,6 @@ const RealtimeChart = () => {
 			toast.error("Please enter a valid amount greater than 0.");
 			return;
 		}
-  
-		const actionType = "HIGH";
-		const time = duration;
-		const currentTime = Math.floor(Date.now() / 1000);
-		const currentOHLC = "[1741148452000,\"0.02486000\",\"0.02486000\",\"0.02486000\",\"0.02486000\",\"0.00000000\",1741148452999,\"0.00000000\",0,\"0.00000000\",\"0.00000000\",\"0\"]";
   
       	setIsProcessing(true);
   

@@ -18,8 +18,8 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
 
     const { selectedBalance, updateAccountAmount } = useAccount();
 
-    const incrementAmount = () => setAmount((prev) => prev + 1);
-    const decrementAmount = () => setAmount((prev) => (prev > 1 ? prev - 1 : prev));
+    const incrementAmount = () => setAmount((prev) => parseFloat((parseFloat(prev) + 1).toFixed(2)));
+    const decrementAmount = () => setAmount((prev) => parseFloat(prev) > 1 ? parseFloat((parseFloat(prev) - 1).toFixed(2)) : parseFloat(prev));
 
     const incrementDuration = () => setDuration((prev) => prev + 1);
     const decrementDuration = () => setDuration((prev) => (prev > 1 ? prev - 1 : prev));
@@ -43,7 +43,7 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
     const handleAmountChange = (event) => {
         const value = parseInt(event.target.value);
         if (!isNaN(value) && value >= 0) {
-            setAmount(value);
+            setAmount(parseFloat(value.toFixed(2)));
         }
     };
 
@@ -122,7 +122,7 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
                         <input
                             id="amount"
                             type="text"
-                            value={amount}
+                            value={amount.toFixed(2)}
                             onChange={handleAmountChange}
                             className="w-full text-center bg-transparent border border-[#1e293b] rounded-md text-gray-400 outline-none"
                         />
