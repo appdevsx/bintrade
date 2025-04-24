@@ -713,10 +713,19 @@ export const updatePasswordAPI = (currentPassword, newPassword, passwordConfirma
 
 // Authorization API (post)
 export const authorizationCodeAPI = (token, code) => {
-    return apiClient.post("/authorize/mail/verify/code", {
-        token,
-        code
-    });
+    const tokein = getToken();
+    if (tokein) {
+        return apiClient.post("/authorize/mail/verify/code",
+            {token: token, code: code },
+            {
+                headers: {
+                    Authorization: `Bearer ${tokein}`
+                }
+            }
+        );
+    } else {
+        throw new Error("No token found. Please log in.");
+    }
 };
 
 // 2FA API (post)
@@ -766,11 +775,18 @@ export const updateSecurityAPI = () => {
 
 // Resend Authorization Code API (get)
 export const resendAuthorizationCodeAPI = (token) => {
-    return apiClient.get(`/authorize/mail/resend/code`, {
-        params: { token },
-    });
+    const tokein = getToken();
+    if (tokein) {
+        return apiClient.get(`/authorize/mail/resend/code`, {
+            params: { token },
+            headers: {
+                Authorization: `Bearer ${tokein}`
+            }
+        });
+    } else {
+        throw new Error("No token found. Please log in.");
+    }
 };
-
 
 // Google Social Auth API (post)
 export const googleSocialAuthAPI = (customRedirectUrl) => {

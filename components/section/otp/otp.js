@@ -33,6 +33,8 @@ export default function Otp() {
     const token = searchParams.get("token");
     const { language } = useLanguage();
 
+    console.log(otp);
+
     useEffect(() => {
         const storedCountdown = localStorage.getItem("countdown");
         if (storedCountdown) {

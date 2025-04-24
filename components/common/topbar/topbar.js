@@ -12,6 +12,7 @@ import { UserRound, ArrowUpLeft, Plus, ChevronDown, X, Settings, ArrowRightToLin
 import { useAccount } from "@/context/accountProvider/accountProvider";
 import { getCountryOptions } from "@/utils/getCountryOptions/getCountryOptions";
 import { getCurrencyOptions } from "@/utils/getCurrencyOptions/getCurrencyOptions";
+import { useTransactions } from "@/context/transactionProvider/transactionProvider";
 import QRCode from "react-qr-code";
 import { getUserDataAPI, userDataUpdateAPI, updatePasswordAPI, getTwoFactorInfo, updateSecurityAPI, getKycAPI, kycUpdateAPI, getDepositAPI, automaticDepositAPI, manualDepositAPI, getWithdrawAPI, withdrawRequestAPI, getWithdrawInstructionsAPI, submitWithdrawAPI, withdrawChargeAPI, switchAccountAPI, getExchangeAPI, submitExchangeAPI, exchangeChargeAPI, getInfoAPI } from "@/services/apiClient/apiClient";
 import styles from "./topbar.module.css";
@@ -22,6 +23,7 @@ const countryOptions = getCountryOptions();
 const currencyOptions = getCurrencyOptions();
 
 function TopbarContent() {
+    const { fetchTransactions } = useTransactions();
     const { selectedAccountType, setSelectedAccountType, selectedBalance, setSelectedBalance } = useAccount();
     const [demoBalance, setDemoBalance] = useState(null);
     const [liveBalance, setLiveBalance] = useState(null);
@@ -806,6 +808,7 @@ function TopbarContent() {
                 toast.error("Unexpected response from server.");
             }
             await fetchWalletInfo();
+            fetchTransactions();
             setExchangeId("");
             closeAllSidebars(true);
         } catch (error) {

@@ -7,8 +7,10 @@ import "../global.scss";
 import Sidebar from "@/components/common/sidebar/sidebar";
 import Topbar from "@/components/common/topbar/topbar";
 import { AccountProvider } from "@/context/accountProvider/accountProvider";
-import { LoaderCircle } from 'lucide-react';
-import { getInfoAPI } from "@/services/apiClient/apiClient";
+import { TransactionProvider } from "@/context/transactionProvider/transactionProvider";
+import { SettingsProvider } from "@/context/settingsProvider/settingsProvider";
+import { LoaderCircle } from "lucide-react";
+import { getUserDataAPI } from "@/services/apiClient/apiClient";
 
 const inter = DM_Sans({ subsets: ["latin"] });
 
@@ -22,7 +24,7 @@ export default function DashboardLayout({ children }) {
         if (!token) {
             router.push("/login");
         } else {
-            getInfoAPI()
+            getUserDataAPI()
                 .then((response) => {
                     const authorizationStatus = response.data.data?.user_info?.email_verified;
                     if (authorizationStatus == "0") {
@@ -50,22 +52,24 @@ export default function DashboardLayout({ children }) {
     }
 
     return (
-        <html lang="en">
-            <body className={inter.className}>
-                <AccountProvider value={dashboardData}>
-                    <main className="dashboard-layout">
-                        <div className="dashboard-wrapper">
-                            <Sidebar/>
-                            <div className="dashboard-main-wrapper lg:w-[calc(100%-80px)] ml-auto">
-                                <Topbar/>
-                                <div className="dashboard-body-wrapper">
-                                    {children}
+        <div className={inter.className}>
+            <AccountProvider value={dashboardData}>
+                <TransactionProvider>
+                    <SettingsProvider>
+                        <div className="dashboard-layout">
+                            <div className="dashboard-wrapper">
+                                <Sidebar />
+                                <div className="dashboard-main-wrapper lg:w-[calc(100%-80px)] ml-auto">
+                                    <Topbar />
+                                    <div className="dashboard-body-wrapper">
+                                        {children}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </main>
-                </AccountProvider>
-            </body>
-        </html>
+                    </SettingsProvider>
+                </TransactionProvider>
+            </AccountProvider>
+        </div>
     );
 }

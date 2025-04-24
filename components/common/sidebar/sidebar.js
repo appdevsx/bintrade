@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useTransactions } from "@/context/transactionProvider/transactionProvider";
 import { Gauge, StepForward, Minimize2, RedoDot, MessageCircleQuestion, X, MessageSquare, PlusCircle, Paperclip, Send, ArrowRightToLine, TrendingUp, DollarSign, PieChart, Repeat, Maximize2, CheckCircle, LogOut, LoaderCircle } from 'lucide-react';
 import styles from "./sidebar.module.css";
 import { logoutAPI, getInfoAPI, getSupportTicketsAPI, storeSupportTicketAPI } from "@/services/apiClient/apiClient";
@@ -55,12 +56,13 @@ export default function Sidebar() {
         4: true,
         17: true
     };
+    const { transactions, fetchTransactions } = useTransactions();
+    const [loading, setLoading] = useState(false);
     const [openSubmenus, setOpenSubmenus] = useState(defaultOpenSubmenus);
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const [isAnalyticsSidebarOpen, setIsAnalyticsSidebarOpen] = useState(false);
     const [analyticsData, setAnalyticsData] = useState([]);
     const [isLogsSidebarOpen, setLogsSidebarOpen] = useState(false);
-    const [transactions, setTransactions] = useState([]);
     const [isHelpSidebarOpen, setHelpSidebarOpen] = useState(false);
     const [isTicketsSidebarOpen, setTicketsSidebarOpen] = useState(false);
     const [isCreateTicketsSidebarOpen, setCreateTicketsSidebarOpen] = useState(false);
@@ -85,7 +87,6 @@ export default function Sidebar() {
     const [attachment, setAttachment] = useState([]);
     const [isModalOpen, setModalOpen] = useState(false);
     const [showContent, setShowContent] = useState(false);
-    const [loading, setLoading] = useState(false);
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -341,24 +342,8 @@ export default function Sidebar() {
 
         fetchAnalytics();
     }, []);
-
+    
     useEffect(() => {
-        const fetchTransactions = async () => {
-            try {
-                setLoading(true);
-                const response = await getInfoAPI();
-                if (response.data.type === "success" && response.data.data.transactions) {
-                    setTransactions(response.data.data.transactions);
-                } else {
-                    toast.error(response.data.message.error[0]);
-                }
-            } catch (error) {
-                toast.error("Server did not respond");
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchTransactions();
     }, []);
 
