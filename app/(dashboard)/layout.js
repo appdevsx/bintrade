@@ -9,6 +9,7 @@ import Topbar from "@/components/common/topbar/topbar";
 import { AccountProvider } from "@/context/accountProvider/accountProvider";
 import { TransactionProvider } from "@/context/transactionProvider/transactionProvider";
 import { SettingsProvider } from "@/context/settingsProvider/settingsProvider";
+import { WalletProvider } from "@/context/walletProvider/walletProvider";
 import { LoaderCircle } from "lucide-react";
 import { getUserDataAPI } from "@/services/apiClient/apiClient";
 
@@ -56,17 +57,19 @@ export default function DashboardLayout({ children }) {
             <AccountProvider value={dashboardData}>
                 <TransactionProvider>
                     <SettingsProvider>
-                        <div className="dashboard-layout">
-                            <div className="dashboard-wrapper">
-                                <Sidebar />
-                                <div className="dashboard-main-wrapper lg:w-[calc(100%-80px)] ml-auto">
-                                    <Topbar />
-                                    <div className="dashboard-body-wrapper">
-                                        {children}
+                        <WalletProvider>
+                            <div className="dashboard-layout">
+                                <div className="dashboard-wrapper">
+                                    <Sidebar />
+                                    <div className="dashboard-main-wrapper lg:w-[calc(100%-80px)] ml-auto">
+                                        <Topbar />
+                                        <div className="dashboard-body-wrapper">
+                                            {children}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </WalletProvider>
                     </SettingsProvider>
                 </TransactionProvider>
             </AccountProvider>

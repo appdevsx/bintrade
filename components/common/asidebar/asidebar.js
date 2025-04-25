@@ -6,7 +6,7 @@ import styles from "./asidebar.module.css";
 
 const initialHistory = [];
 
-export default function Asidebar({ onTradeClick, isProcessing, duration, setDuration, amount, setAmount, ongoingOrders }) {
+export default function Asidebar({ handleTradeClick, isProcessing, duration, setDuration, amount, setAmount, ongoingOrders }) {
     const [action, setAction] = useState("");
     const [remainingTime, setRemainingTime] = useState(null);
     const [tradeTimer, setTradeTimer] = useState(null);
@@ -15,8 +15,7 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isAsidebarOpen, setIsAsidebarOpen] = useState(false);
     const [history, setHistory] = useState(initialHistory);
-
-    const { selectedBalance, updateAccountAmount } = useAccount();
+    const [isTimerVisible, setIsTimerVisible] = useState(false);
 
     const incrementAmount = () => setAmount((prev) => parseFloat((parseFloat(prev) + 1).toFixed(2)));
     const decrementAmount = () => setAmount((prev) => parseFloat(prev) > 1 ? parseFloat((parseFloat(prev) - 1).toFixed(2)) : parseFloat(prev));
@@ -47,53 +46,6 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
         }
     };
 
-    const startTrading = (tradeAction) => {
-        if (isProcessing) return;
-
-        setTradeOutcome(null);
-        setProfitOrLoss(null);
-
-        updateAccountAmount(selectedBalance - amount);
-
-        setAction(tradeAction);
-        setRemainingTime(duration);
-
-        if (tradeTimer) clearInterval(tradeTimer);
-
-        const timer = setInterval(() => {
-            setRemainingTime((prev) => {
-                if (prev <= 1) {
-                    clearInterval(timer);
-
-                    const isWin = Math.random() > 0.5;
-                    const result = isWin ? amount : -amount;
-                    setTradeOutcome(isWin ? "Win" : "Loss");
-                    setProfitOrLoss(result);
-
-                    if (isWin) updateAccountAmount(selectedBalance + amount * 2);
-
-                    setAction("");
-
-                    setHistory((prevHistory) => [
-                        ...prevHistory,
-                        {
-                            action: tradeAction,
-                            outcome: isWin ? "Win" : "Loss",
-                            profitOrLoss: result,
-                            time: new Date().toLocaleTimeString(),
-                        },
-                    ]);
-                    return null;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-
-        setTradeTimer(timer);
-
-        onTradeClick(tradeAction);
-    };
-
     useEffect(() => {
         return () => {
             if (tradeTimer) clearInterval(tradeTimer);
@@ -104,6 +56,45 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
     const toggleAsidebar = () => {
         setIsAsidebarOpen(!isAsidebarOpen);
     };
+
+    const onTradeClick = async (actionType) => {
+        // Reset any previous state
+        setTradeOutcome(null);
+        setRemainingTime(null);
+    
+        try {
+            const response = await handleTradeClick(actionType);
+            
+            // Debugging: Log the response
+            console.log("API Response:", response);
+    
+            if (response.success) {
+                setTradeOutcome("In Progress");
+                setRemainingTime(duration);
+                setIsTimerVisible(true); // Show timer when successful
+    
+                const timer = setInterval(() => {
+                    setRemainingTime((prevTime) => {
+                        if (prevTime <= 1) {
+                            clearInterval(timer);
+                            setIsTimerVisible(false); // Hide timer after completion
+                            return 0;
+                        }
+                        return prevTime - 1;
+                    });
+                }, 1000);
+    
+                setTradeTimer(timer);
+            } else {
+                setIsTimerVisible(false);
+                setTradeOutcome("Failed");
+            }
+        } catch (error) {
+            console.error("Trade failed:", error);
+            setIsTimerVisible(false); // Hide the timer if there was an error
+            setTradeOutcome("Error");
+        }
+    };    
 
     return (
         <div className="fixed lg:sticky top-[70px] lg:top-0 right-0 w-[180px] h-screen lg:h-[calc(100vh-102px)] z-[2]">
@@ -157,29 +148,21 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
                 </button>
                 <div className="w-full flex flex-col gap-2">
                     <button className={`w-full py-3 bg-[#2dd674] rounded-md text-black font-bold flex items-center justify-center gap-2 ${action === "Up" ? "bg-[#31a361]" : "bg-[#2dd674]"}`} 
-                    onClick={() => {
-                        setTradeOutcome(null);
-                        startTrading("Up");
-                        handleUp();
-                    }} 
+                    onClick={() => onTradeClick("Up")}
                     disabled={isProcessing || remainingTime !== null}>
                         Up
                         <span className="text-xl">↑</span>
                     </button>
                     <button className={`w-full py-3 bg-[#ff5765] rounded-md text-black font-bold flex items-center justify-center gap-2 ${action === "Down" ? "bg-[#c34d56]" : "bg-[#ff5765]"}`} 
-                    onClick={() => {
-                        setTradeOutcome(null);
-                        startTrading("Down");
-                        handleDown();
-                    }} 
+                    onClick={() => onTradeClick("Down")} 
                     disabled={isProcessing || remainingTime !== null}>
                         Down
                         <span className="text-xl">↓</span>
                     </button>
                 </div>
-                {remainingTime !== null && (
+                {isTimerVisible && remainingTime !== null && (
                     <div className="w-full text-center text-sm mt-4 text-gray-400">
-                        Time Remaining: {Math.floor(remainingTime / 60)}:{remainingTime % 60 < 10 ? `0${remainingTime % 60}` : remainingTime % 60}
+                        Time Remaining: {formatTime(remainingTime)}
                     </div>
                 )}
                 {tradeOutcome && (
@@ -216,7 +199,7 @@ export default function Asidebar({ onTradeClick, isProcessing, duration, setDura
                                 <div>Action: {order.p_type}</div>
                                 <div>Amount: {order.amount}</div>
                                 <div>Status: <span className="text-[12px] px-2 py-1 bg-white text-black rounded-sm font-semibold">{order.status}</span></div>
-                                <div>Started At: {new Date(order.started_at * 1000).toLocaleString()}</div>
+                                <div>Started At: {order.createdAt}</div>
                             </li>
                             ))
                         )}

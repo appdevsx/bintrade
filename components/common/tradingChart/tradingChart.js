@@ -12,7 +12,7 @@ const RealtimeChart = () => {
 	const { tradeSettings } = useSettings();
     const chartContainerRef = useRef(null);
     const wsRef = useRef(null);
-    const { symbol, interval, selectedAccountType } = useAccount();
+    const { symbol, setSymbol, interval, selectedAccountType } = useAccount();
     const [isProcessing, setIsProcessing] = useState(false);
     const [duration, setDuration] = useState(1);
     const [chartHeight, setChartHeight] = useState(window.innerHeight - 102);
@@ -25,6 +25,9 @@ const RealtimeChart = () => {
     const [amount, setAmount] = useState(1.00);
     const [chartData, setChartData] = useState([]);
     const [loadingChart, setLoadingChart] = useState(false);
+	const [tradeType, setTradeType] = useState(null);
+	const [selectedSymbol, setSelectedSymbol] = useState(null);
+	const [currentOHLCData, setCurrentOHLCData] = useState(null);
 
 	useEffect(() => {
 		if (tradeSettings) {
@@ -165,46 +168,86 @@ const RealtimeChart = () => {
     };    
 
     const handleTradeClick = async () => {
-		if (!amount || isNaN(amount) || amount <= 0) {
-			toast.error("Please enter a valid amount greater than 0.");
+		if (!ongoingOrders?.length) {
+			toast.error("No ongoing trade found.");
 			return;
 		}
-  
-      	setIsProcessing(true);
-  
+	
+		const latestOrder = ongoingOrders[0];
+		const actionType = latestOrder?.p_type;
+		const selectedSymbol = latestOrder?.symbol;
+		const rawOHLC = latestOrder?.start_ohlc_data;
+	
+		if (!actionType || !selectedSymbol || !rawOHLC) {
+			toast.error("Trade data is incomplete.");
+			return;
+		}
+
+		let parsedOHLC;
 		try {
+		let arr = JSON.parse(rawOHLC);
+		if (typeof arr === "string") arr = JSON.parse(arr);
+
+		parsedOHLC = {
+			e: "kline",
+			E: arr[0] + 100,
+			s: latestOrder.symbol,
+			k: {
+			t: arr[0],
+			T: arr[6],
+			s: latestOrder.symbol,
+			i: latestOrder.interval || "1s",
+			f: -1,
+			L: -1,
+			o: arr[1],
+			c: arr[4],
+			h: arr[2],
+			l: arr[3],
+			v: arr[5],
+			n: 0,
+			x: true,
+			q: arr[7],
+			V: arr[9],
+			Q: arr[10],
+			B: arr[11]
+			}
+		};
+		} catch (err) {
+		console.error("Failed to parse OHLC:", err, rawOHLC);
+		toast.error("OHLC data is invalid.");
+		return;
+		}
+	
+		try {
+			const investAmount = parseFloat(amount);
+			const time = duration;
+			const currentTime = new Date().toLocaleString("en-US", {
+				hour12: true,
+			});
+	
 			const response = await storeOrderAPI(
-				amount,
+				investAmount,
 				time,
 				actionType,
-				symbol,
+				selectedSymbol,
 				currentTime,
-				currentOHLC
+				JSON.stringify(parsedOHLC)
 			);
-  
-			const order = response?.data?.data?.order;
 	
-			if (order) {
-				setOngoingOrders((prevOrders) => [...prevOrders, order]);
-		
-				const ohlcData = JSON.parse(order.start_ohlc_data);
-				const newCandle = {
-					time: ohlcData[0] / 1000,
-					open: parseFloat(ohlcData[1]),
-					high: parseFloat(ohlcData[2]),
-					low: parseFloat(ohlcData[3]),
-					close: parseFloat(ohlcData[4]),
-				};
-	
-				candleSeries.current.update(newCandle);
-				handleTradingCompletion();
+			if (response?.data?.message?.success) {
+				toast.success(response.data.message.success[0] || "Order placed successfully!");
+			} else if (response?.data?.message?.error) {
+				toast.error(response.data.message.error[0] || "An error occurred.");
+			} else {
+				toast.error("Failed to place order.");
 			}
 		} catch (error) {
-			toast.error("Server did not respond");
-		} finally {
-			setIsProcessing(false);
+			const errorMessage =
+                error?.response?.data?.message?.error?.[0] ||
+                "Server did not respond";
+			toast.error(errorMessage);
 		}
-    };
+	};
 
     return (
         <>
@@ -219,7 +262,7 @@ const RealtimeChart = () => {
                   	<div ref={chartContainerRef} style={{ position: 'relative' }}></div>
                 </div>
                 <Asidebar
-                    onTradeClick={handleTradeClick}
+                    handleTradeClick={handleTradeClick}
                     isProcessing={isProcessing}
                     amount={amount}
                     setAmount={setAmount}

@@ -13,6 +13,7 @@ import { useAccount } from "@/context/accountProvider/accountProvider";
 import { getCountryOptions } from "@/utils/getCountryOptions/getCountryOptions";
 import { getCurrencyOptions } from "@/utils/getCurrencyOptions/getCurrencyOptions";
 import { useTransactions } from "@/context/transactionProvider/transactionProvider";
+import { useWallets } from "@/context/walletProvider/walletProvider";
 import QRCode from "react-qr-code";
 import { getUserDataAPI, userDataUpdateAPI, updatePasswordAPI, getTwoFactorInfo, updateSecurityAPI, getKycAPI, kycUpdateAPI, getDepositAPI, automaticDepositAPI, manualDepositAPI, getWithdrawAPI, withdrawRequestAPI, getWithdrawInstructionsAPI, submitWithdrawAPI, withdrawChargeAPI, switchAccountAPI, getExchangeAPI, submitExchangeAPI, exchangeChargeAPI, getInfoAPI } from "@/services/apiClient/apiClient";
 import styles from "./topbar.module.css";
@@ -24,14 +25,10 @@ const currencyOptions = getCurrencyOptions();
 
 function TopbarContent() {
     const { fetchTransactions } = useTransactions();
-    const { selectedAccountType, setSelectedAccountType, selectedBalance, setSelectedBalance } = useAccount();
-    const [demoBalance, setDemoBalance] = useState(null);
-    const [liveBalance, setLiveBalance] = useState(null);
+    const { loading, setLoading, setSelectedAccountType, setSelectedBalance, demoBalance, setDemoBalance, liveBalance, setLiveBalance, currencySymbol, setCurrencySymbol, demoAccountType, setDemoAccountType, liveAccountType, setLiveAccountType, fetchWallets } = useWallets();
+    const { selectedAccountType, selectedBalance } = useAccount();
     const searchParams = useSearchParams();
     const withdrawToken = searchParams.get("withdrawToken");
-    const [currencySymbol, setCurrencySymbol] = useState("");
-    const [demoAccountType, setDemoAccountType] = useState("");
-    const [liveAccountType, setLiveAccountType] = useState("");
     const [currencyCode, setCurrencyCode] = useState(null);
     const { symbol, setSymbol, interval, setInterval } = useAccount();
     const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -80,7 +77,6 @@ function TopbarContent() {
     const [postalCode, setPostalCode] = useState("");
     const [profileImage, setProfileImage] = useState(null);
     const [userImage, setUserImage] = useState(null);
-    const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [userData, setUserData] = useState(null);
     const [currentPassword, setCurrentPassword] = useState("");
@@ -807,7 +803,7 @@ function TopbarContent() {
             } else {
                 toast.error("Unexpected response from server.");
             }
-            await fetchWalletInfo();
+            fetchWallets();
             fetchTransactions();
             setExchangeId("");
             closeAllSidebars(true);
@@ -897,55 +893,59 @@ function TopbarContent() {
     // }, []);
 
 
-    const fetchWalletInfo = async () => {
-        try {
-            setLoading(true);
-            const response = await getInfoAPI();
+    // const fetchWalletInfo = async () => {
+    //     try {
+    //         setLoading(true);
+    //         const response = await getInfoAPI();
 
-            if (response.data.type === "success" && response.data.data.user_wallets) {
-                const wallets = response.data.data.user_wallets;
+    //         if (response.data.type === "success" && response.data.data.user_wallets) {
+    //             const wallets = response.data.data.user_wallets;
 
-                const demoWallet = wallets.find(wallet => wallet.type.toUpperCase() === "DEMO");
-                const liveWallet = wallets.find(wallet => wallet.type.toUpperCase() === "LIVE");
+    //             const demoWallet = wallets.find(wallet => wallet.type.toUpperCase() === "DEMO");
+    //             const liveWallet = wallets.find(wallet => wallet.type.toUpperCase() === "LIVE");
 
-                const demoBal = parseFloat(demoWallet?.balance || 0).toFixed(2);
-                const liveBal = parseFloat(liveWallet?.balance || 0).toFixed(2);
+    //             const demoBal = parseFloat(demoWallet?.balance || 0).toFixed(2);
+    //             const liveBal = parseFloat(liveWallet?.balance || 0).toFixed(2);
 
-                setDemoBalance(demoBal);
-                setLiveBalance(liveBal);
+    //             setDemoBalance(demoBal);
+    //             setLiveBalance(liveBal);
 
-                setDemoAccountType(demoWallet?.type);
-                setLiveAccountType(liveWallet?.type);
+    //             setDemoAccountType(demoWallet?.type);
+    //             setLiveAccountType(liveWallet?.type);
 
-                if (liveWallet || demoWallet) {
-                    const currency = (liveWallet || demoWallet).currency?.symbol;
-                    setCurrencySymbol(currency);
-                    localStorage.setItem("currencySymbol", currency);
-                }
+    //             if (liveWallet || demoWallet) {
+    //                 const currency = (liveWallet || demoWallet).currency?.symbol;
+    //                 setCurrencySymbol(currency);
+    //                 localStorage.setItem("currencySymbol", currency);
+    //             }
 
-                const storedAccount = localStorage.getItem("selectedAccount");
-                const selectedFromStorage = storedAccount === "Demo Account" ? demoWallet : liveWallet;
+    //             const storedAccount = localStorage.getItem("selectedAccount");
+    //             const selectedFromStorage = storedAccount === "Demo Account" ? demoWallet : liveWallet;
 
-                if (selectedFromStorage) {
-                    const selectedType = selectedFromStorage.type.toUpperCase();
-                    const selectedBal = parseFloat(selectedFromStorage.balance).toFixed(2);
+    //             if (selectedFromStorage) {
+    //                 const selectedType = selectedFromStorage.type.toUpperCase();
+    //                 const selectedBal = parseFloat(selectedFromStorage.balance).toFixed(2);
 
-                    setSelectedBalance(selectedBal);
-                    setSelectedAccountType(selectedType);
+    //                 setSelectedBalance(selectedBal);
+    //                 setSelectedAccountType(selectedType);
 
-                    localStorage.setItem("selectedAccount", selectedType === "DEMO" ? "Demo Account" : "Live Account");
-                    localStorage.setItem("selectedBalance", selectedBal);
-                    localStorage.setItem("selectedAccountType", selectedType);
-                }
-            } else {
-                toast.error(response.data.message.error[0]);
-            }
-        } catch (error) {
-            toast.error("Server did not respond");
-        } finally {
-            setLoading(false);
-        }
-    };
+    //                 localStorage.setItem("selectedAccount", selectedType === "DEMO" ? "Demo Account" : "Live Account");
+    //                 localStorage.setItem("selectedBalance", selectedBal);
+    //                 localStorage.setItem("selectedAccountType", selectedType);
+    //             }
+    //         } else {
+    //             toast.error(response.data.message.error[0]);
+    //         }
+    //     } catch (error) {
+    //         toast.error("Server did not respond");
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
+
+    useEffect(() => {
+        fetchWallets();
+    }, []);
 
     return (
         <>
