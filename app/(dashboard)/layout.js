@@ -35,6 +35,7 @@ export default function DashboardLayout({ children }) {
                         router.push("/login");
                     } else {
                         setDashboardData(response.data);
+                        setIsLoading(false);
                     }
                 } catch (error) {
                     console.error("Failed to fetch dashboard data:", error);
