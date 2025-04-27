@@ -78,13 +78,15 @@ export default function Register() {
                 toast.error('Unexpected response from the server.');
             }
         } catch (err) {
-            if (err.response?.data?.message?.error) {
-                const errors = err.response?.data?.message?.error;
-                errors.forEach((msg) => {
-                    toast.error(msg);
+            const errors = err.response?.data?.errors;
+            if (errors) {
+                Object.values(errors).forEach((messages) => {
+                    messages.forEach((msg) => {
+                        toast.error(msg);
+                    });
                 });
             } else {
-                toast.error("Server didn't respond");
+                toast.error(err.response?.data?.message || "Server didn't respond");
             }
         } finally {
             setLoading(false);

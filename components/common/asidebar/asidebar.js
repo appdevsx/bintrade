@@ -2,11 +2,12 @@
 import { useState, useEffect } from "react";
 import { useAccount } from "@/context/accountProvider/accountProvider";
 import { X, ArrowBigLeftDash } from 'lucide-react';
+import { Toaster, toast } from "react-hot-toast";
+import { useWallets } from "@/context/walletProvider/walletProvider";
 import styles from "./asidebar.module.css";
 
-const initialHistory = [];
-
-export default function Asidebar({ handleTradeClick, isProcessing, duration, setDuration, amount, setAmount, ongoingOrders }) {
+export default function Asidebar({ handleTradeClick, handleTradingCompletion, isProcessing, duration, setDuration, amount, setAmount, ongoingOrders }) {
+    const { currencySymbol, setCurrencySymbol } = useWallets();
     const [action, setAction] = useState("");
     const [remainingTime, setRemainingTime] = useState(null);
     const [tradeTimer, setTradeTimer] = useState(null);
@@ -14,7 +15,6 @@ export default function Asidebar({ handleTradeClick, isProcessing, duration, set
     const [tradeOutcome, setTradeOutcome] = useState(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isAsidebarOpen, setIsAsidebarOpen] = useState(false);
-    const [history, setHistory] = useState(initialHistory);
     const [isTimerVisible, setIsTimerVisible] = useState(false);
 
     const incrementAmount = () => setAmount((prev) => parseFloat((parseFloat(prev) + 1).toFixed(2)));
@@ -22,9 +22,6 @@ export default function Asidebar({ handleTradeClick, isProcessing, duration, set
 
     const incrementDuration = () => setDuration((prev) => prev + 1);
     const decrementDuration = () => setDuration((prev) => (prev > 1 ? prev - 1 : prev));
-
-    const handleUp = () => setAction("Up");
-    const handleDown = () => setAction("Down");
 
     const handleDurationChange = (event) => {
         const input = event.target.value;
@@ -58,26 +55,48 @@ export default function Asidebar({ handleTradeClick, isProcessing, duration, set
     };
 
     const onTradeClick = async (actionType) => {
-        // Reset any previous state
+        setAction(actionType === "HIGH" ? "Up" : "Down");
         setTradeOutcome(null);
         setRemainingTime(null);
+        setProfitOrLoss(null);
     
         try {
             const response = await handleTradeClick(actionType);
             
-            // Debugging: Log the response
-            console.log("API Response:", response);
-    
-            if (response.success) {
+            if (response?.success) {
+                const orderId = response.orderId;
+                console.log("Starting trade with order ID:", orderId);
+                
                 setTradeOutcome("In Progress");
                 setRemainingTime(duration);
-                setIsTimerVisible(true); // Show timer when successful
+                setIsTimerVisible(true);
     
                 const timer = setInterval(() => {
                     setRemainingTime((prevTime) => {
                         if (prevTime <= 1) {
                             clearInterval(timer);
-                            setIsTimerVisible(false); // Hide timer after completion
+                            setIsTimerVisible(false);
+                            
+                            console.log("Checking result for order:", orderId);
+                            if (orderId) {
+                                handleTradingCompletion(orderId).then(result => {
+                                    console.log("Trade result:", result);
+                                    if (result) {
+                                        const outcome = result.result === "WIN" ? "Win" : "Loss";
+                                        console.log("Setting outcome:", outcome);
+                                        setTradeOutcome(outcome);
+                                        setProfitOrLoss(result.winAmount || 0);
+                                    } else {
+                                        console.warn("No result received");
+                                        setTradeOutcome("Unknown");
+                                        toast.error("Could not determine trade result");
+                                    }
+                                }).catch(error => {
+                                    console.error("Completion error:", error);
+                                    setTradeOutcome("Error");
+                                    toast.error("Error checking trade result");
+                                });
+                            }
                             return 0;
                         }
                         return prevTime - 1;
@@ -88,13 +107,15 @@ export default function Asidebar({ handleTradeClick, isProcessing, duration, set
             } else {
                 setIsTimerVisible(false);
                 setTradeOutcome("Failed");
+                toast.error("Failed to start trade");
             }
         } catch (error) {
             console.error("Trade failed:", error);
-            setIsTimerVisible(false); // Hide the timer if there was an error
+            setIsTimerVisible(false);
             setTradeOutcome("Error");
+            toast.error("Trade failed unexpectedly");
         }
-    };    
+    };
 
     return (
         <div className="fixed lg:sticky top-[70px] lg:top-0 right-0 w-[180px] h-screen lg:h-[calc(100vh-102px)] z-[2]">
@@ -148,13 +169,13 @@ export default function Asidebar({ handleTradeClick, isProcessing, duration, set
                 </button>
                 <div className="w-full flex flex-col gap-2">
                     <button className={`w-full py-3 bg-[#2dd674] rounded-md text-black font-bold flex items-center justify-center gap-2 ${action === "Up" ? "bg-[#31a361]" : "bg-[#2dd674]"}`} 
-                    onClick={() => onTradeClick("Up")}
+                    onClick={() => onTradeClick("HIGH")}
                     disabled={isProcessing || remainingTime !== null}>
                         Up
                         <span className="text-xl">↑</span>
                     </button>
                     <button className={`w-full py-3 bg-[#ff5765] rounded-md text-black font-bold flex items-center justify-center gap-2 ${action === "Down" ? "bg-[#c34d56]" : "bg-[#ff5765]"}`} 
-                    onClick={() => onTradeClick("Down")} 
+                    onClick={() => onTradeClick("LOW")} 
                     disabled={isProcessing || remainingTime !== null}>
                         Down
                         <span className="text-xl">↓</span>
@@ -169,17 +190,23 @@ export default function Asidebar({ handleTradeClick, isProcessing, duration, set
                     <div className="w-full text-center text-sm mt-4">
                         Result:{" "}
                         {tradeOutcome === "Win" ? (
-                            <span className="text-[#2dd674] font-bold">Win! +Ð{profitOrLoss}</span>
+                            <span className="text-[#2dd674] font-bold">
+                                Win! +{currencySymbol}{profitOrLoss}
+                            </span>
+                        ) : tradeOutcome === "Loss" ? (
+                            <span className="text-[#ff5765] font-bold">
+                                Loss! -{currencySymbol}{profitOrLoss}
+                            </span>
                         ) : (
-                            <span className="text-[#ff5765] font-bold">Loss! -Ð{Math.abs(profitOrLoss)}</span>
+                            <span className="text-gray-400">{tradeOutcome}</span>
                         )}
                         <span className="text-gray-500 ml-1">ⓘ</span>
                     </div>
                 )}
                 <div className="w-full text-center text-sm mt-4">
                     Current Action:{" "}
-                    <span className={`font-bold ${action === "Up" ? "text-[#2dd674]" : "text-[#ff5765]"}`}>
-                        {action || "None"}
+                    <span className={`font-bold ${action === "Up" ? "text-[#2dd674]" : action === "Down" ? "text-[#ff5765]" : "text-gray-400"}`}>
+                        {action === "Up" ? "Up" : action === "Down" ? "Down" : "None"}
                     </span> 
                 </div>
                 <div className={`fixed top-0 right-0 h-full bg-[#051524] w-full sm:w-[400px] overflow-y-auto z-[3] shadow-lg p-4 transform ${isSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>

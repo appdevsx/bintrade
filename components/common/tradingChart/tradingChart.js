@@ -152,29 +152,42 @@ const RealtimeChart = () => {
     }, [symbol, interval, limit]);
 
     const handleTradingCompletion = async (orderID) => {
-      	try {
+		try {
 			const response = await orderResultAPI(orderID);
-			if (response?.data?.order) {
-				const orderData = response.data.order;
-				const result = orderData.p_result;
-				const winAmount = orderData.win_amount;
-				const amount = orderData.amount;
-				console.log(`Trading result: ${result}`);
-				console.log(`Amount: ${amount}, Win Amount: ${winAmount}`);
+			console.log("Full API Response:", JSON.stringify(response, null, 2)); // Debug log
+			
+			// The order data is nested under response.data.data.order
+			const orderData = response?.data?.data?.order;
+			
+			if (orderData) {
+				console.log("Extracted order data:", orderData);
+				return {
+					status: orderData.status,
+					result: orderData.p_result,
+					winAmount: orderData.win_amount,
+					amount: orderData.amount,
+					type: orderData.p_type
+				};
+			} else {
+				console.warn("Order data not found in expected location");
+				console.warn("Available keys in response.data:", Object.keys(response?.data || {}));
+				toast.error("Could not find order data in response");
+				return null;
 			}
 		} catch (error) {
-			toast.error("Server did not respond");
+			console.error("Error checking trade result:", error);
+			toast.error("Failed to check trade result");
+			return null;
 		}
-    };    
+	};
 
-    const handleTradeClick = async () => {
+    const handleTradeClick = async (actionType) => {
 		if (!ongoingOrders?.length) {
 			toast.error("No ongoing trade found.");
 			return;
 		}
 	
 		const latestOrder = ongoingOrders[0];
-		const actionType = latestOrder?.p_type;
 		const selectedSymbol = latestOrder?.symbol;
 		const rawOHLC = latestOrder?.start_ohlc_data;
 	
@@ -182,40 +195,40 @@ const RealtimeChart = () => {
 			toast.error("Trade data is incomplete.");
 			return;
 		}
-
+	
 		let parsedOHLC;
 		try {
-		let arr = JSON.parse(rawOHLC);
-		if (typeof arr === "string") arr = JSON.parse(arr);
-
-		parsedOHLC = {
-			e: "kline",
-			E: arr[0] + 100,
-			s: latestOrder.symbol,
-			k: {
-			t: arr[0],
-			T: arr[6],
-			s: latestOrder.symbol,
-			i: latestOrder.interval || "1s",
-			f: -1,
-			L: -1,
-			o: arr[1],
-			c: arr[4],
-			h: arr[2],
-			l: arr[3],
-			v: arr[5],
-			n: 0,
-			x: true,
-			q: arr[7],
-			V: arr[9],
-			Q: arr[10],
-			B: arr[11]
-			}
-		};
+			let arr = JSON.parse(rawOHLC);
+			if (typeof arr === "string") arr = JSON.parse(arr);
+	
+			parsedOHLC = {
+				e: "kline",
+				E: arr[0] + 100,
+				s: latestOrder.symbol,
+				k: {
+					t: arr[0],
+					T: arr[6],
+					s: latestOrder.symbol,
+					i: latestOrder.interval || "1s",
+					f: -1,
+					L: -1,
+					o: arr[1],
+					c: arr[4],
+					h: arr[2],
+					l: arr[3],
+					v: arr[5],
+					n: 0,
+					x: true,
+					q: arr[7],
+					V: arr[9],
+					Q: arr[10],
+					B: arr[11]
+				}
+			};
 		} catch (err) {
-		console.error("Failed to parse OHLC:", err, rawOHLC);
-		toast.error("OHLC data is invalid.");
-		return;
+			console.error("Failed to parse OHLC:", err, rawOHLC);
+			toast.error("OHLC data is invalid.");
+			return;
 		}
 	
 		try {
@@ -236,16 +249,21 @@ const RealtimeChart = () => {
 	
 			if (response?.data?.message?.success) {
 				toast.success(response.data.message.success[0] || "Order placed successfully!");
+				await fetchTradingInfo(selectedAccountType);
+				return { success: true, orderId: response.data.data?.order?._id };
 			} else if (response?.data?.message?.error) {
 				toast.error(response.data.message.error[0] || "An error occurred.");
+				return { success: false };
 			} else {
 				toast.error("Failed to place order.");
+				return { success: false };
 			}
 		} catch (error) {
 			const errorMessage =
-                error?.response?.data?.message?.error?.[0] ||
-                "Server did not respond";
+				error?.response?.data?.message?.error?.[0] ||
+				"Server did not respond";
 			toast.error(errorMessage);
+			return { success: false };
 		}
 	};
 
@@ -263,6 +281,7 @@ const RealtimeChart = () => {
                 </div>
                 <Asidebar
                     handleTradeClick={handleTradeClick}
+					handleTradingCompletion={handleTradingCompletion}
                     isProcessing={isProcessing}
                     amount={amount}
                     setAmount={setAmount}

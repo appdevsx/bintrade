@@ -21,28 +21,30 @@ export default function DashboardLayout({ children }) {
     const [dashboardData, setDashboardData] = useState(null);
 
     useEffect(() => {
-        const token = localStorage.getItem("jwtToken") || sessionStorage.getItem("jwtToken");
-        if (!token) {
-            router.push("/login");
-        } else {
-            getUserDataAPI()
-                .then((response) => {
-                    const authorizationStatus = response.data.data?.user_info?.email_verified;
-                    if (authorizationStatus == "0") {
+        const fetchData = async () => {
+            const token = localStorage.getItem("jwtToken") || sessionStorage.getItem("jwtToken");
+            if (!token) {
+                router.push("/login");
+            } else {
+                try {
+                    const response = await getUserDataAPI();
+                    const authorizationStatus = response?.data?.data?.user_info?.email_verified;
+                    if (authorizationStatus == 0) {
                         localStorage.removeItem("jwtToken");
                         sessionStorage.removeItem("jwtToken");
                         router.push("/login");
                     } else {
                         setDashboardData(response.data);
                     }
-                    setIsLoading(false);
-                })
-                .catch((error) => {
+                } catch (error) {
                     console.error("Failed to fetch dashboard data:", error);
                     setIsLoading(false);
-                });
-        }
-    }, [router]);
+                }
+            }
+        };
+    
+        fetchData();
+    }, [router]);    
 
     if (isLoading) {
         return (

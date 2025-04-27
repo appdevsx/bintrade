@@ -322,9 +322,9 @@ export default function Sidebar() {
                 const statistics = response.data?.data?.statistics || {};
 
                 const mappedData = [
-                    { title: "Trades Count", value: statistics.total_trade, icon: <TrendingUp className="text-blue-400 w-6 h-6" /> },
-                    { title: "Trades Profit", value: `$${statistics.total_profit}`, icon: <DollarSign className="text-green-400 w-6 h-6" /> },
-                    { title: "Profitable Trades", value: `${statistics.total_profit_count}%`, icon: <PieChart className="text-yellow-400 w-6 h-6" /> },
+                    { title: "Total Trade", value: statistics.total_trade, icon: <TrendingUp className="text-blue-400 w-6 h-6" /> },
+                    { title: "Total Profit", value: `$${statistics.total_profit}`, icon: <DollarSign className="text-green-400 w-6 h-6" /> },
+                    { title: "total Profit Count", value: `${statistics.total_profit_count}%`, icon: <PieChart className="text-yellow-400 w-6 h-6" /> },
                     { title: "Average Profit", value: `$${statistics.avg_profit}`, icon: <DollarSign className="text-green-400 w-6 h-6" /> },
                     { title: "Win/Loss Ratio", value: `${statistics.total_profit_count}:${statistics.total_lose_count}`, icon: <Repeat className="text-indigo-400 w-6 h-6" /> },
                     { title: "Min Trade Amount", value: `$${statistics.min_trade_amount}`, icon: <Minimize2 className="text-purple-400 w-6 h-6" /> },
