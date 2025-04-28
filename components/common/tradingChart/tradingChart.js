@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createChart } from 'lightweight-charts';
 import Asidebar from "@/components/common/asidebar/asidebar";
 import { Toaster, toast } from "react-hot-toast";
+import { useWallets } from "@/context/walletProvider/walletProvider";
 import { useAccount } from "@/context/accountProvider/accountProvider";
 import { useSettings } from "@/context/settingsProvider/settingsProvider";
 import { demoTradingInfoAPI, liveTradingInfoAPI, storeOrderAPI, orderResultAPI } from "@/services/apiClient/apiClient";
@@ -11,6 +12,7 @@ import { LoaderCircle } from 'lucide-react';
 const RealtimeChart = () => {
 	const { tradeSettings } = useSettings();
     const chartContainerRef = useRef(null);
+	const { fetchWallets } = useWallets();
     const wsRef = useRef(null);
     const { symbol, setSymbol, interval, selectedAccountType } = useAccount();
     const [isProcessing, setIsProcessing] = useState(false);
@@ -154,13 +156,9 @@ const RealtimeChart = () => {
     const handleTradingCompletion = async (orderID) => {
 		try {
 			const response = await orderResultAPI(orderID);
-			console.log("Full API Response:", JSON.stringify(response, null, 2)); // Debug log
-			
-			// The order data is nested under response.data.data.order
 			const orderData = response?.data?.data?.order;
 			
 			if (orderData) {
-				console.log("Extracted order data:", orderData);
 				return {
 					status: orderData.status,
 					result: orderData.p_result,
@@ -169,13 +167,10 @@ const RealtimeChart = () => {
 					type: orderData.p_type
 				};
 			} else {
-				console.warn("Order data not found in expected location");
-				console.warn("Available keys in response.data:", Object.keys(response?.data || {}));
 				toast.error("Could not find order data in response");
 				return null;
 			}
 		} catch (error) {
-			console.error("Error checking trade result:", error);
 			toast.error("Failed to check trade result");
 			return null;
 		}
@@ -250,6 +245,7 @@ const RealtimeChart = () => {
 			if (response?.data?.message?.success) {
 				toast.success(response.data.message.success[0] || "Order placed successfully!");
 				await fetchTradingInfo(selectedAccountType);
+				await fetchWallets();
 				return { success: true, orderId: response.data.data?.order?._id };
 			} else if (response?.data?.message?.error) {
 				toast.error(response.data.message.error[0] || "An error occurred.");
