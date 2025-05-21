@@ -69,6 +69,7 @@ function TopbarContent() {
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [mobileCode, setMobileCode] = useState("");
+    const [status, setStatus] = useState(null);
     const [mobile, setMobile] = useState("");
     const [country, setCountry] = useState("");
     const [address, setAddress] = useState("");
@@ -479,10 +480,10 @@ function TopbarContent() {
             .then((response) => {
                 const data = response.data.data;
                 setFields(data.input_fields);
-    
+
                 const rawInstructions = data.instructions || "";
                 const statusMap = {};
-    
+
                 rawInstructions.split(",").forEach((item) => {
                     const parts = item.split(":");
                     if (parts.length === 2) {
@@ -491,16 +492,18 @@ function TopbarContent() {
                         statusMap[key] = value;
                     }
                 });
-    
+
                 const currentStatus = String(data.status).trim();
                 const statusText = statusMap[currentStatus];
-    
+
+                setStatus(currentStatus); // ← store raw status code
                 setInstructions(statusText || "Unknown status");
             })
             .catch((error) => {
                 toast.error(error.response?.data?.message?.error);
             });
     }, []);
+
 
     const getStatusColor = (statusText) => {
         switch (statusText?.toLowerCase()) {
@@ -622,16 +625,26 @@ function TopbarContent() {
             if (selectedGatewayType === "AUTOMATIC") {
                 const response = await automaticDepositAPI(selectedCurrency, amount, selectedCurrencyCode);
                 console.log(response);
+
                 if (response.data.message?.error) {
                     toast.error(response.data.message.error[0]);
                 } else {
                     toast.success(response.data.message.success);
                     const redirectUrl = response.data.data?.redirect_url;
                     if (redirectUrl) {
-                        window.location.href = redirectUrl;
+                        const childWindow = window.open(redirectUrl, "_blank", "width=600,height=700");
+                        const handleMessage = (event) => {
+                            if (event.data === "payment_success") {
+                                toast.success("Payment successful!");
+                                childWindow?.close();
+                                window.removeEventListener("message", handleMessage);
+                            }
+                        };
+
+                        window.addEventListener("message", handleMessage);
                     }
                 }
-            } else if (selectedGatewayType === "MANUAL") {  
+            } else if (selectedGatewayType === "MANUAL") {
                 const manualResponse = await manualDepositAPI(selectedCurrency, amount, selectedCurrencyCode, fullName, transactionId, screenshot);
                 if (manualResponse.data.type === "success") {
                     toast.success(manualResponse.data.message.success);
@@ -650,6 +663,7 @@ function TopbarContent() {
             setLoading(false);
         }
     };
+
 
     useEffect(() => {
         const fetchWithdrawData = async () => {
@@ -1580,17 +1594,17 @@ function TopbarContent() {
                     </button>
                 </div>
                 <div className="space-y-3 p-4">
-                    <div className="p-4 bg-[#0d1f30] rounded-lg">
-                        <h3 className="text-white text-lg font-semibold mb-4">Scan with Google Authenticator</h3>
+                    <div className="p-4 bg-white rounded-lg">
+                        <h3 className="text-black text-lg font-semibold mb-4">Scan with Google Authenticator</h3>
                         <form onSubmit={submitTwoFactor}>
-                            <div className="relative text-white">
+                            <div className="relative text-black">
                                 {qrSVG && (
                                     <div
                                         className="w-[200px] h-[200px] mx-auto"
                                         dangerouslySetInnerHTML={{ __html: qrSVG }}
                                     />
                                 )}
-                                <div className="mt-4 text-white text-center">Scan this code in your Google Authenticator app.</div>
+                                <div className="mt-4 text-black text-center">Scan this code in your Google Authenticator app.</div>
                             </div>
                             <div className="mt-2">
                                 <button type="submit" className={`baseBtn flex justify-center w-full ${loading ? "cursor-not-allowed" : ""}`} disabled={loading}>
@@ -1626,14 +1640,16 @@ function TopbarContent() {
                 </div>
                 <form onSubmit={handleSubmit}>
                     <div className="p-4">
-                        {instructions ? (
-                            <div className="p-4 bg-[#0d1f30] rounded-lg">
+                        {instructions && (
+                            <div className="p-4 bg-[#0d1f30] rounded-lg mb-4">
                                 <strong>Status:</strong>
                                 <span className={`${getStatusColor(instructions)} font-semibold pl-1`}>
                                     {instructions}
                                 </span>
                             </div>
-                        ) : (
+                        )}
+
+                        {status === "0" ? (
                             <>
                                 {fields.map((field, index) => (
                                     <div className="relative text-white mb-3" key={index}>
@@ -1674,13 +1690,17 @@ function TopbarContent() {
                                             <LoaderCircle className="inline-block w-5 h-6 animate-spin text-white" />
                                         ) : (
                                             <>
-                                                Submit 
+                                                Submit
                                                 <ArrowRightToLine />
                                             </>
                                         )}
                                     </button>
                                 </div>
                             </>
+                        ) : (
+                            <div className="text-slate-400 text-sm italic">
+                                Your KYC status is <strong>{instructions}</strong>. Input is disabled.
+                            </div>
                         )}
                     </div>
                 </form>

@@ -220,15 +220,55 @@ export default function Asidebar({ handleTradeClick, handleTradingCompletion, is
                         {ongoingOrders.length === 0 ? (
                             <li className="text-white">No trades yet.</li>
                         ) : (
-                            ongoingOrders.map((order, index) => (
-                            <li key={index} className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md">
-                                <div>Symbol: {order.symbol}</div>
-                                <div>Action: {order.p_type}</div>
-                                <div>Amount: {order.amount}</div>
-                                <div>Status: <span className="text-[12px] px-2 py-1 bg-white text-black rounded-sm font-semibold">{order.status}</span></div>
-                                <div>Started At: {order.createdAt}</div>
-                            </li>
-                            ))
+                            ongoingOrders.map((order, index) => {
+                                const isCompleted = order.status !== "ONGOING";
+                                const isWin = order.status === "WIN";
+                                const startDate = new Date(order.createdAt || parseInt(order.started_at) * 1000);
+                                const endDate = order.execute_at ? new Date(parseInt(order.execute_at) * 1000) : null;
+                                
+                                return (
+                                    <li key={index} className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <div className="font-semibold">{order.symbol}</div>
+                                                <div className="text-sm">Direction: {order.p_type === "HIGH" ? "Up" : "Down"}</div>
+                                                <div className="text-sm">Amount: {currencySymbol}{order.amount}</div>
+                                            </div>
+                                            <div className={`text-xs px-2 py-1 rounded font-bold ${
+                                                isWin 
+                                                    ? "bg-[#2dd674] text-black" 
+                                                    : isCompleted 
+                                                        ? "bg-[#ff5765] text-black" 
+                                                        : "bg-gray-500 text-white"
+                                            }`}>
+                                                {isCompleted ? (isWin ? "WIN" : "LOSS") : "ONGOING"}
+                                            </div>
+                                        </div>
+                                        
+                                        {isCompleted && (
+                                            <div className="mt-1 text-sm">
+                                                Result:{" "}
+                                                {isWin ? (
+                                                    <span className="text-[#2dd674] font-bold">
+                                                        Win! +{currencySymbol}{order.win_amount || 0}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-[#ff5765] font-bold">
+                                                        Loss! -{currencySymbol}{order.amount}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+                                        
+                                        <div className="mt-1 text-xs text-gray-400">
+                                            <div>Started: {startDate.toLocaleString()}</div>
+                                            {endDate && (
+                                                <div>Completed: {endDate.toLocaleString()}</div>
+                                            )}
+                                        </div>
+                                    </li>
+                                );
+                            })
                         )}
                     </ul>
                 </div>

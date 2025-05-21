@@ -177,10 +177,6 @@ const RealtimeChart = () => {
 	};
 
     const handleTradeClick = async (actionType) => {
-		if (!ongoingOrders?.length) {
-			toast.error("No ongoing trade found.");
-			return;
-		}
 	
 		const latestOrder = ongoingOrders[0];
 		const selectedSymbol = latestOrder?.symbol;
@@ -241,6 +237,8 @@ const RealtimeChart = () => {
 				currentTime,
 				JSON.stringify(parsedOHLC)
 			);
+
+			console.log(response);
 	
 			if (response?.data?.message?.success) {
 				toast.success(response.data.message.success[0] || "Order placed successfully!");
