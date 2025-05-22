@@ -1,12 +1,12 @@
 'use client'
 import { useRouter } from "next/navigation";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from "./login.module.css";
 import Link from "next/link";
 import Image from "next/image";
 import { Toaster, toast } from "react-hot-toast";
-import { ArrowRightToLine, ArrowBigLeftDash, LoaderCircle } from 'lucide-react';
-import { loginAPI } from "@/services/apiClient/apiClient";
+import { ArrowRightToLine, ArrowBigLeftDash, LoaderCircle, Eye, EyeOff } from 'lucide-react';
+import { loginAPI, basicSettingsAPI } from "@/services/apiClient/apiClient";
 import useAuthRedirect from "@/utility/useAuthRedirect/useAuthRedirect";
 import { useLanguage } from "@/context/languageProvider/languageProvider";
 
@@ -26,10 +26,14 @@ const accountWrapper = {
 export default function Login() {
     useAuthRedirect();
     const router = useRouter();
+    const [siteLogo, setSiteLogo] = useState(null);
+    const [siteName, setSiteName] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [logoLoading, setLogoLoading] = useState(false);
     const [credentials, setCredentials] = useState("");
     const [password, setPassword] = useState("");
     const [rememberMe, setRememberMe] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const { language } = useLanguage();
 
     const submitLogin = async (e) => {
@@ -82,6 +86,27 @@ export default function Login() {
         }
     };
 
+    useEffect(() => {
+        setLogoLoading(true);
+        const fetchLanguages = async () => {
+            try {
+                const response = await basicSettingsAPI();
+                setSiteName(response.data?.data?.basic_settings?.site_name);
+                setSiteLogo(response.data?.data?.basic_settings?.fav);
+            } catch (error) {
+                toast.error("Server did not respond");
+            } finally {
+                setLogoLoading(false);
+            }
+        };
+
+        fetchLanguages();
+    }, []);
+
+    const togglePasswordVisibility = () => {
+        setShowPassword((prevState) => !prevState);
+    };
+
     return (
 		<section className="account-section relative overflow-hidden">
             <Toaster reverseOrder={false} theme="dark" />
@@ -93,16 +118,23 @@ export default function Login() {
                 <div className={styles.accountWrapper}>
                     <div className="account-header gradient--bg py-10 px-8 text-center border-b border-slate-800">
                         <Link href="/" className="site-logo relative overflow-hidden">
-                            <Image src={accountWrapper.image} 
-                                className="object-cover mx-auto" 
-                                width={50} 
-                                alt="logo"
-                                priority={true} 
-                                quality={50}  
-                                decoding="async" 
-                            />
+                            {siteLogo ? (
+                                <Image src={siteLogo} 
+                                    className="object-cover mx-auto" 
+                                    width={50}
+                                    height={50}
+                                    alt="logo"
+                                    priority={true} 
+                                    quality={50}  
+                                    decoding="async" 
+                                />
+                            ) : (
+                                <div className="h-10 w-[100px] mx-auto bg-gray-800 animate-pulse rounded-md"></div>
+                            )}
                         </Link>
-                        <h2 className="text-3xl font-bold mt-5">{accountWrapper.titleLeft}<span className="text--base">{accountWrapper.titleMain}</span></h2>
+                        <h2 className="text-3xl font-bold mt-5">
+                            {siteName}
+                        </h2>
                         <p className="text-sm mt-3">{accountWrapper.description}</p>
                     </div>
                     <div className="account-footer section--bg p-8">
@@ -111,9 +143,20 @@ export default function Login() {
                                 <label className="text-[13px] font-medium block mb-1">Email<span>*</span></label>
                                 <input type="email" value={credentials} placeholder="Type email here..." onChange={(event) => setCredentials(event.target.value)} className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg" required></input>
                             </div>
-                            <div className="form-group mb-2">
+                            <div className="form-group relative mb-2">
                                 <label className="text-[13px] font-medium block mb-1">Password<span>*</span></label>
-                                <input id="password" type="password" value={password} placeholder="Type password here..." onChange={(e) => setPassword(e.target.value)} className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg" required autoComplete="current-password"></input>
+                                <input id="password" type={showPassword ? "text" : "password" } value={password} placeholder="Type password here..." onChange={(e) => setPassword(e.target.value)} className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg" required autoComplete="current-password"></input>
+                                <button
+                                    type="button"
+                                    onClick={togglePasswordVisibility}
+                                    className="absolute top-[42px] right-3 transition-all text-slate-300"
+                                >
+                                    {showPassword ? (
+                                        <EyeOff className="w-5 h-auto" />
+                                    ) : (
+                                        <Eye className="w-5 h-auto" />
+                                    )}
+                                </button>
                             </div>
                             <div className="form-group flex items-center justify-between my-4">
                                 <label className="inline-flex items-center">

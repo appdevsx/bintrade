@@ -1,12 +1,12 @@
 'use client'
 import { useRouter } from "next/navigation";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from "./register.module.css";
 import Link from "next/link";
 import Image from "next/image";
 import { Toaster, toast } from "react-hot-toast";
 import { ArrowRightToLine, ArrowBigLeftDash, LoaderCircle, Eye, EyeOff } from 'lucide-react';
-import { registerAPI } from "@/services/apiClient/apiClient";
+import { registerAPI, basicSettingsAPI } from "@/services/apiClient/apiClient";
 import useAuthRedirect from "@/utility/useAuthRedirect/useAuthRedirect";
 import { useLanguage } from "@/context/languageProvider/languageProvider";
 
@@ -25,12 +25,14 @@ const accountWrapper = {
 export default function Register() {
     useAuthRedirect();
     const router = useRouter();
+    const [siteLogo, setSiteLogo] = useState(null);
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [agree, setAgree] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [logoLoading, setLogoLoading] = useState(false);
     const [loading, setLoading] = useState(false);
     const { language } = useLanguage();
 
@@ -93,6 +95,22 @@ export default function Register() {
         }
     };
 
+    useEffect(() => {
+        setLogoLoading(true);
+        const fetchLanguages = async () => {
+            try {
+                const response = await basicSettingsAPI();
+                setSiteLogo(response.data?.data?.basic_settings?.fav);
+            } catch (error) {
+                toast.error("Server did not respond");
+            } finally {
+                setLogoLoading(false);
+            }
+        };
+
+        fetchLanguages();
+    }, []);
+
     const togglePasswordVisibility = () => {
         setShowPassword((prevState) => !prevState);
     };
@@ -108,14 +126,19 @@ export default function Register() {
                 <div className={styles.accountWrapper}>
                     <div className="account-header gradient--bg py-10 px-8 text-center border-b border-slate-800">
                         <Link href="/" className="site-logo relative overflow-hidden">
-                            <Image src={accountWrapper.image} 
-                                className="object-cover mx-auto" 
-                                width={50} 
-                                alt="logo"
-                                priority={true} 
-                                quality={50}  
-                                decoding="async" 
-                            />
+                            {siteLogo ? (
+                                <Image src={siteLogo} 
+                                    className="object-cover mx-auto" 
+                                    width={50}
+                                    height={50}
+                                    alt="logo"
+                                    priority={true} 
+                                    quality={50}  
+                                    decoding="async" 
+                                />
+                            ) : (
+                                <div className="h-10 w-[100px] mx-auto bg-gray-800 animate-pulse rounded-md"></div>
+                            )}
                         </Link>
                         <h2 className="text-2xl font-bold mt-5">{accountWrapper.title}</h2>
                         <p className="text-sm mt-3">{accountWrapper.description}</p>
