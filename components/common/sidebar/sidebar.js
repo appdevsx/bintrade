@@ -560,7 +560,7 @@ export default function Sidebar() {
                                             Status:{" "}
                                             <span
                                                 className={`text-[12px] font-bold ${
-                                                    ticket.stringStatus?.value === "Pending" ? "text-[#2dd674]" : "text-[#ff5765]"
+                                                    ticket.stringStatus?.value === "Pending" ? "text-[#ff5765]" : "text-[#2dd674]"
                                                 }`}
                                             >
                                                 {ticket.stringStatus?.value}
