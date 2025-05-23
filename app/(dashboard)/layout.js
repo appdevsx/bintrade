@@ -29,17 +29,26 @@ export default function DashboardLayout({ children }) {
                 try {
                     const response = await getUserDataAPI();
                     const authorizationStatus = response?.data?.data?.user_info?.email_verified;
+                    const twoFactorStatus = response?.data?.data?.user_info?.two_factor_status;
+                    
                     if (authorizationStatus == 0) {
+                        // If email is not verified
                         localStorage.removeItem("jwtToken");
                         sessionStorage.removeItem("jwtToken");
                         router.push("/login");
+                    } else if (twoFactorStatus == 0) {
+                        // If two-factor is disabled
+                        router.push("/register");
                     } else {
+                        // Both email is verified and two-factor is enabled
                         setDashboardData(response.data);
                         setIsLoading(false);
                     }
                 } catch (error) {
                     console.error("Failed to fetch dashboard data:", error);
-                    setIsLoading(false);
+                    localStorage.removeItem("jwtToken");
+                    sessionStorage.removeItem("jwtToken");
+                    router.push("/login");
                 }
             }
         };

@@ -78,7 +78,7 @@ export default function Step() {
                                                     <Image
                                                         src={imageUrl}
                                                         className="object-cover"
-                                                        width={250}
+                                                        width={200}
                                                         height={388}
                                                         alt="step"
                                                         priority={true}

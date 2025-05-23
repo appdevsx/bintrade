@@ -83,7 +83,7 @@ export default function DownloadApp() {
                                             <h3 className="title text-xl font-bold mb-2">{appItem.title}</h3>
                                             <p>{appItem.desc}</p>
                                             <div className="app-btn mt-3">
-                                                <Link className="customBtn" href="/login">Download App <CircleArrowRight className={`${language === 'ar' ? 'transform rotate-[180deg]' : 'transform rotate-[0]'}`} /></Link>
+                                                <Link className="customBtn" href={appItem.app_link}>Download App <CircleArrowRight className={`${language === 'ar' ? 'transform rotate-[180deg]' : 'transform rotate-[0]'}`} /></Link>
                                             </div>
                                         </div>
                                         <div className={`app-thumb relative lg:absolute bottom-[-30px] lg:bottom-0 ${language === 'ar' ? 'lg:left-10' : 'lg:right-10'}`}>

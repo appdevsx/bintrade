@@ -103,7 +103,7 @@ export default function Blog() {
 										<div className={styles.blogContent}>
 											<span className="date block mb-4">{blogItem.category.name.language.en.name}</span>
 											<h3 className="title text-lg sm:text-xl font-bold mb-4">{blogItem.data.language.en.title}</h3>
-											<p dangerouslySetInnerHTML={{ __html: blogItem.data.language.en.description }} />
+											<p>{blogItem.short_desc}</p>
 											<div className="blog-btn mt-6">
 												<Link className={styles.customBtn} href={`/blog/${blogItem.slug}`}>Read more <CircleArrowRight className={`${language === 'ar' ? 'transform rotate-[180deg]' : 'transform rotate-[0]'}`} /></Link>
 											</div>

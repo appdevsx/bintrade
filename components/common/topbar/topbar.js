@@ -532,16 +532,32 @@ function TopbarContent() {
         setLoading(true);
 
         try {
-            const response = await kycUpdateAPI(idType, frontFile, backFile);
-
-            response.data.message.success.forEach((msg) => {
-                toast.success(msg);
+            // 1. Submit KYC data
+            await kycUpdateAPI(idType, frontFile, backFile);
+            
+            // 2. Fetch latest status from API
+            const response = await getKycAPI();
+            const data = response.data.data;
+            const rawInstructions = data.instructions || "";
+            
+            // 3. Parse the status mapping
+            const statusMap = {};
+            rawInstructions.split(",").forEach((item) => {
+                const parts = item.split(":");
+                if (parts.length === 2) {
+                    statusMap[parts[0].trim()] = parts[1].trim();
+                }
             });
+
+            // 4. Update state with latest status
+            const currentStatus = String(data.status).trim();
+            setStatus(currentStatus);
+            setInstructions(statusMap[currentStatus] || "Status updated");
+            
+            toast.success("KYC submitted successfully");
         } catch (error) {
-            if (error.response && error.response.data && error.response.data.message && error.response.data.message.error) {
-                error.response.data.message.error.forEach((msg) => {
-                    toast.error(msg);
-                });
+            if (error.response?.data?.message?.error) {
+                error.response.data.message.error.forEach(toast.error);
             } else {
                 toast.error("Server did not respond");
             }
@@ -1640,7 +1656,7 @@ function TopbarContent() {
                 </div>
                 <form onSubmit={handleSubmit}>
                     <div className="p-4">
-                        {instructions && (
+                        {instructions && status !== "0" && (
                             <div className="p-4 bg-[#0d1f30] rounded-lg mb-4">
                                 <strong>Status:</strong>
                                 <span className={`${getStatusColor(instructions)} font-semibold pl-1`}>
@@ -1699,7 +1715,7 @@ function TopbarContent() {
                             </>
                         ) : (
                             <div className="text-slate-400 text-sm italic">
-                                Your KYC status is <strong>{instructions}</strong>. Input is disabled.
+                                Your KYC status is <strong>{instructions}</strong>.
                             </div>
                         )}
                     </div>

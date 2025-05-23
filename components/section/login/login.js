@@ -62,9 +62,17 @@ export default function Login() {
                 const authorizationStatus = response?.data?.data?.authorization?.status;
                 const authorizationToken = response?.data?.data?.authorization?.token;
                 
+                // Check if two-factor is disabled (status 0)
+                const twoFactorStatus = response?.data?.data?.user_info?.two_factor_status;
+                
                 if (authorizationStatus === true && authorizationToken) {
                     router.push(`/authorization?token=${authorizationToken}`);
-                } else {
+                } 
+                // Redirect to two-factor page if two-factor is disabled
+                else if (twoFactorStatus === 0) {
+                    router.push("/two-factor");
+                }
+                else {
                     router.push("/trading");
                 }
                 
