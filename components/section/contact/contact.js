@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Toaster, toast } from "react-hot-toast";
 import styles from "./contact.module.css";
 import { ArrowRightToLine, LoaderCircle } from 'lucide-react';
-import { contactAPI, getContactAPI } from "@/services/apiClient/apiClient";
+import { contactAPI, getContactAPI, getLanguageAPI } from "@/services/apiClient/apiClient";
 import { useLanguage } from "@/context/languageProvider/languageProvider";
 
 const contactForm = {
@@ -20,7 +20,9 @@ export default function Contact() {
     const [email, setEmail] = useState("");
     const [message, setMessage] = useState("");
     const [contact, setContact] = useState([]);
+    const [translation, setTranslation] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [langLoading, setLangLoading] = useState(true);
     const { language } = useLanguage();
 
     const handleSubmit = async (event) => {
@@ -57,6 +59,25 @@ export default function Contact() {
 
         fetchContact();
     }, [language]);
+
+    useEffect(() => {
+        setLangLoading(true);
+        const getLanguages = async () => {
+            try {
+                const response = await getLanguageAPI(language);
+                const currentLang = response.data?.data?.languages?.find(l => l.code === language);
+                setTranslation(currentLang?.translate_key_values || {});
+            } catch (error) {
+                toast.error("Server did not respond");
+            } finally {
+                setLangLoading(false);
+            }
+        };
+
+        getLanguages();
+    }, [language]);
+
+    const t = (key) => translation[key] || key;
 
     return (
 		<section className="contact-section relative z-1 py-20">
@@ -96,13 +117,13 @@ export default function Contact() {
                                 <div className="contact-address-item-wrapper grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <div className="contact-address-item">
                                         <div className="contact-address-info">
-                                            <h3 className="title text-lg font-bold mb-3 text-emerald-400">Address:</h3>
+                                            <h3 className="title text-lg font-bold mb-3 text-emerald-400">{t("Address")}:</h3>
                                             <p className="text-base">{contact.address}</p>
                                         </div>
                                     </div>
                                     <div className="contact-address-item">
                                         <div className="contact-address-info">
-                                            <h3 className="title text-lg font-bold mb-3 text-emerald-400">Contact:</h3>
+                                            <h3 className="title text-lg font-bold mb-3 text-emerald-400">{t("Contact")}:</h3>
                                             <p className="text-base">{contact.email}</p>
                                         </div>
                                     </div>
@@ -111,20 +132,20 @@ export default function Contact() {
                             <div className={styles.contactFormWrapper}>
                                 <div className={styles.contactForm}>
                                     <div className="contact-form-header mb-4">
-                                        <h3 className="title text-xl md:text-2xl font-bold mb-3">{contactForm.title}</h3>
-                                        <p>{contactForm.description}</p>
+                                        <h3 className="title text-xl md:text-2xl font-bold mb-3">{t(contactForm.title)}</h3>
+                                        <p>{t(contactForm.description)}</p>
                                     </div>
                                     <form className="contact-form-inner grid grid-cols-12 gap-5" onSubmit={handleSubmit}>
                                         <div className="form-group col-span-6">
-                                            <label className="text-sm mb-2 block">{contactForm.nameLabel}*</label>
+                                            <label className="text-sm mb-2 block">{t(contactForm.nameLabel)}*</label>
                                             <input type="text" value={name} onChange={(event) => setName(event.target.value)} placeholder="Type name here..." className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg" required></input>
                                         </div>
                                         <div className="form-group col-span-6">
-                                            <label className="text-sm mb-2 block">{contactForm.emailLabel}*</label>
+                                            <label className="text-sm mb-2 block">{t(contactForm.emailLabel)}*</label>
                                             <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Type email here..." className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg" required></input>
                                         </div>
                                         <div className="form-group col-span-12">
-                                            <label className="text-sm mb-2 block">{contactForm.messageLabel}*</label>
+                                            <label className="text-sm mb-2 block">{t(contactForm.messageLabel)}*</label>
                                             <textarea value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Type message here..." className="w-full h-32 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg" required></textarea>
                                         </div>
                                         <div className="form-group col-span-12">
@@ -133,7 +154,7 @@ export default function Contact() {
                                                     <LoaderCircle className="inline-block w-5 h-6 animate-spin text-white" />
                                                 ) : (
                                                     <>
-                                                        {contactForm.button} <ArrowRightToLine className={`${language === 'ar' ? 'transform rotate-[180deg]' : 'transform rotate-[0]'}`} />
+                                                        {t(contactForm.button)} <ArrowRightToLine className={`${language === 'ar' ? 'transform rotate-[180deg]' : 'transform rotate-[0]'}`} />
                                                     </>
                                                 )}
                                             </button>

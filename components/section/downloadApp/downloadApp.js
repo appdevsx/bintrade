@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react';
 import { Toaster, toast } from "react-hot-toast";
-import { getDownloadAppAPI } from "@/services/apiClient/apiClient";
+import { getDownloadAppAPI, getLanguageAPI } from "@/services/apiClient/apiClient";
 import styles from "./downloadApp.module.css";
 import Image from "next/image";
 import Link from "next/link";
@@ -11,7 +11,9 @@ import { useLanguage } from "@/context/languageProvider/languageProvider";
 export default function DownloadApp() {
     const [downloadApp, setDownloadApp] = useState([]);
     const [imagePaths, setImagePaths] = useState({});
+    const [translation, setTranslation] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [langLoading, setLangLoading] = useState(true);
     const { language } = useLanguage();
 
     useEffect(() => {
@@ -30,6 +32,25 @@ export default function DownloadApp() {
 
         fetchDownloadApp();
     }, [language]);
+
+    useEffect(() => {
+        setLangLoading(true);
+        const getLanguages = async () => {
+            try {
+                const response = await getLanguageAPI(language);
+                const currentLang = response.data?.data?.languages?.find(l => l.code === language);
+                setTranslation(currentLang?.translate_key_values || {});
+            } catch (error) {
+                toast.error("Server did not respond");
+            } finally {
+                setLangLoading(false);
+            }
+        };
+
+        getLanguages();
+    }, [language]);
+
+    const t = (key) => translation[key] || key;
 
     return (
         <section className="app-section py-20">
@@ -83,7 +104,7 @@ export default function DownloadApp() {
                                             <h3 className="title text-xl font-bold mb-2">{appItem.title}</h3>
                                             <p>{appItem.desc}</p>
                                             <div className="app-btn mt-3">
-                                                <Link className="customBtn" href={appItem.app_link}>Download App <CircleArrowRight className={`${language === 'ar' ? 'transform rotate-[180deg]' : 'transform rotate-[0]'}`} /></Link>
+                                                <Link className="customBtn" href={appItem.app_link}>{t("Download App")} <CircleArrowRight className={`${language === 'ar' ? 'transform rotate-[180deg]' : 'transform rotate-[0]'}`} /></Link>
                                             </div>
                                         </div>
                                         <div className={`app-thumb relative lg:absolute bottom-[-30px] lg:bottom-0 ${language === 'ar' ? 'lg:left-10' : 'lg:right-10'}`}>

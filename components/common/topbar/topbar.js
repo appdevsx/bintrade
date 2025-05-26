@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { Toaster, toast } from "react-hot-toast";
 import Select from "react-select";
@@ -15,7 +16,7 @@ import { getCurrencyOptions } from "@/utils/getCurrencyOptions/getCurrencyOption
 import { useTransactions } from "@/context/transactionProvider/transactionProvider";
 import { useWallets } from "@/context/walletProvider/walletProvider";
 import QRCode from "react-qr-code";
-import { getUserDataAPI, userDataUpdateAPI, updatePasswordAPI, getTwoFactorInfo, updateSecurityAPI, getKycAPI, kycUpdateAPI, getDepositAPI, automaticDepositAPI, manualDepositAPI, getWithdrawAPI, withdrawRequestAPI, getWithdrawInstructionsAPI, submitWithdrawAPI, withdrawChargeAPI, switchAccountAPI, getExchangeAPI, submitExchangeAPI, exchangeChargeAPI, getInfoAPI } from "@/services/apiClient/apiClient";
+import { getUserDataAPI, userDataUpdateAPI, updatePasswordAPI, getTwoFactorInfo, updateSecurityAPI, getKycAPI, kycUpdateAPI, getDepositAPI, automaticDepositAPI, manualDepositAPI, getWithdrawAPI, withdrawRequestAPI, getWithdrawInstructionsAPI, submitWithdrawAPI, withdrawChargeAPI, switchAccountAPI, getExchangeAPI, submitExchangeAPI, exchangeChargeAPI, getInfoAPI, ProfileDeleteAPI } from "@/services/apiClient/apiClient";
 import styles from "./topbar.module.css";
 
 import crypto from '@/public/images/currency/crypto.svg';
@@ -24,6 +25,7 @@ const countryOptions = getCountryOptions();
 const currencyOptions = getCurrencyOptions();
 
 function TopbarContent() {
+    const router = useRouter();
     const { fetchTransactions } = useTransactions();
     const { loading, setLoading, setSelectedAccountType, setSelectedBalance, demoBalance, setDemoBalance, liveBalance, setLiveBalance, currencySymbol, setCurrencySymbol, demoAccountType, setDemoAccountType, liveAccountType, setLiveAccountType, fetchWallets } = useWallets();
     const { selectedAccountType, selectedBalance } = useAccount();
@@ -122,6 +124,18 @@ function TopbarContent() {
     const [selectedTrade, setSelectedTrade] = useState(null);
     const [tradeCurrencies, setTradeCurrencies] = useState([]);
     const [isIntervalListOpen, setIsIntervalListOpen] = useState(false);
+    const [isModalOpen, setModalOpen] = useState(false);
+    const [showContent, setShowContent] = useState(false);
+
+    const openModal = () => {
+        setModalOpen(true);
+        setTimeout(() => setShowContent(true), 10);
+    };
+
+    const closeModal = () => {
+        setShowContent(false);
+        setTimeout(() => setModalOpen(false), 300);
+    };
 
     const filteredTrades = tradeCurrencies.filter((trade) =>
         trade.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -434,6 +448,39 @@ function TopbarContent() {
                 });
             } else {
                 toast.error(errors || "Server not responding. Please try again later.");
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const onProfileDelete = async (e) => {
+        e.preventDefault();
+
+        setLoading(true);
+
+        try {
+            const response = await ProfileDeleteAPI();
+
+            console.log(response);
+
+            const successMessage = response?.data?.message?.success || "Profile delete successful";
+
+            successMessage.forEach((msg) => {
+                toast.success(msg);
+            })
+
+            closeModal;
+
+            router.push("/login");
+        } catch (err) {
+            if (err.response?.data?.message?.error) {
+                const errors = err.response?.data?.message?.error;
+                errors.forEach((msg) => {
+                    toast.error(msg);
+                });
+            } else {
+                toast.error("Server didn't gfhgfhghgh");
             }
         } finally {
             setLoading(false);
@@ -1096,7 +1143,7 @@ function TopbarContent() {
                         )}
                     </div>
                 </div> */}
-                <div className="flex justify-center gap-2">
+                <div className="hidden sm:flex justify-center gap-2">
                     {loading ? (
                         <div className="animate-pulse">
                             <div className="h-6 w-20 bg-gray-700 rounded-md"></div>
@@ -1264,9 +1311,9 @@ function TopbarContent() {
                     <button className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md" onClick={handlePasswordInformationClick}>
                         Password
                     </button>
-                    <button className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md" onClick={handleNotificationInformationClick}>
+                    {/* <button className="w-full py-2 px-3 bg-[#0d1f30] text-white rounded-md" onClick={handleNotificationInformationClick}>
                         Notification
-                    </button>
+                    </button> */}
                 </div>
             </div>
             <div className={`fixed bottom-0 right-0 h-full bg-[#051524] border-l-2 border-slate-800 w-full sm:w-[400px] overflow-y-auto z-[3] shadow-lg p-4 transform ${isPaymentSidebarOpen ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
@@ -1444,7 +1491,7 @@ function TopbarContent() {
                                 required
                                 />
                             </div>
-                            <div className="mt-2">
+                            <div className="mt-2 space-y-3">
                                 <button type="submit" className={`baseBtn flex justify-center w-full ${loading ? "cursor-not-allowed" : ""}`} disabled={loading}>
                                     {loading ? (
                                         <LoaderCircle className="inline-block w-5 h-6 animate-spin text-white" />
@@ -1454,6 +1501,10 @@ function TopbarContent() {
                                             <ArrowRightToLine />
                                         </>
                                     )}
+                                </button>
+                                <button type="button" onClick={openModal} className="baseBtn !bg-red-500 flex justify-center w-full">
+                                    Delete Profile 
+                                    <ArrowRightToLine />
                                 </button>
                             </div>
                         </div>
@@ -2005,6 +2056,25 @@ function TopbarContent() {
                     </div>
                 </form>
             </div>
+            {isModalOpen && (
+                <div className={`fixed inset-0 bg-black flex items-center justify-center z-50 transition-all duration-300 ${showContent ? 'bg-opacity-50' : 'bg-opacity-0'}`}>
+                    <div className={`bg-[#0d1f30] rounded-xl relative transform transition-all duration-300 ${showContent ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+                        <button onClick={closeModal} className="absolute top-[-10px] right-[-10px] w-10 h-10 bg-[#0d1f30] rounded-full flex items-center justify-center transition-all hover:text-red-500">
+                            <X className="w-4 h-auto"/>
+                        </button>
+                        <div className="sm:w-[400px] w-[300px] p-5">
+                            <span className="text-sm">Are you sure you want to delete profile?</span>
+                            <div className="mt-5 space-y-2">
+                                <button onClick={onProfileDelete} disabled={loading} className={`w-full py-2 rounded-lg text-sm text-white bg--base transition-all hover:bg-red-500 ${loading ? "cursor-not-allowed" : ""}`}>
+                                    {loading ? <LoaderCircle className="inline-block w-5 h-auto animate-spin text-white"/> : "Yes, i want to delete profile"}
+                                </button>
+                                <button onClick={closeModal} className="w-full py-2 rounded-lg text-sm border border--base text-white transition-all hover:border-red-500 hover:bg-red-500">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div onClick={closeModal} className="fixed top-0 left-0 w-full h-full z-[-2]"></div>
+                </div>
+            )}
         </>
     )
 };

@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import Button from "../button/button";
 import { ArrowRightToLine, LoaderCircle } from 'lucide-react';
-import { newsletterAPI, getUsefullLinksAPI, getFooterAPI } from "@/services/apiClient/apiClient";
+import { newsletterAPI, getUsefullLinksAPI, getFooterAPI, getLanguageAPI } from "@/services/apiClient/apiClient";
 import { useLanguage } from "@/context/languageProvider/languageProvider";
 
 import logo from '@/public/images/logo/logo.png';
@@ -42,7 +42,7 @@ const footerSecondLists = [
         href: '/blog',
     },
     {
-        name: 'Services',
+        name: 'Service',
         href: '/service',
     }
 ]
@@ -97,7 +97,9 @@ export default function Footer() {
     const [email, setEmail] = useState('');
     const [links, setLinks] = useState([]);
     const [footer, setFooter] = useState([]);
+    const [translation, setTranslation] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [langLoading, setLangLoading] = useState(true);
     const { language } = useLanguage();
 
     const handleSubmit = async (event) => {
@@ -139,7 +141,7 @@ export default function Footer() {
         setLoading(true);
         const fetchFooter = async () => {
             try {
-                const response = await getFooterAPI();
+                const response = await getFooterAPI(language);
                 setFooter(response.data?.data?.section);
             } catch (error) {
                 toast.error("Server did not respond");
@@ -150,6 +152,25 @@ export default function Footer() {
 
         fetchFooter();
     }, []);
+
+    useEffect(() => {
+        setLangLoading(true);
+        const getLanguages = async () => {
+            try {
+                const response = await getLanguageAPI(language);
+                const currentLang = response.data?.data?.languages?.find(l => l.code === language);
+                setTranslation(currentLang?.translate_key_values || {});
+            } catch (error) {
+                toast.error("Server did not respond");
+            } finally {
+                setLangLoading(false);
+            }
+        };
+
+        getLanguages();
+    }, [language]);
+
+    const t = (key) => translation[key] || key;
 
     return (
         <footer className="footer-section section--bg pt-20">
@@ -175,31 +196,31 @@ export default function Footer() {
                         </div>
                         <div className="grid grid-cols-1 gap-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5">
                             <div className="footer-widget">
-                                <h4 className="widget-title text-lg font-bold mb-2.5 text-white">{footerWidget.titleOne}</h4>
+                                <h4 className="widget-title text-lg font-bold mb-2.5 text-white">{t(footerWidget.titleOne)}</h4>
                                 <ul className="footer-list space-y-2">
                                     {footerFirstLists.map(( footerFirstList, index ) => {
                                         return (
                                             <li className="font-medium text-sm text-slate-300 hover:text-white" key={index}>
-                                                <Link href={footerFirstList.href}>{footerFirstList.name}</Link>
+                                                <Link href={footerFirstList.href}>{t(footerFirstList.name)}</Link>
                                             </li>
                                         );
                                     })}
                                 </ul>
                             </div>
                             <div className="footer-widget">
-                                <h4 className="widget-title text-lg font-bold mb-2.5 text-white">{footerWidget.titleTwo}</h4>
+                                <h4 className="widget-title text-lg font-bold mb-2.5 text-white">{t(footerWidget.titleTwo)}</h4>
                                 <ul className="footer-list space-y-2">
                                     {footerSecondLists.map(( footerSecondList, index ) => {
                                         return (
                                             <li className="font-medium text-sm text-slate-300 hover:text-white" key={index}>
-                                                <Link href={footerSecondList.href}>{footerSecondList.name}</Link>
+                                                <Link href={footerSecondList.href}>{t(footerSecondList.name)}</Link>
                                             </li>
                                         );
                                     })}
                                 </ul>
                             </div>
                             <div className="footer-widget">
-                                <h4 className="widget-title text-lg font-bold mb-2.5 text-white">{footerWidget.titleThree}</h4>
+                                <h4 className="widget-title text-lg font-bold mb-2.5 text-white">{t(footerWidget.titleThree)}</h4>
                                 {loading ? (
                                     <div className="animate-pulse">
                                         <div className="h-6 w-20 bg-gray-700 rounded-md"></div>
@@ -210,7 +231,7 @@ export default function Footer() {
                                         {links.map(( footerThirdList, index ) => {
                                             return (
                                                 <li className="font-medium text-sm text-slate-300 hover:text-white" key={index}>
-                                                    <Link href={footerThirdList.slug}>{footerThirdList.url}</Link>
+                                                    <Link href={footerThirdList.slug}>{t(footerThirdList.url)}</Link>
                                                 </li>
                                             );
                                         })}
@@ -218,12 +239,12 @@ export default function Footer() {
                                 )}
                             </div>
                             <div className="footer-widget">
-                                <h4 className="widget-title text-lg font-bold mb-2.5 text-white">{footerWidget.titleFour}</h4>
+                                <h4 className="widget-title text-lg font-bold mb-2.5 text-white">{t(footerWidget.titleFour)}</h4>
                                 <ul className="footer-list space-y-2">
                                     {footerFourthLists.map(( footerFourthList, index ) => {
                                         return (
                                             <li className="font-medium text-sm text-slate-300 hover:text-white" key={index}>
-                                                <Link href={footerFourthList.href}>{footerFourthList.name}</Link>
+                                                <Link href={footerFourthList.href}>{t(footerFourthList.name)}</Link>
                                             </li>
                                         );
                                     })}
@@ -258,7 +279,7 @@ export default function Footer() {
                                 {footer?.social_links?.map((footerSocial, index) => (
                                     <li className="font-medium text-sm text-slate-300" key={index}>
                                         <Link href={footerSocial.link} target="_blank">
-                                            {footerSocial.name}
+                                            {t(footerSocial.name)}
                                         </Link>
                                     </li>
                                 ))}

@@ -51,7 +51,7 @@ export const getAliasAPI = (language) => {
 
 // Get Language API (get)
 export const getLanguageAPI = (language) => {
-    return apiClient.get(`/settings/languages?lang=${language}`);
+    return apiClient.get(`/settings/languages-web?lang=${language}`);
 };
 
 // Get Banner API (get)
@@ -182,6 +182,20 @@ export const logoutAPI = () => {
     const token = getToken();
     if (token) {
         return apiClient.post('/user/logout', {}, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+    } else {
+        throw new Error('No token found. Please log in.');
+    }
+};
+
+// Profile Delete API (post)
+export const ProfileDeleteAPI = () => {
+    const token = getToken();
+    if (token) {
+        return apiClient.post('/user/profile/delete', {}, {
             headers: {
                 Authorization: `Bearer ${token}`
             }

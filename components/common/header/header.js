@@ -39,14 +39,10 @@ const header = {
 export default function Header() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    // const [language, setLanguage] = useState("es");
     const { language, setLanguage } = useLanguage();
     const [translation, setTranslation] = useState([]);
     const [languages, setLanguages] = useState([]);
     const [selectedLanguage, setSelectedLanguage] = useState(language);
-    // const [selectedLanguage, setSelectedLanguage] = useState(() => {
-    //     return localStorage.getItem("selectedLanguage") || "en";
-    // });
     const [siteLogo, setSiteLogo] = useState(null);
     const [loading, setLoading] = useState(true);
     const [langLoading, setLangLoading] = useState(true);
@@ -80,17 +76,13 @@ export default function Header() {
         fetchLanguages();
     }, []);
 
-    // useEffect(() => {
-	// 	const userLang = navigator.language.split("-")[0];
-	// 	setLanguage(userLang);
-	// }, []);
-
     useEffect(() => {
         setLangLoading(true);
         const getLanguages = async () => {
             try {
                 const response = await getLanguageAPI(language);
-                setTranslation(response.data?.data?.languages?.[0]?.translate_key_values || {});
+                const currentLang = response.data?.data?.languages?.find(l => l.code === language);
+                setTranslation(currentLang?.translate_key_values || {});
             } catch (error) {
                 toast.error("Server did not respond");
             } finally {
@@ -100,6 +92,8 @@ export default function Header() {
 
         getLanguages();
     }, [language]);
+
+    const t = (key) => translation[key] || key;
 
     const handleLanguageChange = (e) => {
         const newLanguage = e.target.value;
@@ -129,10 +123,9 @@ export default function Header() {
                     <ul className={`header-nav ${isMobileMenuOpen ? 'open' : ''} block lg:flex items-center gap-10`}>
                         {navLink.map(( link ) => {
                             const isActive = pathname == link.href;
-                            const translatedName = translation[link.name] || link.name;
                             return (
                                 <Link href={link.href} key={link.name} className={isActive ? styles.linkActive : styles.link}>
-                                    {translatedName}
+                                    {t(link.name)}
                                 </Link>
                             );
                         })}
@@ -160,10 +153,10 @@ export default function Header() {
                         </div>
                         <div className="header-action hidden md:block mr-2 lg:mr-0">
                             {isLoggedIn ? (
-                                <Link className={styles.headerAction} href="/trading">{header.button} <CircleArrowRight className={`${language === 'ar' ? 'transform rotate-[180deg]' : 'transform rotate-[0]'}`} /></Link>
+                                <Link className={styles.headerAction} href="/trading">{t(header.button)} <CircleArrowRight className={`${language === 'ar' ? 'transform rotate-[180deg]' : 'transform rotate-[0]'}`} /></Link>
                             ) : (
                                 <>
-                                    <Link className={styles.headerAction} href="/login">{header.button} <CircleArrowRight className={`${language === 'ar' ? 'transform rotate-[180deg]' : 'transform rotate-[0]'}`} /></Link>
+                                    <Link className={styles.headerAction} href="/login">{t(header.button)} <CircleArrowRight className={`${language === 'ar' ? 'transform rotate-[180deg]' : 'transform rotate-[0]'}`} /></Link>
                                 </>
                             )}
                         </div>

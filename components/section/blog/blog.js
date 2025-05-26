@@ -5,14 +5,16 @@ import styles from "./blog.module.css";
 import Link from "next/link";
 import { CircleArrowRight } from 'lucide-react';
 import Image from "next/image";
-import { getBlogsAPI, getAnnouncementAPI } from "@/services/apiClient/apiClient";
+import { getBlogsAPI, getAnnouncementAPI, getLanguageAPI } from "@/services/apiClient/apiClient";
 import { useLanguage } from "@/context/languageProvider/languageProvider";
 
 export default function Blog() {
 	const [blogs, setBlogs] = useState([]);
 	const [announcements, setAnnouncements] = useState([]);
 	const [imagePaths, setImagePaths] = useState({});
+	const [translation, setTranslation] = useState([]);
 	const [loading, setLoading] = useState(false);
+	const [langLoading, setLangLoading] = useState(true);
 	const { language } = useLanguage();
 
 	useEffect(() => {
@@ -48,6 +50,25 @@ export default function Blog() {
 		fetchAnnouncements();
 	}, [language]);
 
+	useEffect(() => {
+		setLangLoading(true);
+		const getLanguages = async () => {
+			try {
+				const response = await getLanguageAPI(language);
+				const currentLang = response.data?.data?.languages?.find(l => l.code === language);
+				setTranslation(currentLang?.translate_key_values || {});
+			} catch (error) {
+				toast.error("Server did not respond");
+			} finally {
+				setLangLoading(false);
+			}
+		};
+
+		getLanguages();
+	}, [language]);
+
+	const t = (key) => translation[key] || key;
+
     return (
 		<section className="blog-section py-20">
             <div className="custom-container">
@@ -64,7 +85,7 @@ export default function Blog() {
                             {[...Array(3)].map((_, index) => (
                                 <div className="flex" key={index}>
 									<div className="w-[46%] h-[305px] bg-gray-700 rounded"></div>
-									<div className="w-[calc(100%-70%)] ml-[80px] space-y-4">
+									<div className="w-[calc(100%-70%)] mx-[80px] space-y-4">
 										<div className="w-20 h-8 bg-gray-700 rounded"></div>
 										<div className="w-full h-8 bg-gray-700 rounded"></div>
 										<div className="w-full h-[120px] bg-gray-700 rounded"></div>
@@ -101,11 +122,11 @@ export default function Blog() {
 											)}
 										</div>
 										<div className={styles.blogContent}>
-											<span className="date block mb-4">{blogItem.category.name.language.en.name}</span>
-											<h3 className="title text-lg sm:text-xl font-bold mb-4">{blogItem.data.language.en.title}</h3>
+											<span className="date block mb-4">{blogItem.category.name.language[language]?.name || blogItem.category.get_name}</span>
+											<h3 className="title text-lg sm:text-xl font-bold mb-4">{blogItem.short_title}</h3>
 											<p>{blogItem.short_desc}</p>
 											<div className="blog-btn mt-6">
-												<Link className={styles.customBtn} href={`/blog/${blogItem.slug}`}>Read more <CircleArrowRight className={`${language === 'ar' ? 'transform rotate-[180deg]' : 'transform rotate-[0]'}`} /></Link>
+												<Link className={styles.customBtn} href={`/blog/${blogItem.slug}`}>{t("Read more")} <CircleArrowRight className={`${language === 'ar' ? 'transform rotate-[180deg]' : 'transform rotate-[0]'}`} /></Link>
 											</div>
 										</div>
 									</div>
