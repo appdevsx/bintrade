@@ -71,7 +71,7 @@ export default function Login() {
                     router.push(`/authorization?token=${authorizationToken}`);
                 } 
                 // Redirect to two-factor page if two-factor is disabled
-                else if (twoFactorStatus === 0) {
+                else if (twoFactorStatus === 1) {
                     router.push("/two-factor");
                 }
                 else {

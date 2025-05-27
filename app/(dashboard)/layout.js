@@ -36,7 +36,7 @@ export default function DashboardLayout({ children }) {
                         localStorage.removeItem("jwtToken");
                         sessionStorage.removeItem("jwtToken");
                         router.push("/login");
-                    } else if (twoFactorStatus == 0) {
+                    } else if (twoFactorStatus == 1) {
                         // If two-factor is disabled
                         router.push("/register");
                     } else {
