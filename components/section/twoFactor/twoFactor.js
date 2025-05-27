@@ -16,7 +16,7 @@ const accountWrapper = {
 	image: logo,
     titleLeft: 'Bin',
     titleMain: 'Trade',
-    description: 'We sent a 6 digit code in google authenticator',
+    description: 'Enter the 6-digit code from your Google Authenticator app',
     accountButton: 'Submit',
     accountSwitchTitle: "Already have an account?",
     accountSwitchLink: 'Sign in',
