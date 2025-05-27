@@ -126,6 +126,7 @@ function TopbarContent() {
     const [isIntervalListOpen, setIsIntervalListOpen] = useState(false);
     const [isModalOpen, setModalOpen] = useState(false);
     const [showContent, setShowContent] = useState(false);
+    const [isTwoFactorEnabled, setIsTwoFactorEnabled] = useState(false);
 
     const openModal = () => {
         setModalOpen(true);
@@ -509,6 +510,7 @@ function TopbarContent() {
                 toast.success(msg);
             });
             setCode("");
+            setIsTwoFactorEnabled(response.data.data.user_info.two_factor_verified === 1);
         } catch (error) {
             if (error.response && error.response.data && error.response.data.message && error.response.data.message.error) {
                 error.response.data.message.error.forEach((msg) => {
@@ -1679,7 +1681,7 @@ function TopbarContent() {
                                         <LoaderCircle className="inline-block w-5 h-6 animate-spin text-white" />
                                     ) : (
                                         <>
-                                            Enable 
+                                            {isTwoFactorEnabled ? "Disable" : "Enable"} 
                                             <ArrowRightToLine />
                                         </>
                                     )}
