@@ -16,10 +16,10 @@ const accountWrapper = {
 	image: logo,
     titleLeft: 'Bin',
     titleMain: 'Trade',
-    description: 'We sent a 6 digit code in email',
+    description: 'We sent a 6 digit code in google authenticator',
     accountButton: 'Submit',
-    accountSwitchTitle: "Don't have an account?",
-    accountSwitchLink: 'Sign up',
+    accountSwitchTitle: "Already have an account?",
+    accountSwitchLink: 'Sign in',
 }
 
 export default function TwoFactor() {
@@ -71,6 +71,9 @@ export default function TwoFactor() {
             response.data.message.success.forEach((msg) => {
                 toast.success(msg);
             });
+            if (response.data.data.token) {
+                localStorage.setItem("jwtToken", response.data.data.token);
+            }
             router.push("/trading");
         } catch (error) {
             if (error.response && error.response.data && error.response.data.message && error.response.data.message.error) {
@@ -143,9 +146,6 @@ export default function TwoFactor() {
                                     </>
                                 )}
                             </button>
-                            <div className="text-center mt-5">
-                                <p className="text-sm">{t(accountWrapper.accountSwitchTitle)} <Link href="/register" className="font-bold text--base">{t(accountWrapper.accountSwitchLink)}</Link></p>
-                            </div>
                         </form>
                     </div>
                 </div>

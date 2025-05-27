@@ -27,11 +27,10 @@ const currencyOptions = getCurrencyOptions();
 function TopbarContent() {
     const router = useRouter();
     const { fetchTransactions } = useTransactions();
-    const { loading, setLoading, setSelectedAccountType, setSelectedBalance, demoBalance, setDemoBalance, liveBalance, setLiveBalance, currencySymbol, setCurrencySymbol, demoAccountType, setDemoAccountType, liveAccountType, setLiveAccountType, fetchWallets } = useWallets();
+    const { loading, setLoading, setSelectedAccountType, setSelectedBalance, demoBalance, setDemoBalance, liveBalance, setLiveBalance, currencySymbol, setCurrencySymbol, currencyCode, setCurrencyCode, demoAccountType, setDemoAccountType, liveAccountType, setLiveAccountType, fetchWallets } = useWallets();
     const { selectedAccountType, selectedBalance } = useAccount();
     const searchParams = useSearchParams();
     const withdrawToken = searchParams.get("withdrawToken");
-    const [currencyCode, setCurrencyCode] = useState(null);
     const { symbol, setSymbol, interval, setInterval } = useAccount();
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const [selectedAccount, setSelectedAccount] = useState("LIVE");
@@ -676,7 +675,7 @@ function TopbarContent() {
             setMaxLimit(parseFloat(selectedCurrencyData.max_limit));
             setPercentCharge(parseFloat(selectedCurrencyData.percent_charge));
             setFixedCharge(parseFloat(selectedCurrencyData.fixed_charge));
-            setSelectedCurrencyCode(selectedCurrencyData.currency_code);
+            setSelectedCurrencyCode(currencyCode);
             setSelectedGatewayType(selectedGatewayType);
         }
     };
@@ -1676,7 +1675,7 @@ function TopbarContent() {
                                 <div className="mt-4 text-black text-center">Scan this code in your Google Authenticator app.</div>
                             </div>
                             <div className="mt-2">
-                                <button type="submit" className={`baseBtn flex justify-center w-full ${loading ? "cursor-not-allowed" : ""}`} disabled={loading}>
+                                <button type="submit" className={`baseBtn flex justify-center w-full ${loading ? "cursor-not-allowed" : ""} ${isTwoFactorEnabled ? "!bg-red-500 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"}`} disabled={loading}>
                                     {loading ? (
                                         <LoaderCircle className="inline-block w-5 h-6 animate-spin text-white" />
                                     ) : (

@@ -35,10 +35,8 @@ export default function DashboardLayout({ children }) {
                         // If email is not verified
                         localStorage.removeItem("jwtToken");
                         sessionStorage.removeItem("jwtToken");
-                        router.push("/login");
-                    } else if (twoFactorStatus == 1) {
-                        // If two-factor is disabled
                         router.push("/register");
+                    
                     } else {
                         // Both email is verified and two-factor is enabled
                         setDashboardData(response.data);

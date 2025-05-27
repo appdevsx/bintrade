@@ -10,6 +10,7 @@ export const WalletProvider = ({ children }) => {
     const {  setSelectedAccountType, setSelectedBalance } = useAccount();
     const [demoBalance, setDemoBalance] = useState(null);
     const [liveBalance, setLiveBalance] = useState(null);
+    const [currencyCode, setCurrencyCode] = useState("");
     const [currencySymbol, setCurrencySymbol] = useState("");
     const [demoAccountType, setDemoAccountType] = useState("");
     const [liveAccountType, setLiveAccountType] = useState("");
@@ -41,6 +42,12 @@ export const WalletProvider = ({ children }) => {
                     localStorage.setItem("currencySymbol", currency);
                 }
 
+                if (liveWallet || demoWallet) {
+                    const currency = (liveWallet || demoWallet).currency?.code;
+                    setCurrencyCode(currency);
+                    localStorage.setItem("currencyCode", currency);
+                }
+
                 const storedAccount = localStorage.getItem("selectedAccount");
                 const selectedFromStorage = storedAccount === "Demo Account" ? demoWallet : liveWallet;
 
@@ -66,7 +73,7 @@ export const WalletProvider = ({ children }) => {
     }, []);
 
     return (
-        <WalletContext.Provider value={{ loading, setLoading, setSelectedAccountType, setSelectedBalance, demoBalance, setDemoBalance, liveBalance, setLiveBalance, currencySymbol, setCurrencySymbol, demoAccountType, setDemoAccountType, liveAccountType, setLiveAccountType, fetchWallets }}>
+        <WalletContext.Provider value={{ loading, setLoading, setSelectedAccountType, setSelectedBalance, demoBalance, setDemoBalance, liveBalance, setLiveBalance, currencySymbol, setCurrencySymbol, currencyCode, setCurrencyCode, demoAccountType, setDemoAccountType, liveAccountType, setLiveAccountType, fetchWallets }}>
             {children}
         </WalletContext.Provider>
     );
