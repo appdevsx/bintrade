@@ -55,67 +55,69 @@ export default function Asidebar({ handleTradeClick, handleTradingCompletion, is
     };
 
     const onTradeClick = async (actionType) => {
-        setAction(actionType === "HIGH" ? "Up" : "Down");
-        setTradeOutcome(null);
-        setRemainingTime(null);
-        setProfitOrLoss(null);
-    
-        try {
-            const response = await handleTradeClick(actionType);
-            
-            if (response?.success) {
-                const orderId = response.orderId;
-                console.log("Starting trade with order ID:", orderId);
-                
-                setTradeOutcome("In Progress");
-                setRemainingTime(duration);
-                setIsTimerVisible(true);
-    
-                const timer = setInterval(() => {
-                    setRemainingTime((prevTime) => {
-                        if (prevTime <= 1) {
-                            clearInterval(timer);
-                            setIsTimerVisible(false);
-                            
-                            console.log("Checking result for order:", orderId);
-                            if (orderId) {
-                                handleTradingCompletion(orderId).then(result => {
-                                    console.log("Trade result:", result);
-                                    if (result) {
-                                        const outcome = result.result === "WIN" ? "Win" : "Loss";
-                                        console.log("Setting outcome:", outcome);
-                                        setTradeOutcome(outcome);
-                                        setProfitOrLoss(result.winAmount || 0);
-                                    } else {
-                                        console.warn("No result received");
-                                        setTradeOutcome("Unknown");
-                                        toast.error("Could not determine trade result");
-                                    }
-                                }).catch(error => {
-                                    console.error("Completion error:", error);
-                                    setTradeOutcome("Error");
-                                    toast.error("Error checking trade result");
-                                });
-                            }
-                            return 0;
-                        }
-                        return prevTime - 1;
-                    });
-                }, 1000);
-    
-                setTradeTimer(timer);
-            } else {
-                setIsTimerVisible(false);
-                setTradeOutcome("Failed");
-                toast.error("Failed to start trade");
-            }
-        } catch (error) {
-            console.error("Trade failed:", error);
-            setIsTimerVisible(false);
-            setTradeOutcome("Error");
-            toast.error("Trade failed unexpectedly");
-        }
-    };
+		setAction(actionType === "HIGH" ? "Up" : "Down");
+		setTradeOutcome(null);
+		setRemainingTime(duration); // Start with the full duration
+		setProfitOrLoss(null);
+		setIsTimerVisible(true);
+
+		try {
+			const response = await handleTradeClick(actionType);
+			
+			if (response?.success) {
+				const orderId = response.orderId;
+				console.log("Starting trade with order ID:", orderId);
+				
+				setTradeOutcome("In Progress");
+
+				const timer = setInterval(() => {
+					setRemainingTime((prevTime) => {
+						if (prevTime <= 1) {
+							clearInterval(timer);
+							setIsTimerVisible(false);
+							setRemainingTime(null); // Reset when done
+							
+							console.log("Checking result for order:", orderId);
+							if (orderId) {
+								handleTradingCompletion(orderId).then(result => {
+									console.log("Trade result:", result);
+									if (result) {
+										const outcome = result.result === "WIN" ? "Win" : "Loss";
+										console.log("Setting outcome:", outcome);
+										setTradeOutcome(outcome);
+										setProfitOrLoss(result.winAmount || 0);
+									} else {
+										console.warn("No result received");
+										setTradeOutcome("Unknown");
+										toast.error("Could not determine trade result");
+									}
+								}).catch(error => {
+									console.error("Completion error:", error);
+									setTradeOutcome("Error");
+									toast.error("Error checking trade result");
+								});
+							}
+							return 0;
+						}
+						return prevTime - 1;
+					});
+				}, 1000);
+
+				setTradeTimer(timer);
+			} else {
+				setIsTimerVisible(false);
+				setTradeOutcome("Failed");
+				setRemainingTime(null); // Reset on failure
+				toast.error("Failed to start trade");
+			}
+		} catch (error) {
+			console.error("Trade failed:", error);
+			setIsTimerVisible(false);
+			setTradeOutcome("Error");
+			setRemainingTime(null); // Reset on error
+			toast.error("Trade failed unexpectedly");
+		}
+	};
 
     return (
         <div className="fixed lg:sticky top-[70px] lg:top-0 right-0 w-[180px] h-screen lg:h-[calc(100vh-102px)] z-[2]">
@@ -168,19 +170,23 @@ export default function Asidebar({ handleTradeClick, handleTradingCompletion, is
                     <span className="text-gray-400 text-lg">⏱</span>
                 </button>
                 <div className="w-full flex flex-col gap-2">
-                    <button className={`w-full py-3 bg-[#2dd674] rounded-md text-black font-bold flex items-center justify-center gap-2 ${action === "Up" ? "bg-[#31a361]" : "bg-[#2dd674]"}`} 
-                    onClick={() => onTradeClick("HIGH")}
-                    disabled={isProcessing || remainingTime !== null}>
-                        Up
-                        <span className="text-xl">↑</span>
-                    </button>
-                    <button className={`w-full py-3 bg-[#ff5765] rounded-md text-black font-bold flex items-center justify-center gap-2 ${action === "Down" ? "bg-[#c34d56]" : "bg-[#ff5765]"}`} 
-                    onClick={() => onTradeClick("LOW")} 
-                    disabled={isProcessing || remainingTime !== null}>
-                        Down
-                        <span className="text-xl">↓</span>
-                    </button>
-                </div>
+					<button 
+						className={`w-full py-3 rounded-md text-black font-bold flex items-center justify-center gap-2 
+							${isProcessing || remainingTime !== null ? 'bg-[#31a361] cursor-not-allowed' : 'bg-[#2dd674] cursor-pointer'}`} 
+						onClick={() => onTradeClick("HIGH")}
+						disabled={isProcessing || remainingTime !== null}>
+						Up
+						<span className="text-xl">↑</span>
+					</button>
+					<button 
+						className={`w-full py-3 rounded-md text-black font-bold flex items-center justify-center gap-2 
+							${isProcessing || remainingTime !== null ? 'bg-[#c34d56] cursor-not-allowed' : 'bg-[#ff5765] cursor-pointer'}`} 
+						onClick={() => onTradeClick("LOW")} 
+						disabled={isProcessing || remainingTime !== null}>
+						Down
+						<span className="text-xl">↓</span>
+					</button>
+				</div>
                 {isTimerVisible && remainingTime !== null && (
                     <div className="w-full text-center text-sm mt-4 text-gray-400">
                         Time Remaining: {formatTime(remainingTime)}
