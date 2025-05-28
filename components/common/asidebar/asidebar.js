@@ -85,7 +85,7 @@ export default function Asidebar({ handleTradeClick, handleTradingCompletion, is
 										const outcome = result.result === "WIN" ? "Win" : "Loss";
 										console.log("Setting outcome:", outcome);
 										setTradeOutcome(outcome);
-										setProfitOrLoss(result.winAmount || 0);
+										setProfitOrLoss(outcome === "Win" ? result.winAmount : amount);
 									} else {
 										console.warn("No result received");
 										setTradeOutcome("Unknown");

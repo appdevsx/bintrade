@@ -126,6 +126,7 @@ function TopbarContent() {
     const [isModalOpen, setModalOpen] = useState(false);
     const [showContent, setShowContent] = useState(false);
     const [isTwoFactorEnabled, setIsTwoFactorEnabled] = useState(false);
+    const [filePreviews, setFilePreviews] = useState({});
 
     const openModal = () => {
         setModalOpen(true);
@@ -856,7 +857,7 @@ function TopbarContent() {
             const response = await getExchangeAPI();
             setExchangeData(response.data.data);
         } catch (error) {
-            toast.error("Failed to fetch exchange data.");
+            console.log("Failed to fetch exchange data.");
         }
     };
     
@@ -1770,6 +1771,11 @@ function TopbarContent() {
                                 Your KYC status is <strong>{instructions}</strong>.
                             </div>
                         )}
+                        {/* {status === "1" && (
+                            <div className="mb-4 space-y-3">
+                                <p className="text-white text-sm font-medium">Uploaded Documents:</p>
+                            </div>
+                        )} */}
                     </div>
                 </form>
             </div>

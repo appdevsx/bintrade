@@ -589,30 +589,6 @@ export default function Sidebar() {
                 </div>
                 <form onSubmit={handleTicketSubmit} className="p-4 space-y-4">
                     <div>
-                        <label className="block text-white mb-2">Name</label>
-                        <input
-                            type="text"
-                            name="name"
-                            value={ticketForm.name}
-                            onChange={handleFormChange}
-                            className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
-                            placeholder="Enter your name"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-white mb-2">Email</label>
-                        <input
-                            type="email"
-                            name="email"
-                            value={ticketForm.email}
-                            onChange={handleFormChange}
-                            className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 gradient--bg"
-                            placeholder="Enter your email"
-                            required
-                        />
-                    </div>
-                    <div>
                         <label className="block text-white mb-2">Subject</label>
                         <input
                             type="text"
