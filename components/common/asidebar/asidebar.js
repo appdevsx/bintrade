@@ -16,6 +16,89 @@ export default function Asidebar({ handleTradeClick, handleTradingCompletion, is
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isAsidebarOpen, setIsAsidebarOpen] = useState(false);
     const [isTimerVisible, setIsTimerVisible] = useState(false);
+    const [activeTrade, setActiveTrade] = useState(null);
+
+    // Update the useEffect that loads the saved trade
+    useEffect(() => {
+        const savedTrade = localStorage.getItem('activeTrade');
+        if (savedTrade) {
+            try {
+                const tradeData = JSON.parse(savedTrade);
+                if (tradeData && tradeData.orderId) {
+                    if (tradeData.endTime > Date.now()) {
+                        // Calculate remaining time
+                        const timeLeft = Math.floor((tradeData.endTime - Date.now()) / 1000);
+                        
+                        if (timeLeft > 0) {
+                            setActiveTrade(tradeData);
+                            setAction(tradeData.action);
+                            setAmount(tradeData.amount); // Restore the original amount
+                            setRemainingTime(timeLeft);
+                            setTradeOutcome("In Progress");
+                            setIsTimerVisible(true);
+                            
+                            // Start the timer for the remaining time
+                            const timer = setInterval(() => {
+                                setRemainingTime((prevTime) => {
+                                    if (prevTime <= 1) {
+                                        clearInterval(timer);
+                                        setIsTimerVisible(false);
+                                        setRemainingTime(null); // Explicitly set to null
+                                        checkTradeResult(tradeData.orderId);
+                                        localStorage.removeItem('activeTrade');
+                                        return 0;
+                                    }
+                                    return prevTime - 1;
+                                });
+                            }, 1000);
+                            
+                            setTradeTimer(timer);
+                        } else {
+                            // Trade should have completed, check result
+                            checkTradeResult(tradeData.orderId);
+                            localStorage.removeItem('activeTrade');
+                            setRemainingTime(null); // Ensure this is set to null
+                        }
+                    } else {
+                        localStorage.removeItem('activeTrade');
+                        setRemainingTime(null); // Ensure this is set to null
+                    }
+                } else {
+                    localStorage.removeItem('activeTrade');
+                    setRemainingTime(null); // Ensure this is set to null
+                }
+            } catch (e) {
+                console.error("Failed to parse saved trade", e);
+                localStorage.removeItem('activeTrade');
+                setRemainingTime(null); // Ensure this is set to null
+            }
+        }
+    }, []);
+
+    // Update the checkTradeResult function
+    const checkTradeResult = async (orderId) => {
+        try {
+            const result = await handleTradingCompletion(orderId);
+            if (result) {
+                const outcome = result.result === "WIN" ? "Win" : "Loss";
+                setTradeOutcome(outcome);
+                // Use the amount from the active trade if it exists
+                const tradeAmount = activeTrade?.amount || amount;
+                setProfitOrLoss(outcome === "Win" ? result.winAmount : tradeAmount);
+            } else {
+                setTradeOutcome("Unknown");
+                toast.error("Could not determine trade result");
+            }
+        } catch (error) {
+            console.error("Completion error:", error);
+            setTradeOutcome("Error");
+            toast.error("Error checking trade result");
+        } finally {
+            // Ensure these states are reset
+            setRemainingTime(null);
+            setIsTimerVisible(false);
+        }
+    };
 
     const incrementAmount = () => setAmount((prev) => parseFloat((parseFloat(prev) + 1).toFixed(2)));
     const decrementAmount = () => setAmount((prev) => parseFloat(prev) > 1 ? parseFloat((parseFloat(prev) - 1).toFixed(2)) : parseFloat(prev));
@@ -57,12 +140,13 @@ export default function Asidebar({ handleTradeClick, handleTradingCompletion, is
     const onTradeClick = async (actionType) => {
 		setAction(actionType === "HIGH" ? "Up" : "Down");
 		setTradeOutcome(null);
-		setRemainingTime(duration); // Start with the full duration
+		setRemainingTime(duration);
 		setProfitOrLoss(null);
 		setIsTimerVisible(true);
 
 		try {
 			const response = await handleTradeClick(actionType);
+            console.log(response);
 			
 			if (response?.success) {
 				const orderId = response.orderId;
@@ -70,12 +154,26 @@ export default function Asidebar({ handleTradeClick, handleTradingCompletion, is
 				
 				setTradeOutcome("In Progress");
 
+                const endTime = Date.now() + (duration * 1000);
+                
+                // Save trade to localStorage
+                const tradeData = {
+                    orderId,
+                    action: actionType === "HIGH" ? "Up" : "Down",
+                    amount,
+                    duration,
+                    endTime
+                };
+                localStorage.setItem('activeTrade', JSON.stringify(tradeData));
+                setActiveTrade(tradeData);
+
 				const timer = setInterval(() => {
 					setRemainingTime((prevTime) => {
 						if (prevTime <= 1) {
 							clearInterval(timer);
 							setIsTimerVisible(false);
-							setRemainingTime(null); // Reset when done
+							setRemainingTime(null);
+                            localStorage.removeItem('activeTrade');
 							
 							console.log("Checking result for order:", orderId);
 							if (orderId) {
@@ -108,7 +206,6 @@ export default function Asidebar({ handleTradeClick, handleTradingCompletion, is
 				setIsTimerVisible(false);
 				setTradeOutcome("Failed");
 				setRemainingTime(null); // Reset on failure
-				toast.error("Failed to start trade");
 			}
 		} catch (error) {
 			console.error("Trade failed:", error);
@@ -197,11 +294,11 @@ export default function Asidebar({ handleTradeClick, handleTradingCompletion, is
                         Result:{" "}
                         {tradeOutcome === "Win" ? (
                             <span className="text-[#2dd674] font-bold">
-                                Win! +{currencySymbol}{profitOrLoss}
+                                Win! +{currencySymbol}{amount}
                             </span>
                         ) : tradeOutcome === "Loss" ? (
                             <span className="text-[#ff5765] font-bold">
-                                Loss! -{currencySymbol}{profitOrLoss}
+                                Loss! -{currencySymbol}{amount}
                             </span>
                         ) : (
                             <span className="text-gray-400">{tradeOutcome}</span>
@@ -239,6 +336,12 @@ export default function Asidebar({ handleTradeClick, handleTradingCompletion, is
                                                 <div className="font-semibold">{order.symbol}</div>
                                                 <div className="text-sm">Direction: {order.p_type === "HIGH" ? "Up" : "Down"}</div>
                                                 <div className="text-sm">Amount: {currencySymbol}{order.amount}</div>
+                                                <div className="text-sm">
+                                                    <div>Started At (raw): {order.started_at}</div>
+                                                    {order.execute_at && (
+                                                        <div>Execute At (raw): {order.execute_at}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className={`text-xs px-2 py-1 rounded font-bold ${
                                                 isWin 

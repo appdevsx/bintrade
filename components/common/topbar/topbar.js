@@ -7,9 +7,11 @@ import "react-phone-input-2/lib/style.css";
 import PhoneInput from "react-phone-input-2";
 import Flag from "react-world-flags";
 import { useState, useEffect, Suspense } from "react";
+import { Listbox } from '@headlessui/react';
+import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import Link from "next/link";
 import Image from "next/image";
-import { UserRound, ArrowUpLeft, Plus, ChevronDown, X, Settings, ArrowRightToLine, Pencil, Eye, EyeOff, Search, Clock12, Info, LoaderCircle } from 'lucide-react';
+import { UserRound, ArrowUpLeft, Plus, ChevronDown, X, Settings, ArrowRightToLine, Pencil, Eye, EyeOff, Search, Clock12, Info, LoaderCircle, CircleDollarSign } from 'lucide-react';
 import { useAccount } from "@/context/accountProvider/accountProvider";
 import { getCountryOptions } from "@/utils/getCountryOptions/getCountryOptions";
 import { getCurrencyOptions } from "@/utils/getCurrencyOptions/getCurrencyOptions";
@@ -615,21 +617,54 @@ function TopbarContent() {
         }
     };
 
-    useEffect(() => {
-        const fetchGateways = async () => {
-            try {
-                const response = await getDepositAPI();
-                setPaymentGateways(response.data.data.payment_gateways || []);
+    // useEffect(() => {
+    //     const fetchGateways = async () => {
+    //         try {
+    //             const response = await getDepositAPI();
+    //             const paymentGateways = response?.data?.data?.payment_gateways || [];
 
-                if (response.data.data.payment_gateways && response.data.data.payment_gateways.length > 0) {
-                    setSelectedGatewayType(response.data.data.payment_gateways[0].type);
-                }
-            } catch (error) {
-                toast.error("Error fetching payment gateways:", error);
+    //             setPaymentGateways(paymentGateways);
+
+    //             if (paymentGateways.length > 0) {
+    //                 setSelectedGatewayType(paymentGateways[0].type);
+    //             }
+    //         } catch (error) {
+    //             const apiError = error?.response?.data?.message?.error?.[0] || "Failed to fetch payment gateways.";
+    //             toast.error(apiError);
+    //         }
+    //     };
+    //     fetchGateways();
+    // }, []);
+
+    const handlePaymentsClick = async () => {
+        try {
+            // Fetch deposit gateways
+            const depositResponse = await getDepositAPI();
+            const paymentGateways = depositResponse?.data?.data?.payment_gateways || [];
+            setPaymentGateways(paymentGateways);
+            if (paymentGateways.length > 0) {
+                setSelectedGatewayType(paymentGateways[0].type);
             }
-        };
-        fetchGateways();
-    }, []);
+
+            // Fetch withdraw gateways
+            const withdrawResponse = await getWithdrawAPI();
+            const withdrawGateways = withdrawResponse?.data?.data?.gateway_currencies;
+            if (withdrawGateways) {
+                setGateways(withdrawGateways);
+            }
+
+            // Fetch exchange data
+            const exchangeResponse = await getExchangeAPI();
+            const exchange = exchangeResponse?.data?.data;
+            setExchangeData(exchange);
+
+            // Open sidebar after all data is fetched
+            togglePaymentSidebar();
+        } catch (error) {
+            const apiError = error?.response?.data?.message?.error?.[0] || "Failed to fetch payment gateways.";
+            toast.error(apiError);
+        }
+    };
 
     useEffect(() => {
         if (selectedCurrency) {
@@ -730,19 +765,20 @@ function TopbarContent() {
     };
 
 
-    useEffect(() => {
-        const fetchWithdrawData = async () => {
-            try {
-                const response = await getWithdrawAPI();
-                if (response.data?.data?.gateway_currencies) {
-                    setGateways(response.data.data.gateway_currencies);
-                }
-            } catch (error) {
-                toast.error("Error fetching withdrawal data:", error);
-            }
-        };
-        fetchWithdrawData();
-    }, []);
+    // useEffect(() => {
+    //     const fetchWithdrawData = async () => {
+    //         try {
+    //             const response = await getWithdrawAPI();
+    //             if (response.data?.data?.gateway_currencies) {
+    //                 setGateways(response.data.data.gateway_currencies);
+    //             }
+    //         } catch (error) {
+    //             const apiError = error?.response?.data?.message?.error?.[0] || "Failed to fetch payment gateways.";
+    //             toast.error(apiError);
+    //         }
+    //     };
+    //     fetchWithdrawData();
+    // }, []);
 
     const handleGatewayChange = (e) => {
         const gatewayId = e.target.value;
@@ -775,7 +811,21 @@ function TopbarContent() {
                 toast.error(response.data.message.error[0]);
             }
         } catch (error) {
-            toast.error("Server did not respond");
+            if (error.response && error.response.data) {
+                const { message, errors } = error.response.data;
+
+                // Show main message if present
+                if (message) {
+                    toast.error(message);
+                }
+
+                // Loop through and show specific validation errors
+                if (errors && typeof errors === 'object') {
+                    Object.values(errors).flat().forEach((msg) => toast.error(msg));
+                }
+            } else {
+                toast.error("Server did not respond");
+            }
         } finally {
             setLoading(false);
         }
@@ -822,9 +872,18 @@ function TopbarContent() {
     
         try {
             const response = await submitWithdrawAPI(formData, withdrawToken);
+
+            console.log(response)
     
             if (response.data.type === "success") {
                 toast.success(response.data.message.success[0]);
+                const newUrl = new URL(window.location.href);
+                newUrl.searchParams.delete("withdrawToken");
+                window.history.pushState({}, "", newUrl);
+
+                closeAllSidebars(true);
+                fetchWallets();
+                fetchTransactions();
                 onClose();
             } else {
                 toast.error(response.data.message.error[0]);
@@ -852,18 +911,19 @@ function TopbarContent() {
         handleWithdrawCharge();
     }, []);
 
-    const fetchExchangeData = async () => {
-        try {
-            const response = await getExchangeAPI();
-            setExchangeData(response.data.data);
-        } catch (error) {
-            console.log("Failed to fetch exchange data.");
-        }
-    };
+    // const fetchExchangeData = async () => {
+    //     try {
+    //         const response = await getExchangeAPI();
+    //         setExchangeData(response.data.data);
+    //     } catch (error) {
+    //         const apiError = error?.response?.data?.message?.error?.[0] || "Failed to fetch payment gateways.";
+    //         toast.error(apiError);
+    //     }
+    // };
     
-    useEffect(() => {
-        fetchExchangeData();
-    }, []);
+    // useEffect(() => {
+    //     fetchExchangeData();
+    // }, []);
 
     const handleExchangeSubmit = async (e) => {
         e.preventDefault();
@@ -1154,11 +1214,11 @@ function TopbarContent() {
                     ) : (
                         <div className="flex items-center gap-3">
                             <div className="relative w-9 h-9 flex justify-center items-center bg-[#0d1f30] rounded-md" onClick={() => setIsIntervalListOpen(!isIntervalListOpen)}>
-                                <div className={`transition-transform duration-300 ${isIntervalListOpen ? "rotate-45" : "rotate-0"}`}>
-                                    <Plus className="w-5 text-white" />
+                                <div className="transition-transform duration-300">
+                                    <CircleDollarSign className="w-5 text-white" />
                                 </div>
                             </div>
-                            <select
+                            {/* <select
                                 className="bg-[#0d1f30] shadow-lg rounded-md border-0 text-sm text-white"
                                 value={symbol}
                                 onChange={(e) => setSymbol(e.target.value)}
@@ -1172,7 +1232,43 @@ function TopbarContent() {
                                 ) : (
                                     <option disabled>No results found</option>
                                 )}
-                            </select>
+                            </select> */}
+                            <Listbox value={symbol} onChange={setSymbol}>
+                                <div className="relative">
+                                    <Listbox.Button className="relative w-full cursor-default bg-[#0d1f30] text-white text-sm rounded-md shadow-lg pl-3 pr-10 py-2 text-left">
+                                        <span className="block truncate">
+                                            {filteredTrades.find((t) => t.name === symbol)?.name || 'Select a symbol'}
+                                        </span>
+                                        <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                            <ChevronUpDownIcon className="h-5 w-5 text-white" aria-hidden="true" />
+                                        </span>
+                                    </Listbox.Button>
+
+                                    <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-[#0d1f30] py-1 text-sm text-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                        {filteredTrades.map((trade) => (
+                                            <Listbox.Option
+                                                key={trade.name}
+                                                value={trade.name}
+                                                className={({ active }) =>
+                                                `relative cursor-pointer select-none py-2 pl-4 pr-4 ${
+                                                    active ? 'bg-[#1a2e45]' : ''
+                                                }`
+                                                }
+                                            >
+                                                {({ selected }) => (
+                                                    <span
+                                                        className={`block truncate ${
+                                                        selected ? 'font-semibold' : 'font-normal'
+                                                        }`}
+                                                    >
+                                                        {trade.name}
+                                                    </span>
+                                                )}
+                                            </Listbox.Option>
+                                        ))}
+                                    </Listbox.Options>
+                                </div>
+                            </Listbox>
                         </div>
                     )}
                     {loading ? (
@@ -1183,11 +1279,11 @@ function TopbarContent() {
                     ) : (
                         <div className="flex items-center gap-3">
                             <div className="relative w-9 h-9 flex justify-center items-center bg-[#0d1f30] rounded-md" onClick={() => setIsIntervalListOpen(!isIntervalListOpen)}>
-                                <div className={`transition-transform duration-300 ${isIntervalListOpen ? "rotate-45" : "rotate-0"}`}>
+                                <div className="transition-transform duration-300">
                                     <Clock12 className="w-5 text-white" />
                                 </div>
                             </div>
-                            <select
+                            {/* <select
                                 className="bg-[#0d1f30] shadow-lg rounded-md border-0 text-sm text-white"
                                 value={interval}
                                 onChange={(e) => setInterval(e.target.value)}
@@ -1201,7 +1297,45 @@ function TopbarContent() {
                                 ) : (
                                     <option disabled>No results found</option>
                                 )}
-                            </select>
+                            </select> */}
+                            <Listbox value={interval} onChange={setInterval}>
+                                <div className="relative">
+                                    <Listbox.Button className="relative w-full cursor-default bg-[#0d1f30] text-white text-sm rounded-md shadow-lg pl-3 pr-10 py-2 text-left">
+                                        <span className="block truncate">
+                                            {intervalOptions.find((opt) => opt.label === interval)?.label || 'Select an interval'}
+                                        </span>
+                                        <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                            <ChevronUpDownIcon className="h-5 w-5 text-white" aria-hidden="true" />
+                                        </span>
+                                    </Listbox.Button>
+
+                                    <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-[#0d1f30] py-1 text-sm text-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                        {intervalOptions.map((option) => (
+                                            <Listbox.Option
+                                                key={option.label}
+                                                value={option.label}
+                                                className={({ active }) =>
+                                                    `relative cursor-pointer select-none py-2 pl-4 pr-4 ${
+                                                        active ? 'bg-[#1a2e45]' : ''
+                                                    }`
+                                                }
+                                            >
+                                                {({ selected }) => (
+                                                    <>
+                                                        <span
+                                                            className={`block truncate ${
+                                                                selected ? 'font-semibold' : 'font-normal'
+                                                            }`}
+                                                        >
+                                                            {option.label}
+                                                        </span>
+                                                    </>
+                                                )}
+                                            </Listbox.Option>
+                                        ))}
+                                    </Listbox.Options>
+                                </div>
+                            </Listbox>
                         </div>
                     )}
                 </div>
@@ -1222,7 +1356,7 @@ function TopbarContent() {
                             </>
                         )}
                     </div>
-                    <div onClick={togglePaymentSidebar}>
+                    <div onClick={handlePaymentsClick}>
                         <button className="baseBtn !py-2 !px-4">Payments</button>
                     </div>
                     <div className="relative w-11 h-11 flex justify-center items-center bg-[#0d1f30] rounded-full cursor-pointer" onClick={toggleProfileSidebar}>
@@ -1801,7 +1935,7 @@ function TopbarContent() {
                     <div className="grid grid-cols-1 gap-3 p-4">
                         <div className="relative text-white">
                             <label className="text-sm mb-2 block">Payment Gateway</label>
-                            <select
+                            {/* <select
                                 className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 bg-[#0d1f30]"
                                 onChange={handleCurrency}
                                 required
@@ -1814,13 +1948,76 @@ function TopbarContent() {
                                         </option>
                                     ))
                                 )}
-                            </select>
+                            </select> */}
+                            <Listbox value="" onChange={(value) => handleCurrency({ target: { value } })}>
+                                <div className="relative">
+                                    <Listbox.Button className="relative w-full h-11 text-sm font-medium rounded-md shadow-sm border border-slate-800 text-slate-300 bg-[#0d1f30] text-left pl-3 pr-10">
+                                    <span className="block truncate">
+                                        Select Payment Gateway
+                                    </span>
+                                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                        <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                    </span>
+                                    </Listbox.Button>
+
+                                    <Listbox.Options className="absolute z-10 mt-1 w-full max-h-60 overflow-auto rounded-md bg-[#0d1f30] py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                    <Listbox.Option
+                                        value=""
+                                        className={({ active }) =>
+                                        `relative cursor-default select-none py-2 pl-10 pr-4 ${
+                                            active ? 'bg-[#1a2e45] text-white' : 'text-gray-300'
+                                        }`
+                                        }
+                                    >
+                                        {({ selected }) => (
+                                        <>
+                                            <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                                            Select Payment Gateway
+                                            </span>
+                                            {selected && (
+                                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-white">
+                                                <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                            </span>
+                                            )}
+                                        </>
+                                        )}
+                                    </Listbox.Option>
+
+                                    {paymentGateways.flatMap((gateway) =>
+                                        gateway.currencies.map((currency) => (
+                                        <Listbox.Option
+                                            key={currency.alias}
+                                            value={currency.alias}
+                                            className={({ active }) =>
+                                            `relative cursor-default select-none py-2 pl-10 pr-4 ${
+                                                active ? 'bg-[#1a2e45] text-white' : 'text-gray-300'
+                                            }`
+                                            }
+                                        >
+                                            {({ selected }) => (
+                                            <>
+                                                <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                                                {currency.name} ({gateway.type})
+                                                </span>
+                                                {selected && (
+                                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-white">
+                                                    <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                                </span>
+                                                )}
+                                            </>
+                                            )}
+                                        </Listbox.Option>
+                                        ))
+                                    )}
+                                    </Listbox.Options>
+                                </div>
+                            </Listbox>
                         </div>
                         <div className="relative text-white">
                             <label className="text-sm mb-2 block">Amount</label>
                             <div className="relative">
                                 <input
-                                    type="number"
+                                    type="text"
                                     value={amount}
                                     placeholder="Enter amount"
                                     onChange={(e) => setAmount(e.target.value)}
@@ -1903,7 +2100,7 @@ function TopbarContent() {
                     <div className="grid grid-cols-1 gap-3 p-4">
                         <div className="relative text-white">
                             <label className="text-sm mb-2 block">Payment Gateway</label>
-                            <select
+                            {/* <select
                                 className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 bg-[#0d1f30]"
                                 value={selectedGateway?.id || ""}
                                 onChange={handleGatewayChange}
@@ -1915,13 +2112,70 @@ function TopbarContent() {
                                         {gateway.name}
                                     </option>
                                 ))}
-                            </select>
+                            </select> */}
+                            <Listbox value={selectedGateway} onChange={setSelectedGateway}>
+                                <div className="relative">
+                                    <Listbox.Button className="relative w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 bg-[#0d1f30] text-left pl-3 pr-10">
+                                    <span className="block truncate">
+                                        {selectedGateway?.name || "Select Payment Gateway"}
+                                    </span>
+                                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                        <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                    </span>
+                                    </Listbox.Button>
+
+                                    <Listbox.Options className="absolute z-10 mt-1 w-full max-h-60 overflow-auto rounded-md bg-[#0d1f30] py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                    <Listbox.Option
+                                        value={null}
+                                        className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${
+                                        active ? 'bg-[#1a2e45] text-white' : 'text-gray-300'
+                                        }`}
+                                    >
+                                        {({ selected }) => (
+                                        <>
+                                            <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                                            Select Payment Gateway
+                                            </span>
+                                            {selected && (
+                                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-white">
+                                                <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                            </span>
+                                            )}
+                                        </>
+                                        )}
+                                    </Listbox.Option>
+
+                                    {gateways.map((gateway) => (
+                                        <Listbox.Option
+                                        key={gateway.id}
+                                        value={gateway}
+                                        className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${
+                                            active ? 'bg-[#1a2e45] text-white' : 'text-gray-300'
+                                        }`}
+                                        >
+                                        {({ selected }) => (
+                                            <>
+                                            <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                                                {gateway.name}
+                                            </span>
+                                            {selected && (
+                                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-white">
+                                                <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                                </span>
+                                            )}
+                                            </>
+                                        )}
+                                        </Listbox.Option>
+                                    ))}
+                                    </Listbox.Options>
+                                </div>
+                            </Listbox>
                         </div>
                         <div className="relative text-white">
                             <label className="text-sm mb-2 block">Amount</label>
                             <div className="relative">
                                 <input
-                                    type="number"
+                                    type="text"
                                     value={amount}
                                     placeholder="Enter amount"
                                     onChange={(e) => setAmount(e.target.value)}
@@ -2025,7 +2279,7 @@ function TopbarContent() {
                         </div>
                         <div className="relative text-white">
                             <label className="text-sm mb-2 block">Exchange To</label>
-                            <select
+                            {/* <select
                                 className="w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 bg-[#0d1f30]"
                                 value={selectedCurrency}
                                 onChange={(e) => {
@@ -2046,7 +2300,83 @@ function TopbarContent() {
                                     </option>
                                 ))
                                 : <option>Loading...</option>}
-                            </select>
+                            </select> */}
+                            <Listbox 
+                                value={selectedCurrency} 
+                                onChange={(value) => {
+                                    setSelectedCurrency(value);
+                                    const selectedCurrencyData = exchangeData?.currencies.find(c => c.code === value);
+                                    if (selectedCurrencyData) {
+                                    setExchangeId(selectedCurrencyData.id);
+                                    }
+                                }}
+                                >
+                                <div className="relative">
+                                    <Listbox.Button className="relative w-full h-11 text-sm font-medium rounded-md shadow-sm border-slate-800 text-slate-300 bg-[#0d1f30] text-left pl-3 pr-10">
+                                    <span className="block truncate">
+                                        {selectedCurrency || "Select Wallet"}
+                                    </span>
+                                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                        <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                    </span>
+                                    </Listbox.Button>
+
+                                    <Listbox.Options className="absolute z-10 mt-1 w-full max-h-60 overflow-auto rounded-md bg-[#0d1f30] py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                    <Listbox.Option
+                                        value=""
+                                        className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${
+                                        active ? 'bg-[#1a2e45] text-white' : 'text-gray-300'
+                                        }`}
+                                    >
+                                        {({ selected }) => (
+                                        <>
+                                            <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                                            Select Wallet
+                                            </span>
+                                            {selected && (
+                                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-white">
+                                                <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                            </span>
+                                            )}
+                                        </>
+                                        )}
+                                    </Listbox.Option>
+
+                                    {exchangeData ? (
+                                        exchangeData.currencies.map((currency) => (
+                                        <Listbox.Option
+                                            key={currency.id}
+                                            value={currency.code}
+                                            className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${
+                                            active ? 'bg-[#1a2e45] text-white' : 'text-gray-300'
+                                            }`}
+                                        >
+                                            {({ selected }) => (
+                                            <>
+                                                <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                                                {currency.code}
+                                                </span>
+                                                {selected && (
+                                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-white">
+                                                    <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                                </span>
+                                                )}
+                                            </>
+                                            )}
+                                        </Listbox.Option>
+                                        ))
+                                    ) : (
+                                        <Listbox.Option
+                                        value=""
+                                        disabled
+                                        className="relative cursor-default select-none py-2 pl-10 pr-4 text-gray-300"
+                                        >
+                                        <span className="block truncate">Loading...</span>
+                                        </Listbox.Option>
+                                    )}
+                                    </Listbox.Options>
+                                </div>
+                            </Listbox>
                         </div>
                         <div className="mt-2">
                             <button type="submit" className={`baseBtn flex justify-center w-full ${loading ? "cursor-not-allowed" : ""}`} disabled={loading}>
