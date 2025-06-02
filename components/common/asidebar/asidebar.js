@@ -138,83 +138,85 @@ export default function Asidebar({ handleTradeClick, handleTradingCompletion, is
     };
 
     const onTradeClick = async (actionType) => {
-		setAction(actionType === "HIGH" ? "Up" : "Down");
-		setTradeOutcome(null);
-		setRemainingTime(duration);
-		setProfitOrLoss(null);
-		setIsTimerVisible(true);
+        setAction(actionType === "HIGH" ? "Up" : "Down");
+        setTradeOutcome(null);
+        setRemainingTime(duration);
+        setProfitOrLoss(null);
+        setIsTimerVisible(true);
 
-		try {
-			const response = await handleTradeClick(actionType);
+        try {
+            const response = await handleTradeClick(actionType);
             console.log(response);
-			
-			if (response?.success) {
-				const orderId = response.orderId;
-				console.log("Starting trade with order ID:", orderId);
-				
-				setTradeOutcome("In Progress");
-
-                const endTime = Date.now() + (duration * 1000);
+            
+            if (response?.success) {
+                const orderId = response.orderId;
+                console.log("Starting trade with order ID:", orderId);
                 
-                // Save trade to localStorage
+                setTradeOutcome("In Progress");
+
+                const startTime = Date.now(); // Capture current time as start time
+                const endTime = startTime + (duration * 1000);
+                
+                // Save trade to localStorage with both timestamps
                 const tradeData = {
                     orderId,
                     action: actionType === "HIGH" ? "Up" : "Down",
                     amount,
                     duration,
+                    startTime, // Add start time
                     endTime
                 };
                 localStorage.setItem('activeTrade', JSON.stringify(tradeData));
                 setActiveTrade(tradeData);
 
-				const timer = setInterval(() => {
-					setRemainingTime((prevTime) => {
-						if (prevTime <= 1) {
-							clearInterval(timer);
-							setIsTimerVisible(false);
-							setRemainingTime(null);
+                const timer = setInterval(() => {
+                    setRemainingTime((prevTime) => {
+                        if (prevTime <= 1) {
+                            clearInterval(timer);
+                            setIsTimerVisible(false);
+                            setRemainingTime(null);
                             localStorage.removeItem('activeTrade');
-							
-							console.log("Checking result for order:", orderId);
-							if (orderId) {
-								handleTradingCompletion(orderId).then(result => {
-									console.log("Trade result:", result);
-									if (result) {
-										const outcome = result.result === "WIN" ? "Win" : "Loss";
-										console.log("Setting outcome:", outcome);
-										setTradeOutcome(outcome);
-										setProfitOrLoss(outcome === "Win" ? result.winAmount : amount);
-									} else {
-										console.warn("No result received");
-										setTradeOutcome("Unknown");
-										toast.error("Could not determine trade result");
-									}
-								}).catch(error => {
-									console.error("Completion error:", error);
-									setTradeOutcome("Error");
-									toast.error("Error checking trade result");
-								});
-							}
-							return 0;
-						}
-						return prevTime - 1;
-					});
-				}, 1000);
+                            
+                            console.log("Checking result for order:", orderId);
+                            if (orderId) {
+                                handleTradingCompletion(orderId).then(result => {
+                                    console.log("Trade result:", result);
+                                    if (result) {
+                                        const outcome = result.result === "WIN" ? "Win" : "Loss";
+                                        console.log("Setting outcome:", outcome);
+                                        setTradeOutcome(outcome);
+                                        setProfitOrLoss(outcome === "Win" ? result.winAmount : amount);
+                                    } else {
+                                        console.warn("No result received");
+                                        setTradeOutcome("Unknown");
+                                        toast.error("Could not determine trade result");
+                                    }
+                                }).catch(error => {
+                                    console.error("Completion error:", error);
+                                    setTradeOutcome("Error");
+                                    toast.error("Error checking trade result");
+                                });
+                            }
+                            return 0;
+                        }
+                        return prevTime - 1;
+                    });
+                }, 1000);
 
-				setTradeTimer(timer);
-			} else {
-				setIsTimerVisible(false);
-				setTradeOutcome("Failed");
-				setRemainingTime(null); // Reset on failure
-			}
-		} catch (error) {
-			console.error("Trade failed:", error);
-			setIsTimerVisible(false);
-			setTradeOutcome("Error");
-			setRemainingTime(null); // Reset on error
-			toast.error("Trade failed unexpectedly");
-		}
-	};
+                setTradeTimer(timer);
+            } else {
+                setIsTimerVisible(false);
+                setTradeOutcome("Failed");
+                setRemainingTime(null); // Reset on failure
+            }
+        } catch (error) {
+            console.error("Trade failed:", error);
+            setIsTimerVisible(false);
+            setTradeOutcome("Error");
+            setRemainingTime(null); // Reset on error
+            toast.error("Trade failed unexpectedly");
+        }
+    };
 
     return (
         <div className="fixed lg:sticky top-[70px] lg:top-0 right-0 w-[180px] h-screen lg:h-[calc(100vh-102px)] z-[2]">
@@ -289,6 +291,22 @@ export default function Asidebar({ handleTradeClick, handleTradingCompletion, is
                         Time Remaining: {formatTime(remainingTime)}
                     </div>
                 )}
+                {activeTrade && (
+                    <div className="text-xs mt-2 bg-[#0d1f30] p-2 rounded-md">
+                        <div className="grid grid-cols-2 gap-1 border-b border-gray-600 pb-1 mb-1">
+                            <div className="text-left">Started At:</div>
+                            <div className="text-right">
+                                {new Date(activeTrade.startTime || Date.now()).toLocaleString()}
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-1">
+                            <div className="text-left">Will Execute At:</div>
+                            <div className="text-right">
+                                {new Date(activeTrade.endTime).toLocaleString()}
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {tradeOutcome && (
                     <div className="w-full text-center text-sm mt-4">
                         Result:{" "}
@@ -337,9 +355,9 @@ export default function Asidebar({ handleTradeClick, handleTradingCompletion, is
                                                 <div className="text-sm">Direction: {order.p_type === "HIGH" ? "Up" : "Down"}</div>
                                                 <div className="text-sm">Amount: {currencySymbol}{order.amount}</div>
                                                 <div className="text-sm">
-                                                    <div>Started At (raw): {order.started_at}</div>
+                                                    <div>Started At: {order.started_at}</div>
                                                     {order.execute_at && (
-                                                        <div>Execute At (raw): {order.execute_at}</div>
+                                                        <div>Execute At: {order.execute_at}</div>
                                                     )}
                                                 </div>
                                             </div>

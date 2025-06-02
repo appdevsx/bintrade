@@ -764,6 +764,44 @@ function TopbarContent() {
         }
     };
 
+    // const handleDepositSubmit = async (e) => {
+    //     e.preventDefault();
+    //     setLoading(true);
+
+    //     try {
+    //         if (selectedGatewayType === "AUTOMATIC") {
+    //             const response = await automaticDepositAPI(selectedCurrency, amount, selectedCurrencyCode);
+    //             console.log(response);
+
+    //             if (response.data.message?.error) {
+    //                 toast.error(response.data.message.error[0]);
+    //             } else {
+    //                 toast.success(response.data.message.success);
+    //                 const redirectUrl = response.data.data?.redirect_url;
+    //                 if (redirectUrl) {
+    //                     window.location.href = redirectUrl;
+    //                 }
+    //             }
+    //         } else if (selectedGatewayType === "MANUAL") {
+    //             const manualResponse = await manualDepositAPI(selectedCurrency, amount, selectedCurrencyCode, fullName, transactionId, screenshot);
+    //             if (manualResponse.data.type === "success") {
+    //                 toast.success(manualResponse.data.message.success);
+    //             } else {
+    //                 toast.error(manualResponse.data.message.error[0]);
+    //             }
+    //         } else {
+    //             toast.error("Unknown deposit type.");
+    //         }
+    //     } catch (error) {
+    //         const errorMessage =
+    //             error?.response?.data?.message?.error?.[0] ||
+    //             "Server did not respond";
+    //         toast.error(errorMessage);
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
+
 
     // useEffect(() => {
     //     const fetchWithdrawData = async () => {
@@ -799,6 +837,8 @@ function TopbarContent() {
         setLoading(true);
         try {
             const response = await withdrawRequestAPI(selectedGateway.alias, amount);
+
+            console.log(response);
     
             if (response.data.type === "success") {
                 const withdrawToken = response.data.data.token;
@@ -1949,45 +1989,36 @@ function TopbarContent() {
                                     ))
                                 )}
                             </select> */}
-                            <Listbox value="" onChange={(value) => handleCurrency({ target: { value } })}>
+                            <Listbox 
+                                value={selectedCurrency} 
+                                onChange={(value) => handleCurrency({ target: { value } })}
+                            >
                                 <div className="relative">
                                     <Listbox.Button className="relative w-full h-11 text-sm font-medium rounded-md shadow-sm border border-slate-800 text-slate-300 bg-[#0d1f30] text-left pl-3 pr-10">
-                                    <span className="block truncate">
-                                        Select Payment Gateway
-                                    </span>
-                                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                                        <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                                    </span>
+                                        <span className="block truncate">
+                                            {selectedCurrency ? (
+                                                // Find and display the selected currency name and gateway type
+                                                (() => {
+                                                    for (const gateway of paymentGateways) {
+                                                        const currency = gateway.currencies.find(c => c.alias === selectedCurrency);
+                                                        if (currency) {
+                                                            return `${currency.name} (${gateway.type})`;
+                                                        }
+                                                    }
+                                                    return "Select Payment Gateway";
+                                                })()
+                                            ) : (
+                                                "Select Payment Gateway"
+                                            )}
+                                        </span>
+                                        <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                            <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                        </span>
                                     </Listbox.Button>
 
                                     <Listbox.Options className="absolute z-10 mt-1 w-full max-h-60 overflow-auto rounded-md bg-[#0d1f30] py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                    <Listbox.Option
-                                        value=""
-                                        className={({ active }) =>
-                                        `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                                            active ? 'bg-[#1a2e45] text-white' : 'text-gray-300'
-                                        }`
-                                        }
-                                    >
-                                        {({ selected }) => (
-                                        <>
-                                            <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
-                                            Select Payment Gateway
-                                            </span>
-                                            {selected && (
-                                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-white">
-                                                <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                                            </span>
-                                            )}
-                                        </>
-                                        )}
-                                    </Listbox.Option>
-
-                                    {paymentGateways.flatMap((gateway) =>
-                                        gateway.currencies.map((currency) => (
                                         <Listbox.Option
-                                            key={currency.alias}
-                                            value={currency.alias}
+                                            value=""
                                             className={({ active }) =>
                                             `relative cursor-default select-none py-2 pl-10 pr-4 ${
                                                 active ? 'bg-[#1a2e45] text-white' : 'text-gray-300'
@@ -1997,7 +2028,7 @@ function TopbarContent() {
                                             {({ selected }) => (
                                             <>
                                                 <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
-                                                {currency.name} ({gateway.type})
+                                                Select Payment Gateway
                                                 </span>
                                                 {selected && (
                                                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-white">
@@ -2007,8 +2038,33 @@ function TopbarContent() {
                                             </>
                                             )}
                                         </Listbox.Option>
-                                        ))
-                                    )}
+
+                                        {paymentGateways.flatMap((gateway) =>
+                                            gateway.currencies.map((currency) => (
+                                            <Listbox.Option
+                                                key={currency.alias}
+                                                value={currency.alias}
+                                                className={({ active }) =>
+                                                `relative cursor-default select-none py-2 pl-10 pr-4 ${
+                                                    active ? 'bg-[#1a2e45] text-white' : 'text-gray-300'
+                                                }`
+                                                }
+                                            >
+                                                {({ selected }) => (
+                                                <>
+                                                    <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                                                    {currency.name} ({gateway.type})
+                                                    </span>
+                                                    {selected && (
+                                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-white">
+                                                        <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                                    </span>
+                                                    )}
+                                                </>
+                                                )}
+                                            </Listbox.Option>
+                                            ))
+                                        )}
                                     </Listbox.Options>
                                 </div>
                             </Listbox>
